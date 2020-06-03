@@ -135,8 +135,7 @@ ElseIf ($PSO2NABinFolder)
 }
 Else
 {
-    "Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it."
-	"Press any key to exit."
+    "Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 8
@@ -171,7 +170,7 @@ Else
 	exit 9
 }
 
-"Checking if volume is formated as NTFS..."
+"Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
 $PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
@@ -273,6 +272,15 @@ Catch
 {
     Failure -Error $_
     exit 14
+}
+
+"Checking needed Apps for runtime"
+$GamingServices = @()
+$GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+If ($GamingServices.Count -eq 0)
+{
+    "You Need to Install the Gaming Service App"
+    [Diagnostics.Process]::Start("https://www.microsoft.com/store/apps/9mwpm2cqnlhn")
 }
 
 Stop-Transcript
