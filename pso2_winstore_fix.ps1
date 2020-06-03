@@ -11,7 +11,7 @@ function Failure {
 	#exit 254
 }
 
-"Checking Windows version"
+"Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
@@ -41,7 +41,7 @@ $myWindowsPrincipal=New-Object System.Security.Principal.WindowsPrincipal($myWin
 $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 {
-	"You need to run this PowerShell script with Administrator power"
+	"You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
 	Stop-Transcript
 	Start-Process powershell.exe "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
 	exit
@@ -71,7 +71,8 @@ if (Test-Path -Path $RegistryKeyPath)
 }
 If ($DevMode -EQ $false)
 {
-	"You need to enable Developer mode"
+	"You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/"
+	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 4
@@ -90,7 +91,7 @@ If ($JSONPath)
 }
 Else
 {
-    "Cannot find %APPDATA% folder - Is your Windows OK? Press any key to exit."
+    "Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 5
@@ -112,7 +113,7 @@ If ($JSONObj)
 }
 Else
 {
-    "Can not convert JSON into PowerShell Object. Press any key to exit."
+    "Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
@@ -150,12 +151,12 @@ Else
 	exit 9
 }
 
-"Checking if Volume is formated as NTFS"
+"Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
 $PSO2Vol += Get-Volume - FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
 {
-    "Your PSO2NA installtion is not installed on a NTFS drive, please move the PSO2NA installtion elsewhere"
+    "Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
     Stop-Transcript
     $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
     exit 15
@@ -172,7 +173,7 @@ If ($Files.Count -ne 1)
 	exit 11
 }
 
-"Checking if we need to install the requirments"
+"Checking if we need to install the requirments..."
 $NewPackages = @()
 $DirectXRuntime = @()
 $DirectXRuntime_Good = @()
@@ -187,7 +188,7 @@ $VCLibs_Good += ([Version]$VCLibs.Version -ge $VersionCheck) -eq $true
 
 If ($DirectXRuntime_Good.Count -eq 0)
 {
-    "Downloading DirectXRuntime requirement... (56MB)"
+    "Downloading DirectX Runtime requirement... (56MB)"
     $URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
     $FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
     Try
@@ -200,7 +201,7 @@ If ($DirectXRuntime_Good.Count -eq 0)
         exit 12
     }
     
-    "Adding DirectXRuntime requirement to TODO list..."
+    "Adding DirectX Runtime requirement to TODO list..."
     $NewPackages += $FilesD
 }
 
@@ -230,7 +231,7 @@ If ($NewPackages.Count -gt 0)
 
 
 $OldPackages = @()
-"Look For a PSO2NA Windows Store Installtion"
+"Looking for a PSO2NA Windows Store installation..."
 $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers
 If ($OldPackages.Count -gt 0)
 {
@@ -239,7 +240,7 @@ If ($OldPackages.Count -gt 0)
 }
 Else
 {
-    "Had not detected a PSO2NA Windows Store Installation"
+    "No Windows Store PSO2NA installation found. This is OK!"
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
