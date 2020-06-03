@@ -329,7 +329,7 @@ Catch
 }
 If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
-	"You Need to Install the Gaming Service App"
+	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	Try
@@ -341,8 +341,9 @@ If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 		$_ | Failure
 		exit 13
 	}
-	"Adding VCLibs requirement to TODO list..."
+	"Installing GamingService App"
 	$FilesD | Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion
+	$FilesD | Remove-Item -Verbose
 }
 
 Stop-Transcript
