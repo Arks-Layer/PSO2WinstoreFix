@@ -157,7 +157,7 @@ If ($PSO2Vol.Count -eq 0)
 {
     "Your PSO2NA installtion is not installed on a NTFS drive, please move the PSO2NA installtion elsewhere"
     Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
     exit 15
 }
 
