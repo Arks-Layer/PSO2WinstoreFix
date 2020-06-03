@@ -173,7 +173,7 @@ Else
 
 "Checking if volume is formated as NTFS..."
 $PSO2Vol = @()
-$PSO2Vol += Get-Volume - FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
+$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
 {
     "Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
