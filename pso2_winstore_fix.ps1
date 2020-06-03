@@ -172,7 +172,7 @@ $VersionCheck = [Version]14.0.24217.0
 $VCLibs += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
 $VCLibs_Good += ([Version]$VCLibs.Version -ge $VersionCheck) -eq $true
 
-If ($DirectXRuntime.Count -eq 0)
+If ($DirectXRuntime_Good.Count -eq 0)
 {
     "Downloading DirectXRuntime requirement... (56MB)"
     $URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
