@@ -86,6 +86,8 @@ If ($DevMode -EQ $false)
 }
 "[OK]"
 
+$SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
+
 "Checking PSO2 Tweaker settings..."
 $JSONPath = $null
 $JSONData = $null
@@ -252,11 +254,11 @@ If ($DirectXRuntime_Good_User.Count -eq 0)
 	}
 
 	"Adding DirectX Runtime requirement to TODO list..."
-	$NewPackages += $FilesD
+	$NewPackages += Resolve-Path -Path $FileD
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0 -and $false)
 {
-	$DirectXRuntime | Add-AppxPackage -Verbose -Update
+	$DirectXRuntime | Add-AppxPackage -Verbose -Volume $SystemVolume
 }
 
 If ($VCLibs_Good_User.Count -eq 0)
@@ -274,17 +276,17 @@ If ($VCLibs_Good_User.Count -eq 0)
 		exit 13
 	}
 	"Adding VCLibs requirement to TODO list..."
-	$NewPackages += $FilesD
+	$NewPackages += Resolve-Path -Path $FileD
 }
 ElseIf ($VCLibs_User.Count -eq 0 -and $false)
 {
-	$VCLibs | Add-AppxPackage -Verbose -Update
+	$VCLibs | Add-AppxPackage -Verbose -Volume $SystemVolume
 }
-If ($NewPackages.Count -gt 0 -and $false)
+If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Verbose
-	$NewPackages | Remote-Item -Verbose
+	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume
+	$NewPackages | Remove-Item -Verbose
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
@@ -292,24 +294,12 @@ $PSO2Package = @()
 $PSO2Package += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
 IF ($PSO2Package.Count -eq 0) #Try
 {
-	If ($NewPackages.Count -gt 0)
-	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop -DependencyPath $NewPackages
-	}
-	Else
-	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
-	}
+	Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
 }
 If ($False) #Catch
 {
 	$_ | Failure
 	exit 14
-}
-If ($NewPackages.Count -gt 0)
-{
-	"Ok, Cleaning up Dependency downloads"
-	$NewPackages | Remove-Item -Verbose
 }
 
 "Checking needed GamingService App for runtime"
@@ -322,7 +312,7 @@ $GamingServices_Good += $GamingServices | Where-Object -FilterScript {[Version]$
 Try
 {
 	$ForceReinstall = $true
-	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
+	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service -ErrorAction Stop
 	$ForceReinstall = $false
 }
 Catch
@@ -344,8 +334,8 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 		exit 18
 	}
 	"Installing GamingService App"
-	$FilesD | Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion
-	$FilesD | Remove-Item -Verbose
+	 Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+	 Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 
 Stop-Transcript
