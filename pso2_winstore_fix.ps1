@@ -200,7 +200,7 @@ If ($Files.Count -ne 1)
 
 $OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
-$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers
+$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
 If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
