@@ -256,7 +256,7 @@ If ($DirectXRuntime_Good_User.Count -eq 0)
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0 -and $false)
 {
-    $DirectXRuntime | Add-AppxPackage -Verbose -Update
+	$DirectXRuntime | Add-AppxPackage -Verbose -Update
 }
 
 If ($VCLibs_Good_User.Count -eq 0)
@@ -278,7 +278,7 @@ If ($VCLibs_Good_User.Count -eq 0)
 }
 ElseIf ($VCLibs_User.Count -eq 0 -and $false)
 {
-    $VCLibs | Add-AppxPackage -Verbose -Update
+	$VCLibs | Add-AppxPackage -Verbose -Update
 }
 If ($NewPackages.Count -gt 0 -and $false)
 {
@@ -290,14 +290,14 @@ If ($NewPackages.Count -gt 0 -and $false)
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 IF ($true) #Try
 {
-    If ($NewPackages.Count -gt 0)
-    {
-	    Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop -DependencyPath $NewPackages
-    }
-    Else
-    {
-        Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
-    }
+	If ($NewPackages.Count -gt 0)
+	{
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop -DependencyPath $NewPackages
+	}
+	Else
+	{
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
+	}
 }
 If ($False) #Catch
 {
@@ -319,18 +319,18 @@ $GamingServicese_Good += $GamingService | Where-Object -FilterScript {[Version]$
 
 Try
 {
-    $ForceReinstall = $true
-    Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
-    $ForceReinstall = $false
+	$ForceReinstall = $true
+	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
+	$ForceReinstall = $false
 }
 Catch
 {
-    "REINSTALL NEEDED"
+	"REINSTALL NEEDED"
 }
 If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"You Need to Install the Gaming Service App"
-    $URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	Try
 	{
