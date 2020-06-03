@@ -43,8 +43,10 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 {
 	"You need to run this PowerShell script with Administrator power"
 	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 3
+	Start-Process powershell.exe "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
+	exit
+	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	#exit 3
 }
 "[OK]"
 ""
