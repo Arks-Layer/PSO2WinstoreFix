@@ -1,8 +1,11 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
 
 function Failure {
-	[cmdletbinding()]
-	param($Error)
+	[CmdletBinding()]
+	Param
+	(
+		$Error
+	)
 	$result = $Error.Exception.Response.GetResponseStream()
 	$reader = New-Object System.IO.StreamReader($global:result)
 	$responseBody = $reader.ReadToEnd();
