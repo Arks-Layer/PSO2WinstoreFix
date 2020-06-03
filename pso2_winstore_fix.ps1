@@ -1,15 +1,15 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
 
 function Failure {
-    [cmdletbinding()]
-    param($Error)
-    $result = $Error.Exception.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($global:result)
-    $responseBody = $reader.ReadToEnd();
-    "Status: A system exception was caught."
-    $responsebody
-    Stop-Transcript
-    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	[cmdletbinding()]
+	param($Error)
+	$result = $Error.Exception.Response.GetResponseStream()
+	$reader = New-Object System.IO.StreamReader($global:result)
+	$responseBody = $reader.ReadToEnd();
+	"Status: A system exception was caught."
+	$responsebody
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 254
 }
 
@@ -61,7 +61,7 @@ $DevMode = $true
 $RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
 if (Test-Path -Path $RegistryKeyPath)
 {
-    $AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
+	$AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
 	if (Get-Member -InputObject $AppModelUnlock -Name AllowDevelopmentWithoutDevLicense)
 	{
 		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
@@ -89,82 +89,82 @@ $PSO2NAFolder = $null
 $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Tweaker\settings.json")
 If ($JSONPath)
 {
-    $JSONData = Get-Content -Path $JSONPath -Verbose
+	$JSONData = Get-Content -Path $JSONPath -Verbose
 }
 Else
 {
-    "Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
+	"Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 5
 }
 If ($JSONData)
 {
-    $JSONObj = $JSONData | ConvertFrom-Json -Verbose
+	$JSONObj = $JSONData | ConvertFrom-Json -Verbose
 }
 Else
 {
-    "Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet? Press any key to exit."
+	"Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 6
 }
 If ($JSONObj)
 {
-    $PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
+	$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
 }
 Else
 {
-    "Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
+	"Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
 }
 If (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
-    "The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+	"The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
-    Stop-Transcript
+	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 16
 }
 ElseIf ($PSO2NABinFolder)
 {
 `
-    $PSO2NAFolder = $PSO2NABinFolder | Split-Path
+	$PSO2NAFolder = $PSO2NABinFolder | Split-Path
 }
 Else
 {
-    "Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
+	"Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 8
 }
 If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
 {
-    "The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+	"The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
-    Stop-Transcript
+	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 17
 }
 ElseIf ($PSO2NAFolder)
 {
-    $LeafPath = $PSO2NAFolder | Split-Path -Leaf
-    If ($LeafPath -eq "ModifiableWindowsApps")
-    {
-        "You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
-        "Press any key to exit."
-	    Stop-Transcript
-	    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	    exit 10
-    }
-    "Moving instance to $($PSO2NAFolder) Folder"
-    Set-Location -Path $PSO2NAFolder -Verbose
+	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
+	If ($LeafPath -eq "ModifiableWindowsApps")
+	{
+		"You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
+		"Press any key to exit."
+		Stop-Transcript
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		exit 10
+	}
+	"Moving instance to $($PSO2NAFolder) Folder"
+	Set-Location -Path $PSO2NAFolder -Verbose
 }
 Else
 {
-    "Cannot get PSO2NA Folder - Did you follow the instructions? Press any key to exit."
+	"Cannot get PSO2NA Folder - Did you follow the instructions? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 9
@@ -175,10 +175,10 @@ $PSO2Vol = @()
 $PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
 {
-    "Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
-    Stop-Transcript
+	"Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
+	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-    exit 15
+	exit 15
 }
 
 
@@ -187,8 +187,8 @@ $Files = @()
 $Files += Get-ChildItem | Where-Object -Property Name -EQ "appxmanifest.xml"
 If ($Files.Count -ne 1)
 {
-    "Cannot find appxmanifest.xml file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-    Stop-Transcript
+	"Cannot find appxmanifest.xml file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
+	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
 }
@@ -208,45 +208,45 @@ $VCLibs_Good += ([Version]$VCLibs.Version -ge $VersionCheck) -eq $true
 
 If ($DirectXRuntime_Good.Count -eq 0)
 {
-    "Downloading DirectX Runtime requirement... (56MB)"
-    $URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
-    $FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
-    Try
-    {
-        Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
-    }
-    Catch 
-    {
-        Failure -Error $_
-        exit 12
-    }
-    
-    "Adding DirectX Runtime requirement to TODO list..."
-    $NewPackages += $FilesD
+	"Downloading DirectX Runtime requirement... (56MB)"
+	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
+	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
+	Try
+	{
+		Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+	}
+	Catch 
+	{
+		Failure -Error $_
+		exit 12
+	}
+	
+	"Adding DirectX Runtime requirement to TODO list..."
+	$NewPackages += $FilesD
 }
 
 If ($VCLibs_Good.Count -eq 0)
 {
-    "Downloading VCLibs requirement... (7MB)"
-    $URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
-    $FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
-    Try
-    {
-        Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
-    }
-    Catch 
-    {
-        Failure -Error $_
-        exit 13
-    }
-    "Adding VCLibs requirement to TODO list..."
-    $NewPackages += $FilesD
+	"Downloading VCLibs requirement... (7MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
+	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
+	Try
+	{
+		Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
+	}
+	Catch 
+	{
+		Failure -Error $_
+		exit 13
+	}
+	"Adding VCLibs requirement to TODO list..."
+	$NewPackages += $FilesD
 }
 If ($NewPackages.Count -gt 0)
 {
-    "Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-    $NewPackages | Add-AppxPackage -Verbose
-    $NewPackages | Remote-Item -Verbose
+	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
+	$NewPackages | Add-AppxPackage -Verbose
+	$NewPackages | Remote-Item -Verbose
 }
 
 
@@ -255,23 +255,23 @@ $OldPackages = @()
 $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers
 If ($OldPackages.Count -gt 0)
 {
-    "Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
-    $OldPackages | Remove-AppxPackage -AllUsers -Verbose
+	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
+	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
 Else
 {
-    "No Windows Store PSO2NA installation found. This is OK!"
+	"No Windows Store PSO2NA installation found. This is OK!"
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 Try
 {
-    Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
+	Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
 }
 Catch
 {
-    Failure -Error $_
-    exit 14
+	Failure -Error $_
+	exit 14
 }
 
 "Checking needed Apps for runtime"
@@ -279,8 +279,8 @@ $GamingServices = @()
 $GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
 If ($GamingServices.Count -eq 0)
 {
-    "You Need to Install the Gaming Service App"
-    [Diagnostics.Process]::Start("https://www.microsoft.com/store/apps/9mwpm2cqnlhn")
+	"You Need to Install the Gaming Service App"
+	[Diagnostics.Process]::Start("https://www.microsoft.com/store/apps/9mwpm2cqnlhn")
 }
 
 Stop-Transcript
