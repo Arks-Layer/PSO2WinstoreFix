@@ -280,7 +280,7 @@ $GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageType
 If ($GamingServices.Count -eq 0)
 {
 	"You Need to Install the Gaming Service App"
-	[Diagnostics.Process]::Start("https://www.microsoft.com/store/apps/9mwpm2cqnlhn")
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 }
 
 Stop-Transcript
