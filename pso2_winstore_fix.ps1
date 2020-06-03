@@ -310,13 +310,39 @@ If ($NewPackages.Count -gt 0)
 	$NewPackages | Remove-Item -Verbose
 }
 
-"Checking needed Apps for runtime"
+"Checking needed GamingService App for runtime"
 $GamingServices = @()
+$GamingServices_Good = @()
 $GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-If ($GamingServices.Count -eq 0)
+$VersionCheck = [Version]"2.41.10001.0"
+$GamingServicese_Good += $GamingService | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+
+Try
+{
+    $ForceReinstall = $true
+    Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
+    $ForceReinstall = $false
+}
+Catch
+{
+    "REINSTALL NEEDED"
+}
+If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"You Need to Install the Gaming Service App"
-	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+    $URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
+	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
+	Try
+	{
+		Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
+	}
+	Catch
+	{
+		$_ | Failure
+		exit 13
+	}
+	"Adding VCLibs requirement to TODO list..."
+	$FilesD | Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion
 }
 
 Stop-Transcript
