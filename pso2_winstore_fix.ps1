@@ -363,6 +363,16 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	 Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 
+"Stopping the XBox Live Auth Manager Service, this may fail"
+Get-Service -Name "XblAuthManager" | Stop-Service
+"Looking for the XBOX Identify folder to wipe"
+$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages"
+$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider"
+$XBOXIPFN = $XBOXIP.PackageFamilyName
+$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN
+$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker"
+Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+
 Stop-Transcript
 Write-Host -NoNewLine 'Fixes complete! You can now close this window by pressing any key.';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
