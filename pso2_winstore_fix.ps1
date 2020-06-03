@@ -4,15 +4,17 @@ function Failure {
 	[CmdletBinding()]
 	Param
 	(
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[ValidateNotNullOrEmpty()]
 		$Error
 	)
-	$result = $Error.Exception.Response.GetResponseStream()
-	$reader = New-Object System.IO.StreamReader($global:result)
-	$responseBody = $reader.ReadToEnd();
+	$global:result = $Error.Exception.Response.GetResponseStream()
+	$global:reader = New-Object System.IO.StreamReader($global:result)
+	$global:responseBody = $global:reader.ReadToEnd();
 	"Status: A system exception was caught."
-	$responsebody
+	$global:responsebody
 	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 254
 }
 
@@ -220,7 +222,7 @@ If ($DirectXRuntime_Good.Count -eq 0)
 	}
 	Catch
 	{
-		Failure -Error $_
+		$_ | Failure
 		exit 12
 	}
 
@@ -239,7 +241,7 @@ If ($VCLibs_Good.Count -eq 0)
 	}
 	Catch
 	{
-		Failure -Error $_
+		$_ | Failure
 		exit 13
 	}
 	"Adding VCLibs requirement to TODO list..."
@@ -273,7 +275,7 @@ Try
 }
 Catch
 {
-	Failure -Error $_
+	$_ | Failure
 	exit 14
 }
 
