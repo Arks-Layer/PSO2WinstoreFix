@@ -288,7 +288,9 @@ If ($NewPackages.Count -gt 0 -and $false)
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
-IF ($true) #Try
+$PSO2Package = @()
+$PSO2Package += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
+IF ($PSO2Package.Count -eq 0) #Try
 {
 	If ($NewPackages.Count -gt 0)
 	{
@@ -315,7 +317,7 @@ $GamingServices = @()
 $GamingServices_Good = @()
 $GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
 $VersionCheck = [Version]"2.41.10001.0"
-$GamingServicese_Good += $GamingService | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$GamingServices_Good += $GamingServices | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
 Try
 {
@@ -327,7 +329,7 @@ Catch
 {
 	"REINSTALL NEEDED"
 }
-If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
+If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
