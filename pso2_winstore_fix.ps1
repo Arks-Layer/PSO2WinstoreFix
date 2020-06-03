@@ -1,9 +1,11 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
 
 function Failure {
-    $result = $_.Exception.Response.GetResponseStream()
+    [cmdletbinding()]
+    param($Error)
+    $result = $Error.Exception.Response.GetResponseStream()
     $reader = New-Object System.IO.StreamReader($global:result)
-    $responseBody = $global:reader.ReadToEnd();
+    $responseBody = $reader.ReadToEnd();
     "Status: A system exception was caught."
     $responsebody
     Stop-Transcript
@@ -158,9 +160,10 @@ If ($PSO2Vol.Count -eq 0)
 {
     "Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
     Stop-Transcript
-    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
     exit 15
 }
+
 
 "Checking for appxmanifest.xml..."
 $Files = @()
@@ -197,7 +200,7 @@ If ($DirectXRuntime_Good.Count -eq 0)
     }
     Catch 
     {
-        Failure
+        Failure -Error $_
         exit 12
     }
     
@@ -216,7 +219,7 @@ If ($VCLibs_Good.Count -eq 0)
     }
     Catch 
     {
-        Failure
+        Failure -Error $_
         exit 13
     }
     "Adding VCLibs requirement to TODO list..."
@@ -250,7 +253,7 @@ Try
 }
 Catch
 {
-    Failure
+    Failure -Error $_
     exit 14
 }
 
