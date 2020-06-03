@@ -150,6 +150,17 @@ Else
 	exit 9
 }
 
+"Checking if Volume is formated as NTFS"
+$PSO2Vol = @()
+$PSO2Vol += Get-Volume - FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
+If ($PSO2Vol.Count -eq 0)
+{
+    "Your PSO2NA installtion is not installed on a NTFS drive, please move the PSO2NA installtion elsewhere"
+    Stop-Transcript
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+    exit 15
+}
+
 "Checking for appxmanifest.xml..."
 $Files = @()
 $Files += Get-ChildItem | Where-Object -Property Name -EQ "appxmanifest.xml"
