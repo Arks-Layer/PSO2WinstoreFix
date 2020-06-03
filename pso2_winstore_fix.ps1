@@ -215,12 +215,12 @@ If ($DirectXRuntime_Good.Count -eq 0)
 	{
 		Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
 	}
-	Catch 
+	Catch
 	{
 		Failure -Error $_
 		exit 12
 	}
-	
+
 	"Adding DirectX Runtime requirement to TODO list..."
 	$NewPackages += $FilesD
 }
@@ -234,7 +234,7 @@ If ($VCLibs_Good.Count -eq 0)
 	{
 		Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
 	}
-	Catch 
+	Catch
 	{
 		Failure -Error $_
 		exit 13
