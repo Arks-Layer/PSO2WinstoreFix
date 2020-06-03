@@ -1,5 +1,5 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
-"Version 2020_06_03_07_20"
+"Version 2020_06_03_08_20"
 function Failure {
 	[CmdletBinding()]
 	Param
