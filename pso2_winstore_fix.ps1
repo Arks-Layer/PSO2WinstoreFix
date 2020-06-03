@@ -1,5 +1,13 @@
-Start-Transcript -Path PSO2NA_PSLOG.log
-"Version 2020_06_03_09_01"
+If ($PSScriptRoot -ne $null)
+{
+    $ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
+}
+Else
+{
+    $ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
+}
+Start-Transcript -Path $ScriptLog
+"Version 2020_06_03_1753"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -181,7 +189,7 @@ Else
 $PSO2Vol = @()
 Try
 {
-    Get-Volume -ErrorAction Stop | Out-Null
+	Get-Volume -ErrorAction Stop | Out-Null
 }
 Catch
 {
@@ -316,9 +324,10 @@ If ($False) #Catch
 "Checking needed GamingService App for runtime"
 $GamingServices = @()
 $GamingServices_Good = @()
-$GamingServices += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+$GamingServices_All += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 $VersionCheck = [Version]"2.41.10001.0"
-$GamingServices_Good += $GamingServices | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$GamingServices_Good += $GamingServices_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
 Try
 {
@@ -343,6 +352,11 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	{
 		$_ | Failure
 		exit 18
+	}
+	If ($ForceReinstall -eq $true)
+	{
+		"Removing GamingService App"
+		$GamingServices_All | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
 	 Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
