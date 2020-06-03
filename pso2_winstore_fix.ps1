@@ -339,7 +339,7 @@ If ($GamingServicese_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	Catch
 	{
 		$_ | Failure
-		exit 13
+		exit 18
 	}
 	"Installing GamingService App"
 	$FilesD | Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion
