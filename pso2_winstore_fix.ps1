@@ -1,15 +1,20 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
 
 function Failure {
-	[cmdletbinding()]
-	param($Error)
-	$result = $Error.Exception.Response.GetResponseStream()
-	$reader = New-Object System.IO.StreamReader($global:result)
-	$responseBody = $reader.ReadToEnd();
+	[CmdletBinding()]
+	Param
+	(
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[ValidateNotNullOrEmpty()]
+		$Error
+	)
+	$global:result = $Error.Exception.Response.GetResponseStream()
+	$global:reader = New-Object System.IO.StreamReader($global:result)
+	$global:responseBody = $global:reader.ReadToEnd();
 	"Status: A system exception was caught."
-	$responsebody
+	$global:responsebody
 	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 254
 }
 
@@ -196,14 +201,18 @@ If ($Files.Count -ne 1)
 "Checking if we need to install the requirments..."
 $NewPackages = @()
 $DirectXRuntime = @()
+$DirectXRuntime_User = @()
 $DirectXRuntime_Good = @()
-$DirectXRuntime += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
+$DirectXRuntime += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
+$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
 $VersionCheck = [Version]"9.29.952.0"
 $DirectXRuntime_Good += ([Version]$DirectXRuntime.Version -ge $VersionCheck) -eq $true
 $VCLibs = @()
+$VCLibs_User = @()
 $VCLibs_Good = @()
-$VersionCheck = [Version]14.0.24217.0
-$VCLibs += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
+$VersionCheck = [Version]"14.0.24217.0"
+$VCLibs += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
+$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
 $VCLibs_Good += ([Version]$VCLibs.Version -ge $VersionCheck) -eq $true
 
 If ($DirectXRuntime_Good.Count -eq 0)
@@ -217,12 +226,16 @@ If ($DirectXRuntime_Good.Count -eq 0)
 	}
 	Catch
 	{
-		Failure -Error $_
+		$_ | Failure
 		exit 12
 	}
 
 	"Adding DirectX Runtime requirement to TODO list..."
 	$NewPackages += $FilesD
+}
+ElseIf ($DirectXRuntime_User.Count -eq 0)
+{
+    $DirectXRuntime | Add-AppxPackage -Verbose -Update
 }
 
 If ($VCLibs_Good.Count -eq 0)
@@ -236,13 +249,17 @@ If ($VCLibs_Good.Count -eq 0)
 	}
 	Catch
 	{
-		Failure -Error $_
+		$_ | Failure
 		exit 13
 	}
 	"Adding VCLibs requirement to TODO list..."
 	$NewPackages += $FilesD
 }
-If ($NewPackages.Count -gt 0)
+ElseIf ($VCLibs_User.Count -eq 0)
+{
+    $VCLibs | Add-AppxPackage -Verbose -Update
+}
+If ($NewPackages.Count -gt 0 -and $false)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
 	$NewPackages | Add-AppxPackage -Verbose
@@ -266,12 +283,24 @@ Else
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 Try
 {
-	Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
+    If ($NewPackages.Count -gt 0)
+    {
+	    Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop -DependencyPath $NewPackages
+    }
+    Else
+    {
+        Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
+    }
 }
 Catch
 {
-	Failure -Error $_
+	$_ | Failure
 	exit 14
+}
+If ($NewPackages.Count -gt 0)
+{
+	"Ok, Cleaning up Dependency downloads"
+	$NewPackages | Remote-Item -Verbose
 }
 
 "Checking needed Apps for runtime"
