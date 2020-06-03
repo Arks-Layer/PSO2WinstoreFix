@@ -81,7 +81,7 @@ If ($DevMode -EQ $false)
 }
 "[OK]"
 
-Write-Host -NoNewline "Check PSO2 Tweaker settings..."
+"Checking PSO2 Tweaker settings..."
 $JSONPath = $null
 $JSONData = $null
 $PSO2NABinFolder = $null
@@ -122,7 +122,8 @@ Else
 }
 If (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
-    "The $($PSO2NABinFolder) folder does not exists"
+    "The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+	"Press any key to exit."
     Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 16
@@ -134,14 +135,16 @@ ElseIf ($PSO2NABinFolder)
 }
 Else
 {
-    "Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
+    "Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it."
+	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 8
 }
 If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
 {
-    "The $($PSO2NAFolder) folder does not exists"
+    "The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+	"Press any key to exit."
     Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 17
@@ -168,9 +171,9 @@ Else
 	exit 9
 }
 
-"Checking if Volume is formated as NTFS..."
+"Checking if volume is formated as NTFS..."
 $PSO2Vol = @()
-$PSO2Vol += Get-Volume - FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
+$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
 {
     "Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
