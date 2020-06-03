@@ -193,6 +193,19 @@ If ($Files.Count -ne 1)
 	exit 11
 }
 
+$OldPackages = @()
+"Looking for a PSO2NA Windows Store installation..."
+$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers
+If ($OldPackages.Count -gt 0)
+{
+	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
+	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
+}
+Else
+{
+	"No Windows Store PSO2NA installation found. This is OK!"
+}
+
 "Checking if we need to install the requirments..."
 $NewPackages = @()
 $DirectXRuntime = @()
@@ -247,20 +260,6 @@ If ($NewPackages.Count -gt 0)
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
 	$NewPackages | Add-AppxPackage -Verbose
 	$NewPackages | Remote-Item -Verbose
-}
-
-
-$OldPackages = @()
-"Looking for a PSO2NA Windows Store installation..."
-$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers
-If ($OldPackages.Count -gt 0)
-{
-	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
-	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
-}
-Else
-{
-	"No Windows Store PSO2NA installation found. This is OK!"
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
