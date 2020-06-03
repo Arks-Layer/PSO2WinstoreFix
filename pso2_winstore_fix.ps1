@@ -120,8 +120,16 @@ Else
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
 }
-If ($PSO2NABinFolder)
+If (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
+    "The $($PSO2NABinFolder) folder does not exists"
+    Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 16
+}
+ElseIf ($PSO2NABinFolder)
+{
+`
     $PSO2NAFolder = $PSO2NABinFolder | Split-Path
 }
 Else
@@ -131,7 +139,14 @@ Else
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 8
 }
-If ($PSO2NAFolder)
+If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
+{
+    "The $($PSO2NAFolder) folder does not exists"
+    Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 17
+}
+ElseIf ($PSO2NAFolder)
 {
     $LeafPath = $PSO2NAFolder | Split-Path -Leaf
     If ($LeafPath -eq "ModifiableWindowsApps")
