@@ -213,22 +213,30 @@ Else
 
 "Checking if we need to install the requirments..."
 $NewPackages = @()
-$DirectXRuntime = @()
+
+$DirectXRuntime_All = @()
 $DirectXRuntime_User = @()
-$DirectXRuntime_Good = @()
-$DirectXRuntime += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
+$DirectXRuntime_Good_All = @()
+$DirectXRuntime_Good_Good = @()
+
+$DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
 $VersionCheck = [Version]"9.29.952.0"
-$DirectXRuntime_Good += ([Version]$DirectXRuntime.Version -ge $VersionCheck) -eq $true
-$VCLibs = @()
-$VCLibs_User = @()
-$VCLibs_Good = @()
-$VersionCheck = [Version]"14.0.24217.0"
-$VCLibs += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
-$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
-$VCLibs_Good += ([Version]$VCLibs.Version -ge $VersionCheck) -eq $true
+$DirectXRuntime_Good_All += $DirectXRuntime_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$DirectXRuntime_Good_User += $DirectXRuntime_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
-If ($DirectXRuntime_Good.Count -eq 0)
+$VCLibs_All = @()
+$VCLibs_User = @()
+$VCLibs_Good_All = @()
+$VCLibs_Good_User = @()
+
+$VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
+$VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
+$VersionCheck = [Version]"14.0.24217.0"
+$VCLibs_Good_All += $VCLibs_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$VCLibs_Good_User += $VCLibs_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+
+If ($DirectXRuntime_Good_User.Count -eq 0)
 {
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
@@ -246,12 +254,12 @@ If ($DirectXRuntime_Good.Count -eq 0)
 	"Adding DirectX Runtime requirement to TODO list..."
 	$NewPackages += $FilesD
 }
-ElseIf ($DirectXRuntime_User.Count -eq 0)
+ElseIf ($DirectXRuntime_User.Count -eq 0 -and $false)
 {
     $DirectXRuntime | Add-AppxPackage -Verbose -Update
 }
 
-If ($VCLibs_Good.Count -eq 0)
+If ($VCLibs_Good_User.Count -eq 0)
 {
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
@@ -268,7 +276,7 @@ If ($VCLibs_Good.Count -eq 0)
 	"Adding VCLibs requirement to TODO list..."
 	$NewPackages += $FilesD
 }
-ElseIf ($VCLibs_User.Count -eq 0)
+ElseIf ($VCLibs_User.Count -eq 0 -and $false)
 {
     $VCLibs | Add-AppxPackage -Verbose -Update
 }
@@ -280,7 +288,7 @@ If ($NewPackages.Count -gt 0 -and $false)
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
-Try
+IF ($true) #Try
 {
     If ($NewPackages.Count -gt 0)
     {
@@ -291,7 +299,7 @@ Try
         Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
     }
 }
-Catch
+If ($False) #Catch
 {
 	$_ | Failure
 	exit 14
@@ -299,7 +307,7 @@ Catch
 If ($NewPackages.Count -gt 0)
 {
 	"Ok, Cleaning up Dependency downloads"
-	$NewPackages | Remote-Item -Verbose
+	$NewPackages | Remove-Item -Verbose
 }
 
 "Checking needed Apps for runtime"
