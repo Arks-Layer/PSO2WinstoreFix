@@ -228,7 +228,7 @@ If ($DirectXRuntime_Good.Count -eq 0)
 If ($VCLibs_Good.Count -eq 0)
 {
     "Downloading VCLibs requirement... (7MB)"
-    $URI = "https://arks-layer.com/docs/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+    $URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
     $FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
     Try
     {
