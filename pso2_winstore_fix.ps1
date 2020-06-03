@@ -238,7 +238,7 @@ $NewPackages = @()
 $DirectXRuntime_All = @()
 $DirectXRuntime_User = @()
 $DirectXRuntime_Good_All = @()
-$DirectXRuntime_Good_Good = @()
+$DirectXRuntime_Good_User = @()
 
 $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
