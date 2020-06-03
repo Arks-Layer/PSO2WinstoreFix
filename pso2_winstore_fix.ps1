@@ -1,5 +1,5 @@
 Start-Transcript -Path PSO2NA_PSLOG.log
-"Version 2020_06_03_08_20"
+"Version 2020_06_03_09_01"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -179,6 +179,17 @@ Else
 
 "Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
+Try
+{
+    Get-Volume -ErrorAction Stop | Out-Null
+}
+Catch
+{
+	"Your system's WMI database is broken, please repair it"
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 19
+}
 $PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
 If ($PSO2Vol.Count -eq 0)
 {
