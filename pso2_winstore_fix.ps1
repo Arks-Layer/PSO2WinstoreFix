@@ -7,7 +7,7 @@ Else
     $ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_03_2133"
+"Version 2020_06_03_2141"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -374,6 +374,14 @@ $XBOXIPFN = $XBOXIP.PackageFamilyName
 $XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
 $XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+
+"Now Double checking the custom PSO2 install"
+$CustomPSO2 = @()
+$CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopmentMode -eq $true
+If ($CustomPSO2.Count -eq 0)
+{
+	 "Can not find custom PSO2 Installtion"
+}
 
 Stop-Transcript
 Write-Host -NoNewLine 'Fixes complete! You can now close this window by pressing any key.';
