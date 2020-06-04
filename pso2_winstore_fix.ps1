@@ -7,7 +7,7 @@ Else
     $ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_04_0431"
+"Version 2020_06_04_0455"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -392,6 +392,14 @@ $CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopme
 If ($CustomPSO2.Count -eq 0)
 {
 	 "Can not find custom PSO2 Installtion"
+}
+ElseIf ($CustomPSO2.Count -eq 1)
+{
+    "Good, only found one custom PSO2 installs"
+}
+Else
+{
+    "Dude? why are there $($CustomPSO2) custom PSO2 installs"
 }
 
 Stop-Transcript
