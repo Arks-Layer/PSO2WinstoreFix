@@ -1,13 +1,13 @@
 If ($PSScriptRoot -ne $null)
 {
-    $ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
+	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
 }
 Else
 {
-    $ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
+	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_04_0455"
+"Version 2020_06_04_1557"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -311,18 +311,28 @@ If ($NewPackages.Count -gt 0)
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
-$PSO2Package = @()
-$PSO2Package += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
-If ($PSO2Package.Count -eq 0) #Try
+$PSO2Packages = @()
+$PSO2Packages_Good = @()
+$PSO2Packages_Bad = @()
+$PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
+$PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder
+$PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
+If ($PSO2Packages_Bad.Count -gt 0)
 {
-    If ($NewPackages.Count -gt 0 -and $false)
-    {
-        Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder #-ErrorAction Stop
-    }
-    Else
-    {
-	    Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
-    }
+	"Found a old Custom PSO2 Install, removing it"
+	$PSO2Packages_Bad | Remove-AppxPackage -Verbose -AllUsers
+}
+If ($PSO2Packages_Good.Count -eq 0) #Try
+{
+	
+	If ($NewPackages.Count -gt 0 -and $false)
+	{
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder #-ErrorAction Stop
+	}
+	Else
+	{
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
+	}
 }
 If ($False) #Catch
 {
@@ -395,11 +405,11 @@ If ($CustomPSO2.Count -eq 0)
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
-    "Good, only found one custom PSO2 installs"
+	"Good, only found one custom PSO2 installs"
 }
 Else
 {
-    "Dude? why are there $($CustomPSO2) custom PSO2 installs"
+	"Dude? why are there $($CustomPSO2) custom PSO2 installs"
 }
 
 Stop-Transcript
