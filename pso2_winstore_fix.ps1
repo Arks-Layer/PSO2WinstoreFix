@@ -259,7 +259,7 @@ $VersionCheck = [Version]"14.0.24217.0"
 $VCLibs_Good_All += $VCLibs_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 $VCLibs_Good_User += $VCLibs_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
-If ($DirectXRuntime_Good_User.Count -eq 0)
+If ($DirectXRuntime_Good_User.Count -eq 0 -or $DirectXRuntime_Good_All.Count -eq 0 -or $true)
 {
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
@@ -282,7 +282,7 @@ ElseIf ($DirectXRuntime_User.Count -eq 0 -and $false)
 	$DirectXRuntime | Add-AppxPackage -Verbose -Volume $SystemVolume
 }
 
-If ($VCLibs_Good_User.Count -eq 0)
+If ($VCLibs_Good_User.Count -eq 0 -Or $VCLibs_Good_All.Count -eq 0 -or $true)
 {
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
@@ -307,20 +307,31 @@ If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
 	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume
-	$NewPackages | Remove-Item -Verbose
+	#$NewPackages | Remove-Item -Verbose
 }
 
 "Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 $PSO2Package = @()
 $PSO2Package += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
-IF ($PSO2Package.Count -eq 0) #Try
+If ($PSO2Package.Count -eq 0) #Try
 {
-	Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
+    If ($NewPackages.Count -gt 0 -and $false)
+    {
+        Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder #-ErrorAction Stop
+    }
+    Else
+    {
+	    Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
+    }
 }
 If ($False) #Catch
 {
 	$_ | Failure
 	exit 14
+}
+If ($NewPackages.Count -gt 0)
+{
+	$NewPackages | Remove-Item -Verbose
 }
 
 "Checking needed GamingService App for runtime"
