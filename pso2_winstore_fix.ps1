@@ -70,12 +70,12 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 
 Write-Host -NoNewline "Checking for Developer Mode..."
-$DevMode = $true
+$DevMode = $false
 $RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
 if (Test-Path -Path $RegistryKeyPath)
 {
 	$AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
-	if (Get-Member -InputObject $AppModelUnlock -Name AllowDevelopmentWithoutDevLicense)
+	if ($AppModelUnlock -ne $null -and ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) -ne $null)
 	{
 		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
 		If ($RegData -eq 1)
@@ -315,7 +315,7 @@ $PSO2Package = @()
 $PSO2Package += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
 IF ($PSO2Package.Count -eq 0) #Try
 {
-	Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Stop
+	Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
 }
 If ($False) #Catch
 {
@@ -368,11 +368,11 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 "Stopping the XBox Live Auth Manager Service, this may fail"
 Get-Service -Name "XblAuthManager" | Stop-Service
 "Looking for the XBOX Identify folder to wipe"
-$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages"
-$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider"
+$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
+$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -Verbose
 $XBOXIPFN = $XBOXIP.PackageFamilyName
-$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN
-$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker"
+$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
+$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
 
 Stop-Transcript
