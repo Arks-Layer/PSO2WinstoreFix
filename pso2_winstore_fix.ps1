@@ -7,7 +7,7 @@ Else
     $ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_03_1753"
+"Version 2020_06_03_2133"
 function Failure {
 	[CmdletBinding()]
 	Param
