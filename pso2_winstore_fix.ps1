@@ -189,22 +189,24 @@ Else
 $PSO2Vol = @()
 Try
 {
-	Get-Volume -ErrorAction Stop | Out-Null
+	$BrokenNTFS = $true
+	$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
+	$BrokenNTFS = $false
 }
 Catch
 {
 	"Your system's WMI database is broken, please repair it"
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 19
+	#Stop-Transcript
+	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	#exit 19
 }
-$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
-If ($PSO2Vol.Count -eq 0)
+
+If ($PSO2Vol.Count -eq 0 -and $BrokenNTFS -eq $false)
 {
 	"Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 15
+	#Stop-Transcript
+	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	#exit 15
 }
 
 
