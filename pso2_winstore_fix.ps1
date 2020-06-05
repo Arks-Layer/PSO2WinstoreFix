@@ -15,7 +15,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_1727"
+"Version 2020_06_05_1856"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -143,7 +143,15 @@ Else
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
 }
-If (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
+If ($PSO2NABinFolder -eq $null)
+{
+    "Old version of the Tweaker config file found, please update Tweaker"
+	"Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+    exit 20
+}
+ElseIf (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
 	"The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
@@ -153,7 +161,6 @@ If (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 }
 ElseIf ($PSO2NABinFolder)
 {
-`
 	$PSO2NAFolder = $PSO2NABinFolder | Split-Path
 }
 Else
