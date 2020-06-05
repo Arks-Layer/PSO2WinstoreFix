@@ -7,7 +7,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_04_1557"
+"Version 2020_06_04_2334"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -306,7 +306,7 @@ ElseIf ($VCLibs_User.Count -eq 0 -and $false)
 If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume
+	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume -ErrorAction SilentlyContinue
 	#$NewPackages | Remove-Item -Verbose
 }
 
@@ -355,12 +355,12 @@ $GamingServices_Good += $GamingServices_User | Where-Object -FilterScript {[Vers
 Try
 {
 	$ForceReinstall = $true
-	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service -ErrorAction Stop
+	Get-Service | Where-Object Name -In ("GamingServices","GamingServicesNet") | Stop-Service -ErrorAction Stop
 	$ForceReinstall = $false
 }
 Catch
 {
-	"REINSTALL NEEDED"
+	"REINSTALL NEEDED, a Reboot may be needed to be done"
 }
 If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
@@ -413,5 +413,5 @@ Else
 }
 
 Stop-Transcript
-Write-Host -NoNewLine 'Fixes complete! You can now close this window by pressing any key.';
+Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
