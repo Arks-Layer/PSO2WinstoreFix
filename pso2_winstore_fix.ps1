@@ -1,3 +1,11 @@
+Try
+{
+	Do
+	{
+		Stop-Transcript -ErrorAction Stop
+	} While ($true)
+}
+Catch {}
 If ($PSScriptRoot -ne $null)
 {
 	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
@@ -7,7 +15,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_1607"
+"Version 2020_06_05_1645"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -266,7 +274,10 @@ If ($DirectXRuntime_Good_User.Count -eq 0 -or $DirectXRuntime_Good_All.Count -eq
 	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
 	Try
 	{
-		Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+		If (-Not (Test-Path -Path $FileD -PathType Leaf))
+		{
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+		}
 	}
 	Catch
 	{
@@ -289,7 +300,10 @@ If ($VCLibs_Good_User.Count -eq 0 -Or $VCLibs_Good_All.Count -eq 0 -or $true)
 	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
 	Try
 	{
-		Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
+		If (-Not (Test-Path -Path $FileD -PathType Leaf))
+		{
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+		}
 	}
 	Catch
 	{
@@ -310,10 +324,10 @@ If ($NewPackages.Count -gt 0)
 	#$NewPackages | Remove-Item -Verbose
 }
 
-"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 $PSO2Packages = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
+$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
@@ -323,9 +337,15 @@ If ($PSO2Packages_Bad.Count -gt 0)
 	"Found a old Custom PSO2 Install, removing it"
 	$PSO2Packages_Bad | Sort-Object -Unique | Remove-AppxPackage -Verbose -AllUsers
 }
-If ($PSO2Packages_Good.Count -eq 0) #Try
+IF ($EmptyFiles.Count -gt 0)
 {
-	
+	$JSONObj.PSO2NARemoteVersion = 0
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	"Bad PSO2 files found, Please run a Full File Check"
+}
+ElseIf ($PSO2Packages_Good.Count -eq 0) #Try
+{
+	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
 	{
 		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder #-ErrorAction Stop
@@ -335,6 +355,10 @@ If ($PSO2Packages_Good.Count -eq 0) #Try
 		Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
 	}
 }
+Else
+{
+	"There already a custom PSO2 install"
+}
 If ($False) #Catch
 {
 	$_ | Failure
@@ -342,10 +366,12 @@ If ($False) #Catch
 }
 If ($NewPackages.Count -gt 0)
 {
-	$NewPackages | Remove-Item -Verbose
+	#$NewPackages | Remove-Item -Verbose
 }
 
 "Checking needed GamingService App for runtime"
+$GamingServices_User = @()
+$GamingServices_All = @()
 $GamingServices = @()
 $GamingServices_Good = @()
 $GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
@@ -370,7 +396,10 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	Try
 	{
-		Invoke-WebRequest -Uri $URI -OutFile $FileD -Verbose -ErrorAction:Stop
+		If (-Not (Test-Path -Path $FileD -PathType Leaf))
+		{
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+		}
 	}
 	Catch
 	{
@@ -384,7 +413,7 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	}
 	"Installing GamingService App"
 	 Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
-	 Resolve-Path -Path $FileD | Remove-Item -Verbose
+	 #Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 
 "Stopping the XBox Live Auth Manager Service, this may fail"
@@ -397,12 +426,12 @@ $XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
 $XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 If (Test-Path -Path $XBOXTBF -PathType Container)
 {
-    Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+	Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
 }
 
 "Now Double checking the custom PSO2 install"
 $CustomPSO2 = @()
-$CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopmentMode -eq $true
+$CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopmentMode -eq $true | Where-Object Status -EQ "Ok"
 If ($CustomPSO2.Count -eq 0)
 {
 	 "Can not find custom PSO2 Installtion"
