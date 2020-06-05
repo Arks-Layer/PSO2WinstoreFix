@@ -7,7 +7,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_04_2334"
+"Version 2020_06_04_2352"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -394,7 +394,10 @@ $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -Verbose
 $XBOXIPFN = $XBOXIP.PackageFamilyName
 $XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
 $XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
-Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+If (Test-Path -Path $XBOXTBF -PathType Container)
+{
+    Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+}
 
 "Now Double checking the custom PSO2 install"
 $CustomPSO2 = @()
