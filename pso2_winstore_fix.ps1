@@ -15,7 +15,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_1856"
+"Version 2020_06_05_1907" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -49,6 +49,13 @@ ElseIf ($WinVer.Build -lt 18362)
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 2
+}
+Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
+{
+	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if you CPU is 64-bit. Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 21
 }
 "[OK]"
 ""
