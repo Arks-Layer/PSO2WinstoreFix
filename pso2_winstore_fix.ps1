@@ -7,7 +7,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_1602"
+"Version 2020_06_05_1607"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -321,7 +321,7 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 If ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old Custom PSO2 Install, removing it"
-	$PSO2Packages_Bad | Remove-AppxPackage -Verbose -AllUsers
+	$PSO2Packages_Bad | Sort-Object -Unique | Remove-AppxPackage -Verbose -AllUsers
 }
 If ($PSO2Packages_Good.Count -eq 0) #Try
 {
