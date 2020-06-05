@@ -15,7 +15,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_1645"
+"Version 2020_06_05_1727"
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -332,18 +332,32 @@ $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
-If ($PSO2Packages_Bad.Count -gt 0)
+
+$XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
+$ForceReinstall = $false
+If ($XBOXURI -eq $false)
+{
+    $ForceReinstall = $true
+}
+
+If ($ForceReinstall)
+{
+    "Bad Install found, forcing reinstalling PSO2"
+    Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Remove-AppxPackage -Verbose -AllUsers
+}
+ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old Custom PSO2 Install, removing it"
 	$PSO2Packages_Bad | Sort-Object -Unique | Remove-AppxPackage -Verbose -AllUsers
 }
-IF ($EmptyFiles.Count -gt 0)
+
+If ($EmptyFiles.Count -gt 0)
 {
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	"Bad PSO2 files found, Please run a Full File Check"
 }
-ElseIf ($PSO2Packages_Good.Count -eq 0) #Try
+ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
 	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
