@@ -1,8 +1,9 @@
+$ErrorActionPreference = "Stop"
 Try
 {
 	Do
 	{
-		Stop-Transcript -ErrorAction Stop
+		Stop-Transcript
 	} While ($true)
 }
 Catch {}
@@ -152,11 +153,11 @@ Else
 }
 If ($PSO2NABinFolder -eq $null)
 {
-    "Old version of the Tweaker config file found, please update Tweaker"
+	"Old version of the Tweaker config file found, please update Tweaker"
 	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-    exit 20
+	exit 20
 }
 ElseIf (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
@@ -217,18 +218,25 @@ Try
 }
 Catch
 {
-	"Your system's WMI database is broken, please repair it"
 	#Stop-Transcript
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 19
 }
 
-If ($PSO2Vol.Count -eq 0 -and $BrokenNTFS -eq $false)
+If ($BrokenNTFS -eq $true)
+{
+	"Your system's WMI database is broken, please repair it"
+}
+ElseIf ($PSO2Vol.Count -eq 0)
 {
 	"Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
 	#Stop-Transcript
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 15
+}
+Else
+{
+	"Your PSO2NA installation is on a NTFS drive, Wonderful"
 }
 
 
@@ -249,6 +257,7 @@ $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -
 If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
+	"If this is taking more then 30 minutes, you may have to reboot"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
 Else
@@ -281,7 +290,12 @@ $VersionCheck = [Version]"14.0.24217.0"
 $VCLibs_Good_All += $VCLibs_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 $VCLibs_Good_User += $VCLibs_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
-If ($DirectXRuntime_Good_User.Count -eq 0 -or $DirectXRuntime_Good_All.Count -eq 0 -or $true)
+if ($DirectXRuntime_Good_All.Count -gt 0 -and $DirectXRuntime_Good_User.Count -eq 0)
+{
+	"System already have a good copy of DirectX, trying to install the user profile"
+	$NewPackages += $DirectXRuntime_Good_All | Sort-Object -Property Version | Select-Object -First 1
+}
+ElseIf ($DirectXRuntime_Good_User.Count -eq 0)
 {
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
@@ -290,7 +304,7 @@ If ($DirectXRuntime_Good_User.Count -eq 0 -or $DirectXRuntime_Good_All.Count -eq
 	{
 		If (-Not (Test-Path -Path $FileD -PathType Leaf))
 		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
 		}
 	}
 	Catch
@@ -302,12 +316,13 @@ If ($DirectXRuntime_Good_User.Count -eq 0 -or $DirectXRuntime_Good_All.Count -eq
 	"Adding DirectX Runtime requirement to TODO list..."
 	$NewPackages += Resolve-Path -Path $FileD
 }
-ElseIf ($DirectXRuntime_User.Count -eq 0 -and $false)
-{
-	$DirectXRuntime | Add-AppxPackage -Verbose -Volume $SystemVolume
-}
 
-If ($VCLibs_Good_User.Count -eq 0 -Or $VCLibs_Good_All.Count -eq 0 -or $true)
+If ($VCLibs_Good_All.Count -gt 0 -And $VCLibs_Good_User.Count -eq 0 )
+{
+	"System already have a good copy of VCLibs, trying to install the user profile"
+	$NewPackages += $VCLibs_Good_All | Sort-Object -Property Version | Select-Object -First 1
+}
+Elseif ($VCLibs_Good_User.Count -eq 0)
 {
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
@@ -316,7 +331,7 @@ If ($VCLibs_Good_User.Count -eq 0 -Or $VCLibs_Good_All.Count -eq 0 -or $true)
 	{
 		If (-Not (Test-Path -Path $FileD -PathType Leaf))
 		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
 		}
 	}
 	Catch
@@ -327,14 +342,11 @@ If ($VCLibs_Good_User.Count -eq 0 -Or $VCLibs_Good_All.Count -eq 0 -or $true)
 	"Adding VCLibs requirement to TODO list..."
 	$NewPackages += Resolve-Path -Path $FileD
 }
-ElseIf ($VCLibs_User.Count -eq 0 -and $false)
-{
-	$VCLibs | Add-AppxPackage -Verbose -Volume $SystemVolume
-}
+
 If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume -ErrorAction SilentlyContinue
+	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume -ErrorAction Continue
 	#$NewPackages | Remove-Item -Verbose
 }
 
@@ -351,13 +363,13 @@ $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\
 $ForceReinstall = $false
 If ($XBOXURI -eq $false)
 {
-    $ForceReinstall = $true
+	$ForceReinstall = $true
 }
 
 If ($ForceReinstall)
 {
-    "Bad Install found, forcing reinstalling PSO2"
-    Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Remove-AppxPackage -Verbose -AllUsers
+	"Bad Install found, forcing reinstalling PSO2"
+	Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Remove-AppxPackage -Verbose -AllUsers
 }
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
@@ -369,18 +381,18 @@ If ($EmptyFiles.Count -gt 0)
 {
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
-	"Bad PSO2 files found, Please run a Full File Check"
+	"Bad PSO2 files found, Please run a Full File Check in Tweaker"
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
 	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
 	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder #-ErrorAction Stop
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder
 	}
 	Else
 	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose #-ErrorAction Stop
+		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Continue
 	}
 }
 Else
@@ -400,22 +412,27 @@ If ($NewPackages.Count -gt 0)
 "Checking needed GamingService App for runtime"
 $GamingServices_User = @()
 $GamingServices_All = @()
-$GamingServices = @()
-$GamingServices_Good = @()
+$GamingServices_Good_User = @()
+$GamingServices_Good_All = @()
 $GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
 $GamingServices_All += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 $VersionCheck = [Version]"2.41.10001.0"
-$GamingServices_Good += $GamingServices_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$GamingServices_Good_User += $GamingServices_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$GamingServices_Good_All += $GamingServices_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
 
 Try
 {
 	$ForceReinstall = $true
-	Get-Service | Where-Object Name -In ("GamingServices","GamingServicesNet") | Stop-Service -ErrorAction Stop
+	Get-Service | Where-Object Name -In ("GamingServices","GamingServicesNet") | Stop-Service
 	$ForceReinstall = $false
 }
 Catch
 {
 	"REINSTALL NEEDED, a Reboot may be needed to be done"
+}
+If ($GamingServices_Good_All.Count -gt 0 -and $GamingServices_Good_User.Count -eq 0)
+{
+	$GamingServices_Good_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose -ErrorAction Continue
 }
 If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 {
@@ -426,7 +443,7 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	{
 		If (-Not (Test-Path -Path $FileD -PathType Leaf))
 		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose -ErrorAction:Stop
+			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
 		}
 	}
 	Catch
@@ -440,21 +457,25 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 		$GamingServices_All | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
-	 Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
-	 #Resolve-Path -Path $FileD | Remove-Item -Verbose
+	Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+	#Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 
 "Stopping the XBox Live Auth Manager Service, this may fail"
 Get-Service -Name "XblAuthManager" | Stop-Service
-"Looking for the XBOX Identify folder to wipe"
-$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
-$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -Verbose
-$XBOXIPFN = $XBOXIP.PackageFamilyName
-$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
-$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
-If (Test-Path -Path $XBOXTBF -PathType Container)
+$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+
+If ($XBOXIP -ne $null)
 {
-	Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse
+	"Looking for the XBOX Identify folder to wipe"
+	$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
+	$XBOXIPFN = $XBOXIP.PackageFamilyName
+	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
+	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
+	If (Test-Path -Path $XBOXTBF -PathType Container)
+	{
+		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
+	}
 }
 
 "Now Double checking the custom PSO2 install"
