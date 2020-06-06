@@ -323,9 +323,9 @@ Else
 
 $Files = @()
 "Checking for appxmanifest.xml..."
-$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
+$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
 "Checking for MicrosoftGame.config..."
-$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
+$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
 If ($Files -In $false)
 {
 	"Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
@@ -386,7 +386,7 @@ If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 Elseif ($VCLibs_User.Count -eq 0)
 {
 	"Downloading VCLibs requirement... (7MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
 	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
 	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 13
 }
@@ -487,7 +487,7 @@ If ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	$Download = $URI | DownloadMe -OutFile $Files -ErrorLevel 18
 
