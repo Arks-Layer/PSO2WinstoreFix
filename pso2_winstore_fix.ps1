@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2342" #21
+"Version 2020_06_06_0327" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -109,6 +109,9 @@ If ($DevMode -EQ $false)
 	exit 4
 }
 "[OK]"
+
+"Checking MS Store Setup"
+Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 
@@ -364,7 +367,7 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFol
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 
 $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
-$ForceReinstall = $true
+$ForceReinstall = $false
 If ($XBOXURI -eq $false)
 {
 	$ForceReinstall = $true
@@ -488,6 +491,9 @@ Else
 	"Look like XBOX Identify Provider had been uninstalled, please get it back"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
 }
+
+"Restarting XBOX services"
+Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service
 
 "Now Double checking the custom PSO2 install"
 $CustomPSO2 = @()
