@@ -1,5 +1,5 @@
 Param(
-	[Bool]$ForceReinstall = $false
+    [Bool]$ForceReinstall = $false
 )
 
 #f there an unhandled error, just stop
@@ -517,20 +517,20 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
-	"Please making sure to install the GamingService"
-	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+    "Please making sure to install the GamingService"
+    [Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 }
 
 
 $XBOXIP_User = @()
- $XBOXIP_All = @()
+$XBOXIP_All = @()
 $XBOXIP_User += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
 $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers -Verbose
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
-	$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
-	$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+	#$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	#$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
 {
@@ -561,6 +561,9 @@ Else
 
 "Restarting XBOX services"
 Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service
+
+"Remove GameGaurd Service"
+Get-Service | Where-Object Name -eq "npggsvc" | Remove-Service -Confirm:$false
 
 "Now Double checking the custom PSO2 install"
 $CustomPSO2 = @()
