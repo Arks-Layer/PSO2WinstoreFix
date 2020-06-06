@@ -1,5 +1,5 @@
 Param(
-    [Bool]$ForceReinstall = $false
+	[Bool]$ForceReinstall = $false
 )
 
 #f there an unhandled error, just stop
@@ -217,7 +217,7 @@ If ($JSONData)
 {
 	$JSONObj = $JSONData | ConvertFrom-Json -Verbose
 	"Tweaker Settings:"
-    $JSONObj
+	$JSONObj
 }
 Else
 {
@@ -517,8 +517,8 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
-    "Please making sure to install the GamingService"
-    [Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+	"Please making sure to install the GamingService"
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 }
 
 
