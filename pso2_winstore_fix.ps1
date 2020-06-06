@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2303" #21
+"Version 2020_06_05_2331" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -361,7 +361,7 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFol
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 
 $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
-$ForceReinstall = $false
+$ForceReinstall = $true
 If ($XBOXURI -eq $false)
 {
 	$ForceReinstall = $true
