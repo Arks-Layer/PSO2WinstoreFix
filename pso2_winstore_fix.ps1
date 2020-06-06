@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1307" #23
+"Version 2020_06_06_1313" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -330,7 +330,7 @@ $Files = @()
 $Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
 "Checking for MicrosoftGame.config..."
 $Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
-If ($Files -In $false)
+If ($Files -In $false -or $Files.Count -ne 2)
 {
 	"Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
 	"if you want to be an asshole, download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
