@@ -1,3 +1,7 @@
+Param(
+    [Bool]$ForceReinstall = $false
+)
+
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
 {
@@ -28,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1258" #23
+"Version 2020_06_06_1307" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -412,7 +416,6 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFol
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 
 $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
-$ForceReinstall = $false
 If ($XBOXURI -eq $false)
 {
 	$ForceReinstall = $true
