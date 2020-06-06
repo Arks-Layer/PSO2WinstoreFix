@@ -240,13 +240,16 @@ Else
 }
 
 
-"Checking for appxmanifest.xml..."
+
 $Files = @()
-$Files += Get-ChildItem | Where-Object -Property Name -EQ "appxmanifest.xml"
-If ($Files.Count -ne 1)
+"Checking for appxmanifest.xml..."
+$Files += Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Path -PathType Leaf
+"Checking for MicrosoftGame.config..."
+$Files += Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf
+If ($Files -In $false)
 {
-	"Cannot find appxmanifest.xml file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-	"And no, the copy in the pso2_bin is not the corrent one, if you want to  download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
+	"Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
+	"if you want to be an asshole, download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
