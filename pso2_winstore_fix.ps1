@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1325" #23
+"Version 2020_06_06_1354" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -475,7 +475,7 @@ $GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001
 Try
 {
 	$ForceReinstall = $true
-	Get-Service | Where-Object Name -In ("GamingServices","GamingServicesNet") | Stop-Service
+	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
 	$ForceReinstall = $false
 }
 Catch
@@ -497,6 +497,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 	If ($ForceReinstall -eq $true)
 	{
 		"Removing GamingService App"
+		$GamingServices_Any | Remove-AppxPackage
 		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
