@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2218" #21
+"Version 2020_06_05_2238" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -469,7 +469,7 @@ $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFil
 
 If ($XBOXIP -ne $null)
 {
-	"Looking for the XBOX Identify folder to wipe"
+	"Looking for the XBOX Identify Provider folder to wipe"
 	$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
 	$XBOXIPFN = $XBOXIP.PackageFamilyName
 	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
@@ -478,6 +478,11 @@ If ($XBOXIP -ne $null)
 	{
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
 	}
+}
+Else
+{
+	"Look like XBOX Identify Provider had been uninstalled, please get it back"
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
 }
 
 "Now Double checking the custom PSO2 install"
