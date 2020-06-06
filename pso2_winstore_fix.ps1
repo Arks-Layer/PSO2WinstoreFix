@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1321" #23
+"Version 2020_06_06_1325" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -492,7 +492,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
-	$Download = $URI | DownloadMe -OutFile $Files -ErrorLevel 18
+	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
 	If ($ForceReinstall -eq $true)
 	{
