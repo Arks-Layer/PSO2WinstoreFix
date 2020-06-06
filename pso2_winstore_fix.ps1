@@ -1,4 +1,13 @@
-$ErrorActionPreference = "Stop"
+#f there an unhandled error, just stop
+If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
+{
+	$ErrorActionPreference = "Continue"
+}
+Else
+{
+	$ErrorActionPreference = "Stop"
+}
+#Kill all logging
 Try
 {
 	Do
@@ -7,6 +16,7 @@ Try
 	} While ($true)
 }
 Catch {}
+#Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
 If ($PSScriptRoot -ne $null)
 {
 	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
@@ -15,9 +25,15 @@ Else
 {
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
+#Start logging
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_06_0327" #21
-function Failure {
+#Version number
+"Version 2020_06_06_1249" #21
+
+#All the fun helper functinons
+#Crash hander
+Function Failure
+{
 	[CmdletBinding()]
 	Param
 	(
@@ -35,10 +51,69 @@ function Failure {
 	#exit 254
 }
 
-"Checking Windows version..."
+#Downloader
+Function DownloadMe
+{
+	[CmdletBinding()]
+	Param
+	(
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[ValidateNotNullOrEmpty()]
+		[String]
+		$URI,
+		[Parameter(Mandatory=$true)]
+		[ValidateNotNullOrEmpty()]
+		[String]
+		$OutFile,
+		[Parameter(Mandatory=$true)]
+		[ValidateNotNullOrEmpty()]
+		$ErrorLevel = 255,
+		[Bool]
+		$Overwrite = $false
+	)
+	Try
+	{
+		If (-Not (Test-Path -Path $OutFile -PathType Leaf) -Or $Overwrite)
+		{
+			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose 
+		}
+		Return Resolve-Path -Path $OutFile
+	}
+	Catch
+	{
+		$_ | Failure
+		exit $ErrorLevel
+	}
+}
+
+#Package version check
+Function PackageVersion
+{
+	[CmdletBinding()]
+	Param
+	(
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[AllowNull()]
+		[Object[]]
+		$Packages,
+		[Parameter(Mandatory=$true)]
+		[ValidateNotNullOrEmpty()]
+		[Version]
+		$Version,
+		[String]
+		$Architecture = "X64"
+	)
+	PROCESS
+	{
+		Return $Packages | Where-Object -Property Architecture -EQ $Architecture | Where-Object -FilterScript {[Version]$_.Version -ge $Version}
+	}
+}
+
+Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
+	""
 	"PSO2NA is only supported on Windows 10. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -46,6 +121,7 @@ if ($WinVer.Major -lt 10)
 }
 ElseIf ($WinVer.Build -lt 18362)
 {
+	""
 	"PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -53,6 +129,7 @@ ElseIf ($WinVer.Build -lt 18362)
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 {
+	""
 	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if you CPU is 64-bit. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -277,77 +354,41 @@ $NewPackages = @()
 
 $DirectXRuntime_All = @()
 $DirectXRuntime_User = @()
-$DirectXRuntime_Good_All = @()
-$DirectXRuntime_Good_User = @()
 
-$DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
-$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
-$VersionCheck = [Version]"9.29.952.0"
-$DirectXRuntime_Good_All += $DirectXRuntime_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
-$DirectXRuntime_Good_User += $DirectXRuntime_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "9.29.952.0"
+$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "9.29.952.0"
 
-$VCLibs_All = @()
-$VCLibs_User = @()
-$VCLibs_Good_All = @()
-$VCLibs_Good_User = @()
-
-$VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | Where-Object -Property Architecture -EQ "X64"
-$VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | Where-Object -Property Architecture -EQ "X64"
-$VersionCheck = [Version]"14.0.24217.0"
-$VCLibs_Good_All += $VCLibs_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
-$VCLibs_Good_User += $VCLibs_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
-
-if ($DirectXRuntime_Good_All.Count -gt 0 -and $DirectXRuntime_Good_User.Count -eq 0)
+if ($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already have a good copy of DirectX, trying to install the user profile"
-	$NewPackages += $DirectXRuntime_Good_All | Sort-Object -Property Version | Select-Object -First 1
+	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose 
 }
-ElseIf ($DirectXRuntime_Good_User.Count -eq 0)
+ElseIf ($DirectXRuntime_User.Count -eq 0)
 {
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
 	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
-	Try
-	{
-		If (-Not (Test-Path -Path $FileD -PathType Leaf))
-		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
-		}
-	}
-	Catch
-	{
-		$_ | Failure
-		exit 12
-	}
-
-	"Adding DirectX Runtime requirement to TODO list..."
-	$NewPackages += Resolve-Path -Path $FileD
+	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 12
 }
 
-If ($VCLibs_Good_All.Count -gt 0 -And $VCLibs_Good_User.Count -eq 0 )
+
+$VCLibs_All = @()
+$VCLibs_User = @()
+
+$VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "14.0.24217.0"
+$VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "14.0.24217.0"
+
+If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already have a good copy of VCLibs, trying to install the user profile"
-	$NewPackages += $VCLibs_Good_All | Sort-Object -Property Version | Select-Object -First 1
+	$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
-Elseif ($VCLibs_Good_User.Count -eq 0)
+Elseif ($VCLibs_User.Count -eq 0)
 {
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
 	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
-	Try
-	{
-		If (-Not (Test-Path -Path $FileD -PathType Leaf))
-		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
-		}
-	}
-	Catch
-	{
-		$_ | Failure
-		exit 13
-	}
-	"Adding VCLibs requirement to TODO list..."
-	$NewPackages += Resolve-Path -Path $FileD
+	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 13
 }
 
 If ($NewPackages.Count -gt 0)
@@ -355,6 +396,10 @@ If ($NewPackages.Count -gt 0)
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
 	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume -ErrorAction Continue
 	#$NewPackages | Remove-Item -Verbose
+}
+Else
+{
+	"Requirements already installed"
 }
 
 $PSO2Packages = @()
@@ -418,14 +463,11 @@ If ($NewPackages.Count -gt 0)
 
 "Checking needed GamingService App for runtime"
 $GamingServices_User = @()
+$GamingServices_Any = @()
 $GamingServices_All = @()
-$GamingServices_Good_User = @()
-$GamingServices_Good_All = @()
-$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-$GamingServices_All += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Bundle -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-$VersionCheck = [Version]"2.41.10001.0"
-$GamingServices_Good_User += $GamingServices_User | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
-$GamingServices_Good_All += $GamingServices_All | Where-Object -FilterScript {[Version]$_.Version -ge $VersionCheck}
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.10001.0"
+$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
+$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001.0"
 
 Try
 {
@@ -437,42 +479,48 @@ Catch
 {
 	"REINSTALL NEEDED, a Reboot may be needed to be done"
 }
-If ($GamingServices_Good_All.Count -gt 0 -and $GamingServices_Good_User.Count -eq 0)
+
+If ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
-	$GamingServices_Good_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose -ErrorAction Continue
+	$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
-ElseIf ($GamingServices_Good_User.Count -eq 0 -or $ForceReinstall -eq $true)
+ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
-	Try
-	{
-		If (-Not (Test-Path -Path $FileD -PathType Leaf))
-		{
-			Invoke-WebRequest -Uri $URI -OutFile $FileD  -Verbose
-		}
-	}
-	Catch
-	{
-		$_ | Failure
-		exit 18
-	}
+	$Download = $URI | DownloadMe -OutFile $Files -ErrorLevel 18
+
 	If ($ForceReinstall -eq $true)
 	{
 		"Removing GamingService App"
-		$GamingServices_All | Remove-AppxPackage -AllUsers
+		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
-	Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
 	#Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 "Please making sure to install the GamingService systemwide"
 [Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 
-"Stopping the XBox Live Auth Manager Service, this may fail"
-Get-Service -Name "XblAuthManager" | Stop-Service
-$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+$XBOXIP_User = @()
+ $XBOXIP_All = @()
+$XBOXIP_User += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+$XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers -Verbose
+
+If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
+{
+	$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+}
+ElseIf ($XBOXIP_All.Count -eq 0)
+{
+	"Look like XBOX Identify Provider had been removed from the OS?"
+}
+Else
+{
+	$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+}
 
 If ($XBOXIP -ne $null)
 {
@@ -511,6 +559,6 @@ Else
 	"Dude? why are there $($CustomPSO2) custom PSO2 installs"
 }
 
-Stop-Transcript
+Stop-Transcript -ErrorAction Continue
 Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
