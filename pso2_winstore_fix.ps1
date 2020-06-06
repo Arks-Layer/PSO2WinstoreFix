@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2238" #21
+"Version 2020_06_05_2303" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -246,6 +246,7 @@ $Files += Get-ChildItem | Where-Object -Property Name -EQ "appxmanifest.xml"
 If ($Files.Count -ne 1)
 {
 	"Cannot find appxmanifest.xml file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
+	"And no, the copy in the pso2_bin is not the corrent one, if you want to  download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
