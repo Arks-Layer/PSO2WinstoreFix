@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2331" #21
+"Version 2020_06_05_2342" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -354,7 +354,7 @@ If ($NewPackages.Count -gt 0)
 $PSO2Packages = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
-$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Length -eq 0
+$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
@@ -435,7 +435,7 @@ If ($GamingServices_Good_All.Count -gt 0 -and $GamingServices_Good_User.Count -e
 {
 	$GamingServices_Good_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose -ErrorAction Continue
 }
-If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
+ElseIf ($GamingServices_Good_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
