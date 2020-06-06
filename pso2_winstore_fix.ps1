@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1313" #23
+"Version 2020_06_06_1321" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -561,6 +561,8 @@ Else
 {
 	"Dude? why are there $($CustomPSO2) custom PSO2 installs"
 }
+"Raw PSO2 install status"
+Get-AppxPackage -Name "100B7A24.oxyna"
 
 Stop-Transcript -ErrorAction Continue
 Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
