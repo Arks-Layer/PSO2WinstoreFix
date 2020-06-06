@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1354" #23
+"Version 2020_06_06_1720" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -216,6 +216,8 @@ Else
 If ($JSONData)
 {
 	$JSONObj = $JSONData | ConvertFrom-Json -Verbose
+	"Tweaker Settings:"
+    $JSONObj
 }
 Else
 {
@@ -385,7 +387,7 @@ $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Pack
 If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already have a good copy of VCLibs, trying to install the user profile"
-	$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
 Elseif ($VCLibs_User.Count -eq 0)
 {
@@ -483,9 +485,17 @@ Catch
 	"REINSTALL NEEDED, a Reboot may be needed to be done"
 }
 
-If ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
+If ($ForceReinstall -eq $true)
 {
-	$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	"Removing GamingService App"
+	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
+	$GamingServices_Any | Remove-AppxPackage -Verbose
+	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
+}
+ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
+{
+	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	
 }
 ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
@@ -504,8 +514,13 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
 	#Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
-"Please making sure to install the GamingService systemwide"
-[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+
+If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
+{
+    "Please making sure to install the GamingService"
+    [Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+}
+
 
 $XBOXIP_User = @()
  $XBOXIP_All = @()
