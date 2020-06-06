@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:wincap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/windowscapabilities" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap uap3 desktop desktop6 wincap rescap" xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10">
+  <Identity Name="100B7A24.oxyna" Publisher="CN=533468C5-80BB-4C4F-95E4-BAE5AC5567D0" Version="1.0.7.0" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Phantasy Star Online 2</DisplayName>
+    <PublisherDisplayName>株式会社セガゲームス</PublisherDisplayName>
+    <Logo>StoreLogo.png</Logo>
+    <Description>Phantasy Star Online 2</Description>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.18362.0" MaxVersionTested="10.0.18362.0" />
+    <PackageDependency Name="Microsoft.DirectXRuntime" MinVersion="9.29.952.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
+    <PackageDependency Name="Microsoft.VCLibs.140.00.UWPDesktop" MinVersion="14.0.24217.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="en-US" />
+    <Resource Language="ja-JP" />
+  </Resources>
+  <Applications>
+    <Application Id="Game" Executable="pso2_bin/pso2.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Phantasy Star Online 2" Square150x150Logo="pso2_bin/Logo.png" Square44x44Logo="pso2_bin/SmallLogo.png" Description="Phantasy Star Online 2" ForegroundText="light" BackgroundColor="#464646">
+        <uap:SplashScreen Image="pso2_bin/SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="ms-xbl-78a72674" />
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="allowElevation" />
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="modifiableApp" />
+  </Capabilities>
+</Package>

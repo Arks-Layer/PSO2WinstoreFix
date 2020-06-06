@@ -28,7 +28,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1249" #21
+"Version 2020_06_06_1258" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -323,9 +323,9 @@ Else
 
 $Files = @()
 "Checking for appxmanifest.xml..."
-$Files += Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Path -PathType Leaf
+$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
 "Checking for MicrosoftGame.config..."
-$Files += Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf
+$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
 If ($Files -In $false)
 {
 	"Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
