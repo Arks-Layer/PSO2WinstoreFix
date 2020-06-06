@@ -16,7 +16,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 Start-Transcript -Path $ScriptLog
-"Version 2020_06_05_2020" #21
+"Version 2020_06_05_2218" #21
 function Failure {
 	[CmdletBinding()]
 	Param
@@ -460,6 +460,8 @@ If ($GamingServices_Good.Count -eq 0 -or $ForceReinstall -eq $true)
 	Resolve-Path -Path $FileD | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
 	#Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
+"Please making sure to install the GamingService systemwide"
+[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 
 "Stopping the XBox Live Auth Manager Service, this may fail"
 Get-Service -Name "XblAuthManager" | Stop-Service
