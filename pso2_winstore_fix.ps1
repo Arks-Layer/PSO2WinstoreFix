@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_2220" #24
+"Version 2020_06_06_2245" #26
 
 #All the fun helper functinons
 #Crash hander
@@ -514,7 +514,7 @@ $GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001
 Try
 {
 	$ForceReinstall = $true
-	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
+	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Restart-Service
 	$ForceReinstall = $false
 }
 Catch {}
@@ -534,7 +534,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
-ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
+ElseIf ($false) #($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
@@ -549,6 +549,10 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 	}
 	"Installing GamingService App"
 	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+    "GamingService installed, need a Reboot be needed to to get it ready"
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 25
 	#Resolve-Path -Path $FileD | Remove-Item -Verbose
 }
 
@@ -556,6 +560,9 @@ If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Please making sure to install the GamingService"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 26
 }
 
 "Restarting XBOX services"
