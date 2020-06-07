@@ -1,5 +1,5 @@
 Param(
-    [Bool]$ForceReinstall = $false
+	[Bool]$ForceReinstall = $false
 )
 
 #f there an unhandled error, just stop
@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_1720" #23
+"Version 2020_06_06_2131" #23
 
 #All the fun helper functinons
 #Crash hander
@@ -517,8 +517,8 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
-    "Please making sure to install the GamingService"
-    [Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+	"Please making sure to install the GamingService"
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 }
 
 
@@ -562,8 +562,32 @@ Else
 "Restarting XBOX services"
 Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service
 
-"Remove GameGaurd Service"
-Get-Service | Where-Object Name -eq "npggsvc" | Remove-Service -Confirm:$false
+"Finding GameGuard Service"
+$npggsvc = @()
+$npggsvc += Get-Service | Where-Object Name -eq "npggsvc"
+If ($npggsvc.Count -gt 0)
+{
+	"Found GameGuard Service"
+	"Try to Stop it"
+	Try
+	{
+		$BrokenGG = $true
+		$npggsvc | Where-Object Statis -EQ "Running" | Stop-Service -ErrorAction Continue -PassThru | Set-Service -StartupType Manual
+		$BrokenGG = $false
+	}
+	Catch {}
+	If (-Not (Get-Item -Path $npggsvcK))
+	{
+		$BrokenGG = $true
+	}
+	
+	If ($BrokenGG)
+	{
+		#Delete-Service do not exist in Power-Shell 5.1    
+		& sc.exe delete npggsvc
+	}
+}
+
 
 "Now Double checking the custom PSO2 install"
 $CustomPSO2 = @()
