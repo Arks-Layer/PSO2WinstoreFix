@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_0051" #27
+"Version 2020_06_07_0108" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -546,7 +546,7 @@ Try
 }
 Catch {}
 
-If ($ForceReinstall -eq $true -and $GamingServices_All -gt 0)
+If ($ForceReinstall -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing GamingService App"
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
