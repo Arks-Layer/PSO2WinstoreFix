@@ -611,7 +611,7 @@ If ($EmptyFiles.Count -gt 0)
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
 	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker"
-	"(Troubleshooting -> New Method)
+	"(Troubleshooting -> New Method)"
     ""
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
