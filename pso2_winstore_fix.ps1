@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_0108" #27
+"Version 2020_06_07_0122" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -541,10 +541,15 @@ $GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001
 Try
 {
 	$ForceReinstall = $true
+	"Checking if we can get the Gaming services are working"
 	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Restart-Service
+	"No Errors found"
 	$ForceReinstall = $false
 }
-Catch {}
+Catch
+{
+	"There was issues checking the Gaming services, we will try to reinstall the App"
+}
 
 If ($ForceReinstall -eq $true -and $GamingServices_All.Count -gt 0)
 {
