@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_0122" #27
+"Version 2020_06_07_0215" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -542,7 +542,7 @@ Try
 {
 	$ForceReinstall = $true
 	"Checking if we can get the Gaming services are working"
-	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Restart-Service
+	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" |  Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstall = $false
 }
@@ -555,7 +555,7 @@ If ($ForceReinstall -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing GamingService App"
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
-	$GamingServices_Any | Remove-AppxPackage -Verbose
+	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"ERROR: GamingService removed, a Reboot be needed to to reinstalled it"
@@ -577,7 +577,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 	If ($ForceReinstall -eq $true)
 	{
 		"Removing GamingService App"
-		$GamingServices_Any | Remove-AppxPackage
+		$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false
 		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
