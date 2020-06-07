@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_2131" #23
+"Version 2020_06_06_2220" #24
 
 #All the fun helper functinons
 #Crash hander
@@ -466,62 +466,6 @@ If ($NewPackages.Count -gt 0)
 	#$NewPackages | Remove-Item -Verbose
 }
 
-"Checking needed GamingService App for runtime"
-$GamingServices_User = @()
-$GamingServices_Any = @()
-$GamingServices_All = @()
-$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.10001.0"
-$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001.0"
-
-Try
-{
-	$ForceReinstall = $true
-	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
-	$ForceReinstall = $false
-}
-Catch
-{
-	"REINSTALL NEEDED, a Reboot may be needed to be done"
-}
-
-If ($ForceReinstall -eq $true)
-{
-	"Removing GamingService App"
-	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
-	$GamingServices_Any | Remove-AppxPackage -Verbose
-	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
-}
-ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
-{
-	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
-	
-}
-ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
-{
-	"Downloading GamingService App... (10MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
-	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
-	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
-
-	If ($ForceReinstall -eq $true)
-	{
-		"Removing GamingService App"
-		$GamingServices_Any | Remove-AppxPackage
-		$GamingServices_Any | Remove-AppxPackage -AllUsers
-	}
-	"Installing GamingService App"
-	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
-	#Resolve-Path -Path $FileD | Remove-Item -Verbose
-}
-
-If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
-{
-	"Please making sure to install the GamingService"
-	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-}
-
-
 $XBOXIP_User = @()
 $XBOXIP_All = @()
 $XBOXIP_User += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
@@ -557,6 +501,61 @@ Else
 {
 	"Look like XBOX Identify Provider had been uninstalled, please get it back"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
+}
+
+"Checking needed GamingService App for runtime"
+$GamingServices_User = @()
+$GamingServices_Any = @()
+$GamingServices_All = @()
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.10001.0"
+$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
+$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001.0"
+
+Try
+{
+	$ForceReinstall = $true
+	Get-Service -Name "GamingServices","GamingServicesNet" | Restart-Service
+	$ForceReinstall = $false
+}
+Catch {}
+
+If ($ForceReinstall -eq $true -and $GamingServices_All -gt 0)
+{
+	"Removing GamingService App"
+	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
+	$GamingServices_Any | Remove-AppxPackage -Verbose
+	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
+	"GamingService removed, a Reboot be needed to to reinstalled it"
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 24
+}
+ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
+{
+	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+}
+ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
+{
+	"Downloading GamingService App... (10MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
+	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
+	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
+
+	If ($ForceReinstall -eq $true)
+	{
+		"Removing GamingService App"
+		$GamingServices_Any | Remove-AppxPackage
+		$GamingServices_Any | Remove-AppxPackage -AllUsers
+	}
+	"Installing GamingService App"
+	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+	#Resolve-Path -Path $FileD | Remove-Item -Verbose
+}
+
+If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
+{
+	"Please making sure to install the GamingService"
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 }
 
 "Restarting XBOX services"
