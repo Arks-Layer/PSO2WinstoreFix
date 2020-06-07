@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_2337" #27
+"Version 2020_06_07_0051" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -341,17 +341,19 @@ Else
 $Files = @()
 "Checking for appxmanifest.xml..."
 #$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
-$Files += "appxmanifest.xml" | Resolve-Path | Test-Path -PathType Leaf
+$Files += "appxmanifest.xml" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
 "Checking for MicrosoftGame.config..."
 #$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
-$Files += "MicrosoftGame.config" | Resolve-Path | Test-Path -PathType Leaf
+$Files += "MicrosoftGame.config" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
 "Checking for pso2_bin files..."
-$Files += "pso2_bin/pso2.exe","pso2_bin/Logo.png","pso2_bin/SmallLogo.png","pso2_bin/SplashScreen.png" | Resolve-Path | Test-Path -PathType Leaf
+$Files += "pso2_bin/pso2.exe","pso2_bin/Logo.png","pso2_bin/SmallLogo.png","pso2_bin/SplashScreen.png" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
 If ($Files -In $false -or $Files.Count -ne 6)
 {
 	""
 	"ERROR: Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-	"if you want to be an smartass, download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip and do a FULL FULL CHECK, ASSHOLE!"
+	"if you want to be an smartass, download"
+	"https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
+	"and do a FULL FULL CHECK, ASSHOLE!"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
