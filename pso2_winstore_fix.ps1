@@ -250,24 +250,24 @@ $GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001
 Try
 {
 	$ForceReinstallGS = $true
-	"Checking if we can get the Gaming services are working"
+	"Checking if we can get the Gaming services working"
 	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" |  Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstallGS = $false
 }
 Catch
 {
-	"There was issues checking the Gaming services, we will try to reinstall the App"
+	"There was issues checking the Gaming services, we will try to reinstall the app..."
 }
 
 If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
-	"Removing GamingService App"
+	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
-	"ERROR: GamingService removed, a Reboot be needed to to reinstalled it"
+	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 24
@@ -278,21 +278,21 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 }
 ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
-	"Downloading GamingService App... (10MB)"
+	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
 	If ($ForceReinstallGS -eq $true)
 	{
-		"Removing GamingService App"
+		"Removing Gaming Services app..."
 		$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false
 		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
-	"Installing GamingService App"
+	"Installing Gaming Services app..."
 	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
 	""
-    "ERROR: GamingService installed, need a Reboot be needed to to get it ready"
+    "ERROR: Gaming Services installed, please reboot."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 25
@@ -302,7 +302,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	""
-	"ERROR: Please making sure to install the GamingService from the MS Store"
+	"ERROR: Please make sure to install the Gaming Services from the MS Store"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -318,7 +318,7 @@ $npggsvc += Get-Service | Where-Object Name -eq "npggsvc"
 If ($npggsvc.Count -gt 0)
 {
 	"Found GameGuard Service"
-	"Try to Stop it"
+	"Trying to stop it..."
 	Try
 	{
 		$BrokenGG = $true
@@ -388,7 +388,7 @@ Else
 If ($PSO2NABinFolder -eq $null -and $false)
 {
     ""
-	"ERROR: Old version of the Tweaker config file found, please update Tweaker"
+	"ERROR: Old version of the Tweaker config file found, please update Tweaker."
 	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -465,7 +465,7 @@ Catch
 
 If ($BrokenNTFS -eq $true)
 {
-	"WARNING: Your system's WMI database is broken, please repair it"
+	"WARNING: Your system's WMI database is broken, please repair it."
 }
 ElseIf ($PSO2Vol.Count -eq 0)
 {
@@ -477,7 +477,7 @@ ElseIf ($PSO2Vol.Count -eq 0)
 }
 Else
 {
-	"Your PSO2NA installation is on a NTFS drive, Wonderful"
+	"Your PSO2NA installation is on a NTFS drive \o/"
 }
 
 
@@ -494,10 +494,11 @@ $Files += "pso2_bin/pso2.exe","pso2_bin/Logo.png","pso2_bin/SmallLogo.png","pso2
 If ($Files -In $false -or $Files.Count -ne 6)
 {
 	""
-	"ERROR: Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-	"if you want to be an smartass, download"
+	"ERROR: Cannot find required files - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
+	"If you think you did it right (you probably didn't!), download"
 	"https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
-	"and do a FULL FULL CHECK, ASSHOLE!"
+	"extract it to your PHANTASYSTARONLINE2 folder and DO A FILE CHECK!"
+	"(Troubleshooting -> New Method)"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
@@ -509,13 +510,13 @@ $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -
 If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
-	"If this is taking more then 30 minutes, you may have to reboot"
+	"If this takes more then 30 minutes, you may have to reboot."
     $OldBin = $false
     $BadBin = "C:\Program Files \WindowsModifiableApps\pso2_bin"
     $OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
     If ($OldBin)
     {
-        "Found the old pso2_bin folder, deleting it"
+        "Found the old pso2_bin folder, deleting it..."
         Remove-Item -Path $OldBin -Recurse $true -Force -Confirm:$false -Verbose
     }
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
@@ -525,7 +526,7 @@ Else
 	"No Windows Store PSO2NA installation found. This is OK!"
 }
 
-"Checking if we need to install the requirments..."
+"Checking if we need to install the requirements..."
 $NewPackages = @()
 
 $DirectXRuntime_All = @()
@@ -536,7 +537,7 @@ $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Packag
 
 if ($false) #($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
-	"System already have a good copy of DirectX, trying to install the user profile"
+	"System already has a good copy of DirectX, trying to install the user profile..."
 	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose 
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0)
@@ -556,7 +557,7 @@ $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Pack
 
 If ($false) #($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
-	"System already have a good copy of VCLibs, trying to install the user profile"
+	"System already has a good copy of VCLibs, trying to install the user profile"
 	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
 Elseif ($VCLibs_User.Count -eq 0)
@@ -595,12 +596,12 @@ If ($XBOXURI -eq $false)
 
 If ($ForceReinstall)
 {
-	"Bad Install found, forcing reinstalling PSO2"
+	"Bad install found, forcing a PSO2 reinstall..."
 	Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Remove-AppxPackage -Verbose -AllUsers
 }
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
-	"Found a old Custom PSO2 Install, removing it"
+	"Found a old custom PSO2 install, removing it..."
 	$PSO2Packages_Bad | Sort-Object -Unique | Remove-AppxPackage -Verbose -AllUsers
 }
 
@@ -609,7 +610,8 @@ If ($EmptyFiles.Count -gt 0)
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
-	"ERROR: Bad PSO2 files found, Please run a Full File Check in Tweaker"
+	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker"
+	"(Troubleshooting -> New Method)
     ""
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
@@ -626,7 +628,7 @@ ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 }
 Else
 {
-	"There already a custom PSO2 install"
+	"There is already a custom PSO2 install?"
 }
 If ($False) #Catch
 {
@@ -638,22 +640,22 @@ If ($NewPackages.Count -gt 0)
 	#$NewPackages | Remove-Item -Verbose
 }
 
-"Now Double checking the custom PSO2 install"
+"Now double checking the custom PSO2 install..."
 $CustomPSO2 = @()
 $CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopmentMode -eq $true | Where-Object Status -EQ "Ok"
 If ($CustomPSO2.Count -eq 0)
 {
-	 "Can not find custom PSO2 Installtion"
+	 "Cannot find custom PSO2 installation!"
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
-	"Good, only found one custom PSO2 installs"
+	"Good, only found one custom PSO2 install."
 }
 Else
 {
-	"Dude? why are there $($CustomPSO2) custom PSO2 installs"
+	"What? why are there $($CustomPSO2) custom PSO2 install?!"
 }
-"Raw PSO2 install status"
+"Raw PSO2 install status:"
 Get-AppxPackage -Name "100B7A24.oxyna"
 
 Stop-Transcript -ErrorAction Continue
