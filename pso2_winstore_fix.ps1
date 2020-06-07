@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_0215" #27
+"Version 2020_06_07_0321" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -366,6 +366,14 @@ If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	"If this is taking more then 30 minutes, you may have to reboot"
+    $OldBin = $false
+    $BadBin = "C:\Program Files \WindowsModifiableApps\pso2_bin"
+    $OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
+    If ($OldBin)
+    {
+        "Found the old pso2_bin folder, deleting it"
+        Remove-Item -Path $OldBin -Recurse $true -Force -Confirm:$false -Verbose
+    }
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
 Else
