@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_06_2245" #26
+"Version 2020_06_06_2337" #27
 
 #All the fun helper functinons
 #Crash hander
@@ -118,7 +118,7 @@ $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
 	""
-	"PSO2NA is only supported on Windows 10. Press any key to exit."
+	"ERROR: PSO2NA is only supported on Windows 10. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 1
@@ -126,7 +126,7 @@ if ($WinVer.Major -lt 10)
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
-	"PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
+	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 2
@@ -153,7 +153,8 @@ $myWindowsPrincipal=New-Object System.Security.Principal.WindowsPrincipal($myWin
 $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 {
-	"You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
+	""
+	"WARNING: You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
 	Stop-Transcript
 	Start-Process powershell.exe "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
 	exit
@@ -208,7 +209,8 @@ If ($JSONPath)
 }
 Else
 {
-	"Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
+	""
+	"ERROR: Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 5
@@ -216,12 +218,13 @@ Else
 If ($JSONData)
 {
 	$JSONObj = $JSONData | ConvertFrom-Json -Verbose
-	"Tweaker Settings:"
+	"Tweaker Settings for logging:"
 	$JSONObj
 }
 Else
 {
-	"Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet? Press any key to exit."
+	""
+	"ERROR: Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 6
@@ -232,14 +235,16 @@ If ($JSONObj)
 }
 Else
 {
-	"Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
+    ""
+	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
 }
-If ($PSO2NABinFolder -eq $null)
+If ($PSO2NABinFolder -eq $null -and $false)
 {
-	"Old version of the Tweaker config file found, please update Tweaker"
+    ""
+	"ERROR: Old version of the Tweaker config file found, please update Tweaker"
 	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -247,7 +252,8 @@ If ($PSO2NABinFolder -eq $null)
 }
 ElseIf (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
 {
-	"The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+    ""
+	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -259,14 +265,16 @@ ElseIf ($PSO2NABinFolder)
 }
 Else
 {
-	"Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
+    ""
+	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 8
 }
 If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
 {
-	"The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
+    ""
+	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -277,7 +285,8 @@ ElseIf ($PSO2NAFolder)
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
-		"You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
+		""
+		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
 		"Press any key to exit."
 		Stop-Transcript
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -288,7 +297,8 @@ ElseIf ($PSO2NAFolder)
 }
 Else
 {
-	"Cannot get PSO2NA Folder - Did you follow the instructions? Press any key to exit."
+	""
+	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions? Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 9
@@ -311,11 +321,12 @@ Catch
 
 If ($BrokenNTFS -eq $true)
 {
-	"Your system's WMI database is broken, please repair it"
+	"WARNING: Your system's WMI database is broken, please repair it"
 }
 ElseIf ($PSO2Vol.Count -eq 0)
 {
-	"Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
+    ""
+	"WARNING: Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
 	#Stop-Transcript
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 15
@@ -329,13 +340,18 @@ Else
 
 $Files = @()
 "Checking for appxmanifest.xml..."
-$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
+#$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
+$Files += "appxmanifest.xml" | Resolve-Path | Test-Path -PathType Leaf
 "Checking for MicrosoftGame.config..."
-$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
-If ($Files -In $false -or $Files.Count -ne 2)
+#$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
+$Files += "MicrosoftGame.config" | Resolve-Path | Test-Path -PathType Leaf
+"Checking for pso2_bin files..."
+$Files += "pso2_bin/pso2.exe","pso2_bin/Logo.png","pso2_bin/SmallLogo.png","pso2_bin/SplashScreen.png" | Resolve-Path | Test-Path -PathType Leaf
+If ($Files -In $false -or $Files.Count -ne 6)
 {
-	"Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-	"if you want to be an asshole, download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
+	""
+	"ERROR: Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
+	"if you want to be an smartass, download https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip and do a FULL FULL CHECK, ASSHOLE!"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 11
@@ -364,7 +380,7 @@ $DirectXRuntime_User = @()
 $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "9.29.952.0"
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "9.29.952.0"
 
-if ($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
+if ($false) #($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already have a good copy of DirectX, trying to install the user profile"
 	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose 
@@ -384,7 +400,7 @@ $VCLibs_User = @()
 $VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "14.0.24217.0"
 $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "14.0.24217.0"
 
-If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
+If ($false) #($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already have a good copy of VCLibs, trying to install the user profile"
 	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
@@ -438,7 +454,9 @@ If ($EmptyFiles.Count -gt 0)
 {
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
-	"Bad PSO2 files found, Please run a Full File Check in Tweaker"
+	""
+	"ERROR: Bad PSO2 files found, Please run a Full File Check in Tweaker"
+    ""
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
@@ -478,7 +496,9 @@ If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
 {
-	"Look like XBOX Identify Provider had been removed from the OS?"
+	""
+	"ERROR: Look like XBOX Identify Provider had been removed from the OS?"
+	""
 }
 Else
 {
@@ -499,8 +519,13 @@ If ($XBOXIP -ne $null)
 }
 Else
 {
-	"Look like XBOX Identify Provider had been uninstalled, please get it back"
+    ""
+	"ERROR: Look like XBOX Identify Provider had been uninstalled, please get it back"
+	""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 27
 }
 
 "Checking needed GamingService App for runtime"
@@ -525,7 +550,8 @@ If ($ForceReinstall -eq $true -and $GamingServices_All -gt 0)
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
 	$GamingServices_Any | Remove-AppxPackage -Verbose
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
-	"GamingService removed, a Reboot be needed to to reinstalled it"
+	""
+	"ERROR: GamingService removed, a Reboot be needed to to reinstalled it"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 24
@@ -534,7 +560,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
 }
-ElseIf ($false) #($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
+ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
 	"Downloading GamingService App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
@@ -549,7 +575,8 @@ ElseIf ($false) #($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true
 	}
 	"Installing GamingService App"
 	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
-    "GamingService installed, need a Reboot be needed to to get it ready"
+	""
+    "ERROR: GamingService installed, need a Reboot be needed to to get it ready"
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 25
@@ -558,7 +585,8 @@ ElseIf ($false) #($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true
 
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstall -eq $true)
 {
-	"Please making sure to install the GamingService"
+	""
+	"ERROR: Please making sure to install the GamingService from the MS Store"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -582,6 +610,7 @@ If ($npggsvc.Count -gt 0)
 		$BrokenGG = $false
 	}
 	Catch {}
+    $npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\GamingServices"
 	If (-Not (Get-Item -Path $npggsvcK))
 	{
 		$BrokenGG = $true
