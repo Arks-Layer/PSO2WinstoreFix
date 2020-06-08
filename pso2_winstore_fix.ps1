@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0417" #28
+"Version 2020_06_08_0819" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -207,31 +207,6 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 
-Write-Host -NoNewline "Checking for Developer Mode..."
-$DevMode = $false
-$RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-if (Test-Path -Path $RegistryKeyPath)
-{
-	$AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
-	if ($AppModelUnlock -ne $null -and ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) -ne $null)
-	{
-		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
-		If ($RegData -eq 1)
-		{
-			$DevMode = $true
-		}
-	}
-}
-If ($DevMode -EQ $false)
-{
-	"You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/"
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 4
-}
-"[OK]"
-
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
@@ -247,8 +222,8 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
-	#$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose
-	#$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+    "XBOX Identify Provider not installed to the user account, forcing install"
+    $XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
 {
@@ -256,10 +231,8 @@ ElseIf ($XBOXIP_All.Count -eq 0)
 	"ERROR: Look like XBOX Identify Provider had been removed from the OS?"
 	""
 }
-Else
-{
-	$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
-}
+
+$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
 
 If ($XBOXIP -ne $null)
 {
@@ -313,7 +286,7 @@ Catch
 	"There was issues checking the Gaming services, we will try to reinstall the app..."
 }
 
-If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0 -and $NETFramework.Count -gt 0)
+If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
@@ -327,21 +300,20 @@ If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0 -and $NETFr
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
-	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose
+	"Installing Gaming Service to user account"
+	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
-ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
+ElseIf ($GamingServices_All.Count -eq 0 -and $NETFramework.Count -gt 0)
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
 	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
-	If ($ForceReinstallGS -eq $true)
-	{
-		"Removing Gaming Services app..."
-		$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false
-		$GamingServices_Any | Remove-AppxPackage -AllUsers
-	}
+	"Removing Gaming Services app..."
+	$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false -Verbose
+	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
+
 	"Installing Gaming Services app..."
 	Try {
 		$BadInstall = $true
@@ -374,7 +346,7 @@ If ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 }
 
 "Restarting XBOX services"
-Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service
+Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service -Verbose
 
 "Finding GameGuard Service"
 $npggsvc = @()
@@ -566,8 +538,6 @@ Else
 	"Your PSO2NA installation is on a NTFS drive \o/"
 }
 
-
-
 $MissingFiles = $false
 "Checking for appxmanifest.xml..."
 If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Path -PathType Leaf))
@@ -626,6 +596,31 @@ If ($MissingFiles -eq $true)
 	exit 11
 }
 
+Write-Host -NoNewline "Checking for Developer Mode..."
+$DevMode = $false
+$RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
+if (Test-Path -Path $RegistryKeyPath)
+{
+	$AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
+	if ($AppModelUnlock -ne $null -and ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) -ne $null)
+	{
+		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
+		If ($RegData -eq 1)
+		{
+			$DevMode = $true
+		}
+	}
+}
+If ($DevMode -EQ $false)
+{
+	"You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/"
+	"Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 4
+}
+"[OK]"
+
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders"
 $OldBackups += FindMutableBackup
@@ -636,7 +631,7 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		"Going to copy the backup files to your Tweaker copy of PSO2"
-		Start-Process -Wait -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		Start-Process "Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0" -Wait
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
@@ -658,7 +653,7 @@ If ($OldPackages.Count -gt 0)
 	{
 		"Found the old MS STORE's pso2_bin folder"
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		Start-Process -Wait -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		Start-Process "Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0" -Wait
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
@@ -684,7 +679,7 @@ $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Packag
 if ($false) #($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
-	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose 
+	$DirectXRuntime_All  | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0)
 {
@@ -704,7 +699,7 @@ $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Pack
 If ($false) #($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already has a good copy of VCLibs, trying to install the user profile"
-	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume-Verbose
+	$VCLibsAll | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 Elseif ($VCLibs_User.Count -eq 0)
 {
