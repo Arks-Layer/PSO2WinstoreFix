@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2325" #28
+"Version 2020_06_08_0132" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -117,6 +117,31 @@ Function PackageVersion
 	PROCESS
 	{
 		Return $Packages | Where-Object -Property Architecture -EQ $Architecture | Where-Object -FilterScript {[Version]$_.Version -ge $Version}
+	}
+}
+
+#Find MutableBackup
+Function FindMutableBackup {
+	[CmdletBinding()]
+	Param
+	(
+		[String]
+		$Package = "100B7A24.oxyna"
+	)
+	PROCESS
+	{
+		$AppxVols = Get-AppxVolume -Online -Verbose
+		$Mutable = $AppxVols | ForEach-Object {
+			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
+			If (Test-Path $Test -PathType Container)
+			{
+				Return Resolve-Path -Path $Test -Verbose
+            }
+		}
+		$Backups = $Mutable | ForEach-Object {
+            Return Get-ChildItem -Path $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
+	    }
+		$Backups.ProviderPath
 	}
 }
 
@@ -566,6 +591,21 @@ If ($MissingFiles -eq $true)
 	exit 11
 }
 
+$OldBackups = @()
+"Looking for old PSO2NA MutableBackup folders"
+$OldBackups += FindMutableBackup
+If ($OldBackups.Count -gt 0)
+{
+    "Found some MutableBackup folders"
+    $OldBackups
+}
+$OldBackups | ForEach-Object -Process {
+	$OldBin = $_
+	"Going to copy the backup files to your Tweaker copy of PSO2"
+	Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+	"Deleting old $($OldBin) folder..."
+	Get-ChildItem -Path $OldBin | Remove-Item -Recurse $true -Force -Confirm:$false -Verbose
+}
 $OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
 $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
@@ -578,7 +618,10 @@ If ($OldPackages.Count -gt 0)
 	$OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
 	If ($OldBin)
 	{
-		"Found the old MS STORE's pso2_bin folder, deleting it..."
+		"Found the old MS STORE's pso2_bin folder"
+		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
+		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		"Deleting old MS STORE's pso2_bin folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Recurse $true -Force -Confirm:$false -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
