@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1637" #28
+"Version 2020_06_08_1656" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -248,7 +248,12 @@ If ($XBOXIP -ne $null)
 		$takeownEXE = "C:\Windows\system32\takeown.exe"
 		If (Test-Path -Path $takeownEXE)
 		{
+			"Reseting ACL of $($XBOXTBF)"
 			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
+		}
+		Else
+		{
+			"WARNING: takeown.exe is missing"
 		}
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 	}
@@ -646,13 +651,17 @@ If ($OldBackups.Count -gt 0)
 			"Taking Ownership of old folder: $($OldBin)"
 			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
 		}
+		Else
+		{
+			"WARNING: takeown.exe is missing"
+		}
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/MIR","/XF","*.pat","/XO","/MAX:0","/R:0"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
-		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 	}
 }
 $OldPackages = @()
@@ -674,13 +683,17 @@ If ($OldPackages.Count -gt 0)
 			"Taking Ownership of old folder: $($OldBin)"
 			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
 		}
+		Else
+		{
+			"WARNING: takeown.exe is missing"
+		}
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/MIR","/XF","*.pat","/XO","/MAX:0","/R:0"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
-		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
