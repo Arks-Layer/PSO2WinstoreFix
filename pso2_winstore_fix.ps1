@@ -1,3 +1,5 @@
+#Script failed to start in Windows PowerShell ISE, run this to disable the block policy
+#Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
 Param(
 	[Bool]$ForceReinstall = $false
 )
@@ -32,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1327" #28
+"Version 2020_06_08_1522" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -311,11 +313,11 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 	"Installing Gaming Service to user account"
 	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
-ElseIf ($GamingServices_All.Count -eq 0 -and $NETFramework.Count -gt 0)
+ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
-	$FileD = "Microsoft.GamingServices.x64.2.41.10001.0.appx"
+	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
 	"Removing Gaming Services app..."
@@ -643,8 +645,8 @@ If ($OldBackups.Count -gt 0)
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$true -ErrorAction Continue
-		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
 	}
 }
 $OldPackages = @()
@@ -665,8 +667,8 @@ If ($OldPackages.Count -gt 0)
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$true -ErrorAction Continue
-		Get-Item -Path $OldBin | Remove-Item -Force  -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
@@ -732,7 +734,7 @@ $PSO2Packages = @()
 $PSO2Packages_User+ @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
-$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Length -eq 0
+$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
