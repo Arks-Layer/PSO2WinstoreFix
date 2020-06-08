@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2237" #28
+"Version 2020_06_07_2325" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -346,7 +346,7 @@ If ($npggsvc.Count -gt 0)
 	}
 	Catch {}
 	$npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
-	If (-Not (Get-Item -Path $npggsvcK))
+	If (-Not (Test-Path -Path $npggsvcK))
 	{
 		$BrokenGG = $true
 	}
@@ -574,12 +574,12 @@ If ($OldPackages.Count -gt 0)
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	"If this takes more then 30 minutes, you may have to reboot."
 	$OldBin = $false
-	$BadBin = "C:\Program Files \WindowsModifiableApps\pso2_bin"
+	$BadBin = "C:\Program Files\WindowsModifiableApps\pso2_bin"
 	$OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
 	If ($OldBin)
 	{
-		"Found the old pso2_bin folder, deleting it..."
-		Remove-Item -Path $OldBin -Recurse $true -Force -Confirm:$false -Verbose
+		"Found the old MS STORE's pso2_bin folder, deleting it..."
+		Get-ChildItem -Path $OldBin | Remove-Item -Recurse $true -Force -Confirm:$false -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
