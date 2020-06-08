@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1522" #28
+"Version 2020_06_08_1631" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -287,7 +287,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming services working"
-	Get-Service -Name -"GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
+	Get-Service -Name "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstallGS = $false
 }
@@ -640,8 +640,14 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups |fl
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
-		"Going to copy the backup files to your Tweaker copy of PSO2"
-		Start-Process "Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0" -Wait
+		$takeownEXE = "C:\Windows\system32\takeown.exe"
+		If (Test-Path -Path $takeownEXE)
+		{
+			"Taking Ownership of old folder: $($OldBin)"
+			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
+		}
+		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/MIR","/XF","*.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
@@ -662,10 +668,16 @@ If ($OldPackages.Count -gt 0)
 	If ($OldBin)
 	{
 		"Found the old MS STORE's pso2_bin folder"
+		$takeownEXE = "C:\Windows\system32\takeown.exe"
+		If (Test-Path -Path $takeownEXE)
+		{
+			"Taking Ownership of old folder: $($OldBin)"
+			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
+		}
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		Start-Process "Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0" -Wait
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/MIR","/XF","*.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
