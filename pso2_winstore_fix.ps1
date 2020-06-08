@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1855" #28
+"Version 2020_06_08_1905" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -655,10 +655,15 @@ If ($OldBackups.Count -gt 0)
 		{
 			"WARNING: takeown.exe is missing"
 		}
-		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
+		"Going to copy the old MS STORE files to your Tweaker copy of PSO2"
+		"Copying main files"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32","XD","win32_na"
+		"Copying the win32_na folder"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32"
+		"Copying the win32 folder"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
-		"Press any key to resume"
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		#"Press any key to resume"
+		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
@@ -688,9 +693,14 @@ If ($OldPackages.Count -gt 0)
 			"WARNING: takeown.exe is missing"
 		}
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
+		"Copying main files"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32","XD","win32_na"
+		"Copying the win32_na folder"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32"
+		"Copying the win32 folder"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
-		"Press any key to resume"
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		#"Press any key to resume"
+		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
