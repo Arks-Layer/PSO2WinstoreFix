@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2200" #28
+"Version 2020_06_07_2224" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -165,7 +165,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 	""
 	"WARNING: You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
 	Stop-Transcript
-	Start-Process powershell.exe "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
+	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
 	exit
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	#exit 3
@@ -239,7 +239,7 @@ If ($XBOXIP -ne $null)
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 	If (Test-Path -Path $XBOXTBF -PathType Container)
 	{
-		& C:\Windows\system32\takeown.exe /R /F $XBOXTBF
+		Start-Process -FilePath "C:\Windows\system32\takeown.exe" -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
 	}
 }
