@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2134" #28
+"Version 2020_06_07_2200" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -539,6 +539,12 @@ If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png" | Test-Pat
 }
 "Checking for pso2_bin/SplashScreen.png file..."
 If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SplashScreen.png" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+"Checking for pso2_bin/vivoxsdk.dll file..."
+If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "vivoxsdk.dll" | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
