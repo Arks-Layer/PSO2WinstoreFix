@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0245" #28
+"Version 2020_06_08_0254" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -620,16 +620,16 @@ $OldBackups += FindMutableBackup
 If ($OldBackups.Count -gt 0)
 {
     "Found some MutableBackup folders"
-    $OldBackups
-}
-$OldBackups | ForEach-Object -Process {
-	$OldBin = $_
-	"Going to copy the backup files to your Tweaker copy of PSO2"
-	Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
-	"Press any key to resume"
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	"Deleting old $($OldBin) folder..."
-	#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+    $OldBackups |fl
+	$OldBackups | ForEach-Object -Process {
+		$OldBin = $_
+		"Going to copy the backup files to your Tweaker copy of PSO2"
+		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		"Press any key to resume"
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		"Deleting old $($OldBin) folder..."
+		#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+	}
 }
 $OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
@@ -649,7 +649,7 @@ If ($OldPackages.Count -gt 0)
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+		#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
