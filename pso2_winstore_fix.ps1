@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1656" #28
+"Version 2020_06_08_1855" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -292,7 +292,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming services working"
-	Get-Service -Name "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
+	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstallGS = $false
 }
@@ -318,7 +318,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 	"Installing Gaming Service to user account"
 	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
-ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
+ElseIf ($false) #($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
