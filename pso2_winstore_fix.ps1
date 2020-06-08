@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2224" #28
+"Version 2020_06_07_2237" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -239,7 +239,11 @@ If ($XBOXIP -ne $null)
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 	If (Test-Path -Path $XBOXTBF -PathType Container)
 	{
-		Start-Process -FilePath "C:\Windows\system32\takeown.exe" -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
+		$takeownEXE = "C:\Windows\system32\takeown.exe"
+		If (Test-Path -Path $takeownEXE)
+		{
+			Start-Process -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
+		}
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
 	}
 }
