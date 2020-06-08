@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0254" #28
+"Version 2020_06_08_0335" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -267,7 +267,7 @@ If ($XBOXIP -ne $null)
 		$takeownEXE = "C:\Windows\system32\takeown.exe"
 		If (Test-Path -Path $takeownEXE)
 		{
-			Start-Process -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
+			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
 		}
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
 	}
@@ -283,6 +283,9 @@ Else
 	exit 27
 }
 
+"Checking for NET Framework 2.2"
+$NETFramework = @()
+$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version "2.2_2.2.27912.0"
 "Checking needed GamingService App for runtime"
 $GamingServices_User = @()
 $GamingServices_Any = @()
@@ -304,7 +307,7 @@ Catch
 	"There was issues checking the Gaming services, we will try to reinstall the app..."
 }
 
-If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
+If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0 -and $NETFramework.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
@@ -341,6 +344,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 		$ForceReinstallGS = $true
 	}
 	Catch {}
+    $GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -ne 0)
 	{
@@ -606,7 +610,9 @@ If ($MissingFiles -eq $true)
 	""
 	"ERROR: Cannot find required files - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
 	"If you think you did it right (you probably didn't!), download"
+	""
 	"https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
+	""
 	"extract it to your PHANTASYSTARONLINE2 folder and DO A FILE CHECK!"
 	"(Troubleshooting -> New Method)"
 	Stop-Transcript
@@ -624,7 +630,7 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		"Going to copy the backup files to your Tweaker copy of PSO2"
-		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		Start-Process -Wait -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
@@ -645,7 +651,7 @@ If ($OldPackages.Count -gt 0)
 	{
 		"Found the old MS STORE's pso2_bin folder"
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		Start-Process -Wait -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
