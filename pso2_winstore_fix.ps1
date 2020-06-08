@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2015" #28
+"Version 2020_06_07_2059" #28
 
 #All the fun helper functinons
 #Crash hander
