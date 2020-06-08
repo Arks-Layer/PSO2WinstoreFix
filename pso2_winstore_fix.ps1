@@ -285,7 +285,7 @@ Else
 
 "Checking for NET Framework 2.2"
 $NETFramework = @()
-$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version "2.2_2.2.27912.0"
+$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version "2.2.27912.0"
 "Checking needed GamingService App for runtime"
 $GamingServices_User = @()
 $GamingServices_Any = @()
