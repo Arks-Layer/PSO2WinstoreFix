@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0132" #28
+"Version 2020_06_08_0155" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -334,13 +334,21 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
 	"Installing Gaming Services app..."
-	$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion 
-	""
-	"ERROR: Gaming Services installed, please reboot."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 25
-	#Resolve-Path -Path $FileD | Remove-Item -Verbose
+	Try {
+		$BadInstall = $true
+		$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion
+		$BadInstall = $false
+	}
+	Catch {}
+	If ($BadInstall -eq $false)
+	{
+		""
+		"ERROR: Gaming Services installed, please reboot."
+		Stop-Transcript
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		exit 25
+		#Resolve-Path -Path $FileD | Remove-Item -Verbose
+	}
 }
 
 If ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
