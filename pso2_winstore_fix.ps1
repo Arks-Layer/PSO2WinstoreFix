@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_0344" #27
+"Version 2020_06_07_2015" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -193,7 +193,12 @@ If ($DevMode -EQ $false)
 "[OK]"
 
 "Checking MS Store Setup"
-Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service
+Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
+#Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
+Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
+Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue
+
+$SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 
 $XBOXIP_User = @()
 $XBOXIP_All = @()
@@ -202,7 +207,7 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
-	#$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	#$XBOXIP_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose
 	#$XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
@@ -225,6 +230,7 @@ If ($XBOXIP -ne $null)
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 	If (Test-Path -Path $XBOXTBF -PathType Container)
 	{
+		& C:\Windows\system32\takeown.exe /R /F $XBOXTBF
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
 	}
 }
@@ -274,7 +280,7 @@ If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
-	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	#$GamingServices_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose
 }
 ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
@@ -290,7 +296,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 		$GamingServices_Any | Remove-AppxPackage -AllUsers
 	}
 	"Installing GamingService App"
-	$Download | Add-AppxPackage -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Volume $SystemVolume
+	$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion
 	""
     "ERROR: GamingService installed, need a Reboot be needed to to get it ready"
 	Stop-Transcript
@@ -338,8 +344,6 @@ If ($npggsvc.Count -gt 0)
 		& sc.exe delete npggsvc
 	}
 }
-
-$SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 
 "Checking PSO2 Tweaker settings..."
 $JSONPath = $null
@@ -394,7 +398,16 @@ If ($PSO2NABinFolder -eq $null -and $false)
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 20
 }
-ElseIf (-Not (Test-Path -Path $PSO2NABinFolder -PathType Container))
+ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
+{
+    ""
+	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name."
+	"Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 28
+} 
+ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
 {
     ""
 	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
@@ -431,6 +444,8 @@ ElseIf ($PSO2NAFolder)
 	{
 		""
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
+		""
+		"WARNING: you just wanted to fix XBOX login mess, you should be fine now"
 		"Press any key to exit."
 		Stop-Transcript
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -482,16 +497,44 @@ Else
 
 
 
-$Files = @()
+$MissingFiles = $false
 "Checking for appxmanifest.xml..."
-#$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/appxmanifest.xml?raw=true" | DownloadMe -OutFile "appxmanifest.xml" -Overwrite $false -ErrorLevel 22 | Test-Path -PathType Leaf
-$Files += "appxmanifest.xml" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
+If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
 "Checking for MicrosoftGame.config..."
-#$Files += "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter/MicrosoftGame.config?raw=true" | DownloadMe -OutFile "MicrosoftGame.config" -Overwrite $false -ErrorLevel 23 | Test-Path -PathType Leaf
-$Files += "MicrosoftGame.config" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
-"Checking for pso2_bin files..."
-$Files += "pso2_bin/pso2.exe","pso2_bin/Logo.png","pso2_bin/SmallLogo.png","pso2_bin/SplashScreen.png" | Resolve-Path -ErrorAction SilentlyContinue | Test-Path -PathType Leaf
-If ($Files -In $false -or $Files.Count -ne 6)
+If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+"Checking for pso2_bin/pso2.exe file..."
+If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "pso2.exe" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+"Checking for pso2_bin/Logo.png file..."
+If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "Logo.png" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+"Checking for pso2_bin/SmallLogo.png file..."
+If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+"Checking for pso2_bin/SplashScreen.png file..."
+If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SplashScreen.png" | Test-Path -PathType Leaf))
+{
+	$MissingFiles = $true
+	"	MISSING"
+}
+If ($MissingFiles -eq $true)
 {
 	""
 	"ERROR: Cannot find Starters file - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
@@ -537,7 +580,7 @@ $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Packag
 if ($false) #($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already have a good copy of DirectX, trying to install the user profile"
-	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose 
+	#$DirectXRuntime_All | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose 
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0)
 {
@@ -557,7 +600,7 @@ $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Pack
 If ($false) #($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already have a good copy of VCLibs, trying to install the user profile"
-	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Verbose
+	#$VCLibsAll | Sort-Object -Property Version | Select-Object -First 1 | Add-AppxPackage -Volume $SystemVolume -Verbose
 }
 Elseif ($VCLibs_User.Count -eq 0)
 {
@@ -570,7 +613,7 @@ Elseif ($VCLibs_User.Count -eq 0)
 If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Verbose -Volume $SystemVolume -ErrorAction Continue
+	$NewPackages | Add-AppxPackage -Volume $SystemVolume -Verbose -Volume $SystemVolume -ErrorAction Continue
 	#$NewPackages | Remove-Item -Verbose
 }
 Else
@@ -610,6 +653,8 @@ If ($EmptyFiles.Count -gt 0)
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
 	"ERROR: Bad PSO2 files found, Please run a Full File Check in Tweaker"
+	"List of bad files:"
+	$EmptyFiles
     ""
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
@@ -627,6 +672,7 @@ ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 Else
 {
 	"There already a custom PSO2 install"
+	$PSO2Packages_Good
 }
 If ($False) #Catch
 {
