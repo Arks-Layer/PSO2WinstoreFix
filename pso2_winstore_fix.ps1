@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0349" #28
+"Version 2020_06_08_0417" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -130,18 +130,24 @@ Function FindMutableBackup {
 	)
 	PROCESS
 	{
-		$AppxVols = Get-AppxVolume -Online -Verbose
-		$Mutable = $AppxVols | ForEach-Object {
+		$AppxVols = @()
+		$AppxVols += Get-AppxVolume -Online -Verbose
+		$Mutable = @()
+		$Mutable += $AppxVols | ForEach-Object {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
 			If (Test-Path $Test -PathType Container)
 			{
 				Return Resolve-Path -Path $Test -Verbose
             }
 		}
-		$Backups = $Mutable | ForEach-Object {
+		$Backups = @()
+		$Backups += $Mutable | ForEach-Object {
             Return Get-ChildItem -Path $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
 	    }
-		$Backups.ProviderPath
+		If ($Backups.Count -gt 0)
+		{
+			$Backups.ProviderPath
+		}
 	}
 }
 
