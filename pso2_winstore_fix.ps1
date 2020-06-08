@@ -118,6 +118,7 @@ $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
 	""
+    "Reported Windows Major version $($WinVer.Major)"
 	"ERROR: PSO2NA is only supported on Windows 10. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -126,6 +127,7 @@ if ($WinVer.Major -lt 10)
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
+    "Reported Windows Build version $($WinVer.Build)"
 	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -332,7 +334,7 @@ If ($npggsvc.Count -gt 0)
 		$BrokenGG = $false
 	}
 	Catch {}
-    $npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\GamingServices"
+    $npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
 	If (-Not (Get-Item -Path $npggsvcK))
 	{
 		$BrokenGG = $true
@@ -623,16 +625,18 @@ Else
 }
 
 $PSO2Packages = @()
+$PSO2Packages_User+ @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
 $EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Length -eq 0
-$PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
+$PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
+$PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 
 $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
-If ($XBOXURI -eq $false)
+If ($XBOXURI -eq $false -or $PSO2Packages_User.Count -eq 0)
 {
 	$ForceReinstall = $true
 }
