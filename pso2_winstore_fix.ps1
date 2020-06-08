@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0230" #28
+"Version 2020_06_08_0245" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -341,7 +341,8 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 		$ForceReinstallGS = $true
 	}
 	Catch {}
-	If ($BadInstall -eq $false)
+	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
+	If ($BadInstall -eq $false -and $GamingServices_Any.Count -ne 0)
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
@@ -625,8 +626,10 @@ $OldBackups | ForEach-Object -Process {
 	$OldBin = $_
 	"Going to copy the backup files to your Tweaker copy of PSO2"
 	Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+	"Press any key to resume"
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	"Deleting old $($OldBin) folder..."
-	Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+	#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 }
 $OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
@@ -643,6 +646,8 @@ If ($OldPackages.Count -gt 0)
 		"Found the old MS STORE's pso2_bin folder"
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
 		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
+		"Press any key to resume"
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
 		Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 	}
