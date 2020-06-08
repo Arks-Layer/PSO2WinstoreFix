@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_07_2059" #28
+"Version 2020_06_07_2134" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -79,7 +79,14 @@ Function DownloadMe
 	{
 		If (-Not (Test-Path -Path $OutFile -PathType Leaf) -Or $Overwrite)
 		{
-			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose 
+			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose  -ErrorAction Stop
+		}
+		If (-Not (Test-Path -Path $OutFile -PathType Leaf))
+		{
+			""
+			"Error: Failed to download file, if you want, you can manually download"
+			$URI
+			exit $ErrorLevel
 		}
 		Return Resolve-Path -Path $OutFile
 	}
@@ -118,7 +125,7 @@ $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
 	""
-    "Reported Windows Major version $($WinVer.Major)"
+	"Reported Windows Major version $($WinVer.Major)"
 	"ERROR: PSO2NA is only supported on Windows 10. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -127,7 +134,7 @@ if ($WinVer.Major -lt 10)
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
-    "Reported Windows Build version $($WinVer.Build)"
+	"Reported Windows Build version $($WinVer.Build)"
 	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -238,7 +245,7 @@ If ($XBOXIP -ne $null)
 }
 Else
 {
-    ""
+	""
 	"ERROR: Look like XBOX Identify Provider had been uninstalled, please get it back"
 	""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
@@ -334,7 +341,7 @@ If ($npggsvc.Count -gt 0)
 		$BrokenGG = $false
 	}
 	Catch {}
-    $npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
+	$npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
 	If (-Not (Get-Item -Path $npggsvcK))
 	{
 		$BrokenGG = $true
@@ -342,7 +349,7 @@ If ($npggsvc.Count -gt 0)
 	
 	If ($BrokenGG)
 	{
-		#Delete-Service do not exist in Power-Shell 5.1    
+		#Delete-Service do not exist in Power-Shell 5.1
 		& sc.exe delete npggsvc
 	}
 }
@@ -385,7 +392,7 @@ If ($JSONObj)
 }
 Else
 {
-    ""
+	""
 	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -393,7 +400,7 @@ Else
 }
 If ($PSO2NABinFolder -eq $null -and $false)
 {
-    ""
+	""
 	"ERROR: Old version of the Tweaker config file found, please update Tweaker."
 	"Press any key to exit."
 	Stop-Transcript
@@ -402,7 +409,7 @@ If ($PSO2NABinFolder -eq $null -and $false)
 }
 ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 {
-    ""
+	""
 	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name."
 	"Press any key to exit."
 	Stop-Transcript
@@ -411,7 +418,7 @@ ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 } 
 ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
 {
-    ""
+	""
 	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
 	Stop-Transcript
@@ -424,7 +431,7 @@ ElseIf ($PSO2NABinFolder)
 }
 Else
 {
-    ""
+	""
 	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -432,7 +439,7 @@ Else
 }
 If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
 {
-    ""
+	""
 	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
 	"Press any key to exit."
 	Stop-Transcript
@@ -486,7 +493,7 @@ If ($BrokenNTFS -eq $true)
 }
 ElseIf ($PSO2Vol.Count -eq 0)
 {
-    ""
+	""
 	"WARNING: Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
 	#Stop-Transcript
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -556,14 +563,14 @@ If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	"If this takes more then 30 minutes, you may have to reboot."
-    $OldBin = $false
-    $BadBin = "C:\Program Files \WindowsModifiableApps\pso2_bin"
-    $OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
-    If ($OldBin)
-    {
-        "Found the old pso2_bin folder, deleting it..."
-        Remove-Item -Path $OldBin -Recurse $true -Force -Confirm:$false -Verbose
-    }
+	$OldBin = $false
+	$BadBin = "C:\Program Files \WindowsModifiableApps\pso2_bin"
+	$OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
+	If ($OldBin)
+	{
+		"Found the old pso2_bin folder, deleting it..."
+		Remove-Item -Path $OldBin -Recurse $true -Force -Confirm:$false -Verbose
+	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
 Else
@@ -661,7 +668,7 @@ If ($EmptyFiles.Count -gt 0)
 	"(Troubleshooting -> New Method)"
 	"List of bad files:"
 	$EmptyFiles
-    ""
+	""
 }
 ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
