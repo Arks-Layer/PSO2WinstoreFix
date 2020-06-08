@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0156" #28
+"Version 2020_06_08_0214" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -425,7 +425,11 @@ Else
 }
 If ($JSONObj)
 {
-	$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
+    $PSO2NABinFolder = ""
+    try {
+		$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
+	}
+	catch {}
 }
 Else
 {
@@ -435,7 +439,7 @@ Else
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 7
 }
-If ($PSO2NABinFolder -eq $null -and $false)
+If ($PSO2NABinFolder -eq "")
 {
 	""
 	"ERROR: Old version of the Tweaker config file found, please update Tweaker."
@@ -452,7 +456,16 @@ ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 	Stop-Transcript
 	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	exit 28
-} 
+}
+ElseIf ($PSO2NABinFolder -eq $null)
+{
+	""
+	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA"
+	"Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 20
+}
 ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
 {
 	""
@@ -612,7 +625,7 @@ $OldBackups | ForEach-Object -Process {
 	"Going to copy the backup files to your Tweaker copy of PSO2"
 	Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
 	"Deleting old $($OldBin) folder..."
-	Get-ChildItem -Path $OldBin | Remove-Item -Recurse $true -Force -Confirm:$false -Verbose
+	Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 }
 $OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
@@ -630,7 +643,7 @@ If ($OldPackages.Count -gt 0)
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
 		Start-Process -FilePath "C:\Windows\system32\Robocopy.exe" -ArgumentList ('"{0}\"' -f $OldBin),('"{0}\"' -f $PSO2NABinFolder),"/MIR","/XF *.pat","/XO","/MAX:0","/R:0"
 		"Deleting old MS STORE's pso2_bin folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Recurse $true -Force -Confirm:$false -Verbose
+		Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
