@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0214" #28
+"Version 2020_06_08_0230" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -338,6 +338,7 @@ ElseIf ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
 		$BadInstall = $true
 		$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion
 		$BadInstall = $false
+		$ForceReinstallGS = $true
 	}
 	Catch {}
 	If ($BadInstall -eq $false)
