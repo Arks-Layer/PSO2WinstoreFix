@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0155" #28
+"Version 2020_06_08_0156" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -684,7 +684,7 @@ Elseif ($VCLibs_User.Count -eq 0)
 If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Volume $SystemVolume -Verbose -Volume $SystemVolume -ErrorAction Continue
+	$NewPackages | Add-AppxPackage -Volume $SystemVolume -Verbose -ErrorAction Continue
 	#$NewPackages | Remove-Item -Verbose
 }
 Else
