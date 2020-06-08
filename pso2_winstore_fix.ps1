@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0819" #28
+"Version 2020_06_08_1355" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -138,12 +138,12 @@ Function FindMutableBackup {
 			If (Test-Path $Test -PathType Container)
 			{
 				Return Resolve-Path -Path $Test -Verbose
-            }
+			}
 		}
 		$Backups = @()
 		$Backups += $Mutable | ForEach-Object {
-            Return Get-ChildItem -Path $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
-	    }
+			Return Get-ChildItem -Path $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
+		}
 		If ($Backups.Count -gt 0)
 		{
 			$Backups.ProviderPath
@@ -222,8 +222,8 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
-    "XBOX Identify Provider not installed to the user account, forcing install"
-    $XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	"XBOX Identify Provider not installed to the user account, forcing install"
+	$XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
 {
@@ -322,7 +322,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and $NETFramework.Count -gt 0)
 		$ForceReinstallGS = $true
 	}
 	Catch {}
-    $GamingServices_Any = @()
+	$GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -ne 0)
 	{
@@ -409,8 +409,8 @@ Else
 }
 If ($JSONObj)
 {
-    $PSO2NABinFolder = ""
-    try {
+	$PSO2NABinFolder = ""
+	try {
 		$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
 	}
 	catch {}
@@ -626,8 +626,8 @@ $OldBackups = @()
 $OldBackups += FindMutableBackup
 If ($OldBackups.Count -gt 0)
 {
-    "Found some MutableBackup folders"
-    $OldBackups |fl
+	"Found some MutableBackup folders"
+	$OldBackups |fl
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		"Going to copy the backup files to your Tweaker copy of PSO2"
