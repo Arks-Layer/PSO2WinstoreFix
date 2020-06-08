@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0335" #28
+"Version 2020_06_08_0349" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -269,7 +269,7 @@ If ($XBOXIP -ne $null)
 		{
 			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
 		}
-		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -ErrorAction Continue
+		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 	}
 }
 Else
@@ -634,7 +634,8 @@ If ($OldBackups.Count -gt 0)
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
-		#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$true -ErrorAction Continue
+		Get-Item -Path $OldBin | Remove-Item -Force -Confirm:$false -ErrorAction Continue
 	}
 }
 $OldPackages = @()
@@ -655,7 +656,8 @@ If ($OldPackages.Count -gt 0)
 		"Press any key to resume"
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');=
 		"Deleting old MS STORE's pso2_bin folder..."
-		#Get-ChildItem -Path $OldBin | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$true -ErrorAction Continue
+		Get-Item -Path $OldBin | Remove-Item -Force  -Confirm:$false -ErrorAction Continue
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
