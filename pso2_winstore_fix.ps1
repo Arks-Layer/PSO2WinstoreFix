@@ -32,7 +32,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1355" #28
+"Version 2020_06_08_1327" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -262,9 +262,17 @@ Else
 	exit 27
 }
 
-"Checking for NET Framework 2.2"
+"Checking for NET Framework 2.2 (2.2.27912.0+)"
 $NETFramework = @()
 $NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version "2.2.27912.0"
+If ($NETFramework.Count -eq 0)
+{
+	"	NOT INSTALLED"
+}
+Else
+{
+	"	INSTALLED"
+}
 "Checking needed GamingService App for runtime"
 $GamingServices_User = @()
 $GamingServices_Any = @()
@@ -277,7 +285,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming services working"
-	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" |  Where-Object Status -NE "Running" | Restart-Service
+	Get-Service -Name -"GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstallGS = $false
 }
@@ -324,7 +332,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and $NETFramework.Count -gt 0)
 	Catch {}
 	$GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-	If ($BadInstall -eq $false -and $GamingServices_Any.Count -ne 0)
+	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
@@ -335,7 +343,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and $NETFramework.Count -gt 0)
 	}
 }
 
-If ($GamingServices_User.Count -eq 0 -or $ForceReinstallGS -eq $true)
+If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	""
 	"ERROR: Please make sure to install the Gaming Services from the MS Store"
