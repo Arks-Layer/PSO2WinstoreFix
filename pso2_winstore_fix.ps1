@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1905" #28
+"Version 2020_06_08_1954" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -292,7 +292,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming services working"
-	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
+	Get-Service | Where-Object Name -In "GamingServices_","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
 	"No Errors found"
 	$ForceReinstallGS = $false
 }
@@ -657,10 +657,10 @@ If ($OldBackups.Count -gt 0)
 		}
 		"Going to copy the old MS STORE files to your Tweaker copy of PSO2"
 		"Copying main files"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32","XD","win32_na"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32","/XD","win32_na"
 		"Copying the win32_na folder"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32"
-		"Copying the win32 folder"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32"
+		"Copying the win32 folder, this may take a while"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -694,10 +694,10 @@ If ($OldPackages.Count -gt 0)
 		}
 		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
 		"Copying main files"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32","XD","win32_na"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32","/XD","win32_na"
 		"Copying the win32_na folder"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","XD","win32"
-		"Copying the win32 folder"
+		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32"
+		"Copying the win32 folder, this may take a while"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
