@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_1954" #28
+"Version 2020_06_08_2053" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -639,6 +639,8 @@ If ($DevMode -EQ $false)
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders"
 $OldBackups += FindMutableBackup
+$OldPackages = @()
+$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
 If ($OldBackups.Count -gt 0)
 {
 	"Found some MutableBackup folders"
@@ -655,6 +657,8 @@ If ($OldBackups.Count -gt 0)
 		{
 			"WARNING: takeown.exe is missing"
 		}
+If ($false) #($OldPackages.Count -gt 0)
+{
 		"Going to copy the old MS STORE files to your Tweaker copy of PSO2"
 		"Copying main files"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32","/XD","win32_na"
@@ -662,6 +666,7 @@ If ($OldBackups.Count -gt 0)
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32"
 		"Copying the win32 folder, this may take a while"
 		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
+}
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
@@ -669,9 +674,7 @@ If ($OldBackups.Count -gt 0)
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 	}
 }
-$OldPackages = @()
 "Looking for a PSO2NA Windows Store installation..."
-$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
 If ($OldPackages.Count -gt 0)
 {
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
