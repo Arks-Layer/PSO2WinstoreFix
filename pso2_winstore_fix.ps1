@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_2053" #28
+"Version 2020_06_08_0915" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -153,6 +153,51 @@ Function FindMutableBackup {
 	}
 }
 
+function RobomoveByFolder {
+	[CmdletBinding()]
+	Param
+	(
+		[String]
+		$source = ".",
+		[String]
+		$destination = ".",
+		[String]
+		$logfile = "robocopy.log"
+
+	)
+	If (-Not (Test-Path -Path $source -PathType Container))
+	{
+		"ERROR: $($source) is not a folder"
+		return
+	}
+	If (-Not (Test-Path -Path $destination -PathType Container))
+	{
+		New-Item -Path $destination -ItemType Directory -Verbose -ErrorAction Continue | Out-Null
+		If (-Not (Test-Path -Path $destination -PathType Container))
+		{
+			return
+		}
+	}
+	If (-Not (Test-Path -Path $logfile -PathType Leaf))
+	{
+		New-Item -Path $logfile -ItemType File #-WhatIf
+	}
+	$logpath = Resolve-Path -Path $logfile
+	& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/ZB","/MOV","/XF","*.pat","/XO","/XX","/MAX:0","/XJ","/R:0","/ETA",('/LOG+:"{0}"' -f $logpath.Path),"/TEE"
+	Get-ChildItem -Directory -Depth 0 -Path $source | ForEach-Object {
+		$NewSub = $_.Name
+		$FilesCount = @()
+		$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+		$DirsCount = @()
+		$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
+		"Digging into $($_.FullName) Folder"
+		"	$($FilesCount.Count) Files"
+		"	$($DirsCount.Count) Directories"
+		RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -logfile $logpath.Path
+	}
+}
+
+RobomoveByFolder -source "D:\PHANTASYSTARONLINE2_JP" -destination "D:\PHANTASYSTARONLINE2_NA"
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
@@ -657,16 +702,8 @@ If ($OldBackups.Count -gt 0)
 		{
 			"WARNING: takeown.exe is missing"
 		}
-If ($false) #($OldPackages.Count -gt 0)
-{
-		"Going to copy the old MS STORE files to your Tweaker copy of PSO2"
-		"Copying main files"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32","/XD","win32_na"
-		"Copying the win32_na folder"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32"
-		"Copying the win32 folder, this may take a while"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
-}
+		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2"
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
@@ -695,13 +732,8 @@ If ($OldPackages.Count -gt 0)
 		{
 			"WARNING: takeown.exe is missing"
 		}
-		"Going to copy the MS STORE files to your Tweaker copy of PSO2"
-		"Copying main files"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32","/XD","win32_na"
-		"Copying the win32_na folder"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0","/XD","win32"
-		"Copying the win32 folder, this may take a while"
-		& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $OldBin),('"{0}"' -f $PSO2NABinFolder),"/E","/XF","*.pat","/XO","/MAX:0","/R:0"
+		"Going to move the MS STORE files to your Tweaker copy of PSO2"
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
@@ -724,10 +756,10 @@ $DirectXRuntime_User = @()
 $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "9.29.952.0"
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "9.29.952.0"
 
-if ($false) #($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
+if ($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
-	$DirectXRuntime_All  | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0)
 {
@@ -744,10 +776,10 @@ $VCLibs_User = @()
 $VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version "14.0.24217.0"
 $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "14.0.24217.0"
 
-If ($false) #($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
+If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
 {
 	"System already has a good copy of VCLibs, trying to install the user profile"
-	$VCLibsAll | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 Elseif ($VCLibs_User.Count -eq 0)
 {
