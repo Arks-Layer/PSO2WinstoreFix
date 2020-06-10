@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_09_1112" #28
+"Version 2020_06_09_1812" #29
 
 #All the fun helper functinons
 #Crash hander
@@ -644,11 +644,19 @@ If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Pat
 	$MissingFiles = $true
 	"	MISSING"
 }
+else
+{
+	"	FOUND"
+}
 "Checking for MicrosoftGame.config..."
 If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
+}
+else
+{
+	"	FOUND"
 }
 "Checking for pso2_bin/pso2.exe file..."
 If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "pso2.exe" | Test-Path -PathType Leaf))
@@ -656,11 +664,19 @@ If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "pso2.exe" | Test-Path -Pa
 	$MissingFiles = $true
 	"	MISSING"
 }
+else
+{
+	"	FOUND"
+}
 "Checking for pso2_bin/Logo.png file..."
 If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "Logo.png" | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
+}
+else
+{
+	"	FOUND"
 }
 "Checking for pso2_bin/SmallLogo.png file..."
 If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png" | Test-Path -PathType Leaf))
@@ -668,17 +684,19 @@ If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png" | Test-Pat
 	$MissingFiles = $true
 	"	MISSING"
 }
+else
+{
+	"	FOUND"
+}
 "Checking for pso2_bin/SplashScreen.png file..."
 If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SplashScreen.png" | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-"Checking for pso2_bin/vivoxsdk.dll file..."
-If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "vivoxsdk.dll" | Test-Path -PathType Leaf))
+else
 {
-	$MissingFiles = $true
-	"	MISSING"
+	"	FOUND"
 }
 If ($MissingFiles -eq $true)
 {
@@ -822,7 +840,7 @@ Else
 }
 
 $PSO2Packages = @()
-$PSO2Packages_User+ @()
+$PSO2Packages_User = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
 $EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Length -eq 0
@@ -848,6 +866,22 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old custom PSO2 install, removing it..."
 	$PSO2Packages_Bad | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Remove-AppxPackage -Verbose -AllUsers
+}
+
+"Making sure that the Appx volume is online"
+$AppxVols = @()
+$Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
+If ($AppxVols.IsOffline -In $true)
+{
+    "Custom PSO2 folder is on a drive with a broken Appx setup"
+	"Press any key to exit."
+	Stop-Transcript
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	exit 29
+}
+else
+{
+	"	OK"
 }
 
 If ($EmptyFiles.Count -gt 0)
