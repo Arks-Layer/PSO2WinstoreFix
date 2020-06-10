@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_09_0034" #28
+"Version 2020_06_09_0331" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -772,7 +772,7 @@ $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Packag
 if ($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
-	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($DirectXRuntime_User.Count -eq 0)
 {
@@ -823,6 +823,7 @@ $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Ob
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
+#$PSO2Packages_Bad += $PSO2Packages | PackageVersion -Version "1.0.7.0"
 
 $XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
 If ($XBOXURI -eq $false -or $PSO2Packages_User.Count -eq 0)
@@ -838,7 +839,7 @@ If ($ForceReinstall)
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old custom PSO2 install, removing it..."
-	$PSO2Packages_Bad | Sort-Object -Unique | Remove-AppxPackage -Verbose -AllUsers
+	$PSO2Packages_Bad | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Remove-AppxPackage -Verbose -AllUsers
 }
 
 If ($EmptyFiles.Count -gt 0)
