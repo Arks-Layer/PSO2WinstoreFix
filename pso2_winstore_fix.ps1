@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_09_0331" #28
+"Version 2020_06_09_1048" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -185,7 +185,7 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -Path $logfile
-	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XX","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
+	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
 	{
 		$Cmdlist += "/V"
