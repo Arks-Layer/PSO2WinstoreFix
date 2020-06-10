@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_09_1048" #28
+"Version 2020_06_09_1112" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -208,6 +208,14 @@ function RobomoveByFolder {
 			If ($FilesCount.Count -gt 100)
 			{
 				""
+				""
+				""
+				""
+				""
+				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
+				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
+				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
+				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
 				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
 				""
 				$Details = $true
