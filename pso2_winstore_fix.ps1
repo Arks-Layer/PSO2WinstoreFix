@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_0915" #28
+"Version 2020_06_08_2214" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -197,7 +197,6 @@ function RobomoveByFolder {
 	}
 }
 
-RobomoveByFolder -source "D:\PHANTASYSTARONLINE2_JP" -destination "D:\PHANTASYSTARONLINE2_NA"
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
