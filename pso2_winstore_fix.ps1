@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_08_2214" #28
+"Version 2020_06_09_0034" #28
 
 #All the fun helper functinons
 #Crash hander
@@ -161,6 +161,8 @@ function RobomoveByFolder {
 		$source = ".",
 		[String]
 		$destination = ".",
+		[Bool]
+		$Details = $false,
 		[String]
 		$logfile = "robocopy.log"
 
@@ -183,17 +185,56 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -Path $logfile
-	& "cmd.exe" -Wait -ArgumentList "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/ZB","/MOV","/XF","*.pat","/XO","/XX","/MAX:0","/XJ","/R:0","/ETA",('/LOG+:"{0}"' -f $logpath.Path),"/TEE"
-	Get-ChildItem -Directory -Depth 0 -Path $source | ForEach-Object {
-		$NewSub = $_.Name
-		$FilesCount = @()
-		$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
-		$DirsCount = @()
-		$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
-		"Digging into $($_.FullName) Folder"
-		"	$($FilesCount.Count) Files"
-		"	$($DirsCount.Count) Directories"
-		RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -logfile $logpath.Path
+	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XX","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
+	If ($Details -eq $true)
+	{
+		$Cmdlist += "/V"
+	}
+	& "cmd.exe" -Wait -ArgumentList $Cmdlist
+	$Subs = @()
+	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue
+	If ($Subs.Count -gt 0)
+	{
+		$Subs | ForEach-Object {
+			$NewSub = $_.Name
+			$FilesCount = @()
+			$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+			$DirsCount = @()
+			$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
+			"Digging into $($_.FullName) Folder"
+			"	$($FilesCount.Count) Files"
+			"	$($DirsCount.Count) Directories"
+			$Details = $false
+			If ($FilesCount.Count -gt 100)
+			{
+				""
+				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
+				""
+				$Details = $true
+			}
+			RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $Details -logfile $logpath.Path
+		}
+	}
+}
+
+function Takeownship {
+	[CmdletBinding()]
+	Param
+	(
+		[String]
+		$path = "."
+
+	)
+	$takeownEXE = "C:\Windows\system32\takeown.exe"
+	If (Test-Path -Path $takeownEXE)
+	{
+		"Reseting ACL of $($path)"
+		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $path) -ErrorAction Continue
+		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
+	}
+	Else
+	{
+		"WARNING: takeown.exe is missing"
 	}
 }
 
@@ -289,16 +330,7 @@ If ($XBOXIP -ne $null)
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 	If (Test-Path -Path $XBOXTBF -PathType Container)
 	{
-		$takeownEXE = "C:\Windows\system32\takeown.exe"
-		If (Test-Path -Path $takeownEXE)
-		{
-			"Reseting ACL of $($XBOXTBF)"
-			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $XBOXTBF) -ErrorAction Continue
-		}
-		Else
-		{
-			"WARNING: takeown.exe is missing"
-		}
+		Takeownship -path $XBOXTBF
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 	}
 }
@@ -691,22 +723,13 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups |fl
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
-		$takeownEXE = "C:\Windows\system32\takeown.exe"
-		If (Test-Path -Path $takeownEXE)
-		{
-			"Taking Ownership of old folder: $($OldBin)"
-			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
-		}
-		Else
-		{
-			"WARNING: takeown.exe is missing"
-		}
+		Takeownship -path $OldBin
 		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2"
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 	}
 }
@@ -721,22 +744,13 @@ If ($OldPackages.Count -gt 0)
 	If ($OldBin)
 	{
 		"Found the old MS STORE's pso2_bin folder"
-		$takeownEXE = "C:\Windows\system32\takeown.exe"
-		If (Test-Path -Path $takeownEXE)
-		{
-			"Taking Ownership of old folder: $($OldBin)"
-			Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/A","/R","/F",('"{0}"' -f $OldBin) -ErrorAction Continue
-		}
-		Else
-		{
-			"WARNING: takeown.exe is missing"
-		}
+		Takeownship -path $BadBin
 		"Going to move the MS STORE files to your Tweaker copy of PSO2"
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
-		Get-ChildItem -Path $OldBin | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
