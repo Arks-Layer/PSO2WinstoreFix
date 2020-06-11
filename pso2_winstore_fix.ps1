@@ -37,7 +37,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_1136" # Error codes: 29
+"Version 2020_06_11_1330" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
