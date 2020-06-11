@@ -4,7 +4,7 @@ Param(
 	[Bool]$ForceReinstall = $false,
     [Bool]$TweakerMode = $false,
     [Bool]$PauseOnFail = $true,
-    [Bool]$SkipRobomove = $false
+    [Bool]$SkipRobomove = $true
 )
 
 #f there an unhandled error, just stop
@@ -37,7 +37,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_1330" # Error codes: 29
+"Version 2020_06_11_1528" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -855,7 +855,7 @@ $PSO2Packages_Bad = @()
 $EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
-$PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder  | Where-Object Status -EQ "Ok"
+$PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 #$PSO2Packages_Bad += $PSO2Packages | PackageVersion -Version "1.0.7.0"
@@ -874,7 +874,7 @@ If ($ForceReinstall)
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old custom PSO2 install, removing it..."
-	$PSO2Packages_Bad | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Remove-AppxPackage -Verbose -AllUsers
+	$PSO2Packages_Bad | Sort-Object -Unique InstallLocation | Remove-AppxPackage -Verbose -AllUsers
 }
 
 "Making sure that the Appx volume is online"
