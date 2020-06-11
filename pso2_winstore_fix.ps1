@@ -4,7 +4,7 @@ Param(
 	[Bool]$ForceReinstall = $false,
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
-	[Bool]$SkipRobomove = $true
+	[Bool]$SkipRobomove = $false
 )
 
 #f there an unhandled error, just stop
@@ -34,10 +34,11 @@ Else
 {
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
+
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_1528" # Error codes: 29
+"Version 2020_06_11_1750" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -299,6 +300,31 @@ Function PauseAndFail {
 	}
 }
 
+Function Window10Version
+{
+	Param
+	(
+		
+		[Parameter(Mandatory=$true)]
+		[Int]
+		$Build = 0
+	)
+	Switch ($Build)
+	{
+		10240 {Return "1507"}
+		10586 {Return "1511"}
+		14393 {Return "1607"}
+		15063 {Return "1703"}
+		16299 {Return "1709"}
+		17134 {Return "1803"}
+		17763 {Return "1809"}
+		18362 {Return "1903"}
+		18363 {Return "1909"}
+		19041 {Return "2004"}
+	}
+	Return "Unknown"
+}
+
 
 If ($TweakerMode -eq $true)
 {
@@ -318,8 +344,8 @@ if ($WinVer.Major -lt 10)
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
-	"Reported Windows Build version $($WinVer.Build)"
-	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows."
+	"Reported Windows Build $($WinVer.Build), Verion $(Window10Version -Build $WinVer.Build)"
+	"ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer Build/Version."
 	PauseAndFail -ErrorLevel 2
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
@@ -874,7 +900,7 @@ If ($ForceReinstall)
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
 	"Found a old custom PSO2 install, removing it..."
-	$PSO2Packages_Bad | Sort-Object -Unique InstallLocation | Remove-AppxPackage -Verbose -AllUsers
+	$PSO2Packages_Bad | Remove-AppxPackage -Verbose -AllUsers
 }
 
 "Making sure that the Appx volume is online"
