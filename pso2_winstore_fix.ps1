@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_0249" #29
+"Version 2020_06_11_0300" #29
 
 #All the fun helper functinons
 #Crash hander
@@ -770,8 +770,10 @@ If ($OldBackups.Count -gt 0)
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
+try {
 		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+} Catch {}
 	}
 }
 "Looking for a PSO2NA Windows Store installation..."
@@ -791,8 +793,10 @@ If ($OldPackages.Count -gt 0)
 		#"Press any key to resume"
 		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
+try {
 		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+} catch {}
 	}
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
@@ -886,6 +890,7 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 "Making sure that the Appx volume is online"
 Get-AppxVolume
 $AppxVols = @()
+Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
 $Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
 If ($AppxVols.IsOffline -In $true)
 {
