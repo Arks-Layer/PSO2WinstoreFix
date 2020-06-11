@@ -1,7 +1,10 @@
 #Script failed to start in Windows PowerShell ISE, run this to disable the block policy
 #Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
 Param(
-	[Bool]$ForceReinstall = $false
+	[Bool]$ForceReinstall = $false,
+    [Bool]$TweakerMode = $false,
+    [Bool]$PauseOnFail = $true,
+    [Bool]$SkipRobomove = $false
 )
 
 #f there an unhandled error, just stop
@@ -172,6 +175,10 @@ function RobomoveByFolder {
 		$logfile = "robocopy.log"
 
 	)
+	If ($SkipRobomove -eq $true)
+	{
+		return
+	}
 	If (-Not (Test-Path -Path $source -PathType Container))
 	{
 		"ERROR: $($source) is not a folder"
@@ -273,7 +280,11 @@ Function PauseAndFail {
 		$ErrorLevel = 255
 	)
 	Stop-Transcript
-	if (Test-Path variable:global:psISE)
+	If ($PauseOnFail = $false)
+	{
+		exit $ErrorLevel
+	}
+	ElseIf (Test-Path variable:global:psISE)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
 		$Button = $ObjShell.Popup("Click OK to fail hard.", 0, "Script failing", 0)
@@ -288,7 +299,13 @@ Function PauseAndFail {
 	}
 }
 
-PauseAndFail -ErrorLevel 0
+
+If ($TweakerMode -eq $true)
+{
+	$PauseOnFail = $false
+	$SkipRobomove = $true
+}
+
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
