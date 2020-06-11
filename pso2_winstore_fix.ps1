@@ -209,8 +209,7 @@ function RobomoveByFolder {
 			$Details = $false
 			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
 			{
-				(0..0xff|% ToString X2)| ForEach-Object
-				{
+				(0..0xff|% ToString X2) | ForEach-Object {
 					""
 					"WARNING: large number of files detected, only moving files starting with $($_)"
 					""
