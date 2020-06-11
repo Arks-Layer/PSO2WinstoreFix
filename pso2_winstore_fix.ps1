@@ -38,7 +38,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_1750" # Error codes: 29
+"Version 2020_06_11_1923" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -300,6 +300,20 @@ Function PauseAndFail {
 	}
 }
 
+Function PauseOnly {
+	If (Test-Path variable:global:psISE)
+	{
+		$ObjShell = New-Object -ComObject "WScript.Shell"
+		$Button = $ObjShell.Popup("Click OK to fail hard.", 0, "Script failing", 0)
+	}
+	Else
+	{
+		""
+		"Press any key to exit."
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	}
+}
+
 Function Window10Version
 {
 	Param
@@ -445,9 +459,9 @@ Else
 $GamingServices_User = @()
 $GamingServices_Any = @()
 $GamingServices_All = @()
-$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.10001.0"
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.50001.0"
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.10001.0"
+$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.50001.0"
 
 Try
 {
@@ -462,7 +476,16 @@ Catch
 	"There was issues checking the Gaming services, we will try to reinstall the app..."
 }
 
-If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
+If ($GamingServices_All.Count -gt 0 -and $GamingServices_Any.Count -gt 0)
+{
+	""
+	"WARING: Old versoin of Gaming Service found"
+	""
+	"	Please udpate Gaming Services from the MS Store"
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+	PauseOnly
+}
+ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
