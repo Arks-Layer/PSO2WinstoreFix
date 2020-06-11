@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_09_1812" #29
+"Version 2020_06_11_0123" #29
 
 #All the fun helper functinons
 #Crash hander
@@ -161,6 +161,8 @@ function RobomoveByFolder {
 		$source = ".",
 		[String]
 		$destination = ".",
+		[String]
+		$file = "*.*",
 		[Bool]
 		$Details = $false,
 		[String]
@@ -185,7 +187,7 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -Path $logfile
-	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
+	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
 	{
 		$Cmdlist += "/V"
@@ -205,7 +207,17 @@ function RobomoveByFolder {
 			"	$($FilesCount.Count) Files"
 			"	$($DirsCount.Count) Directories"
 			$Details = $false
-			If ($FilesCount.Count -gt 100)
+			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
+			{
+				(0..0xff|% ToString X2)| ForEach-Object
+				{
+					""
+					"WARNING: large number of files detected, only moving files starting with $($_)"
+					""
+					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
+				}
+			}
+			ElseIf ($FilesCount.Count -gt 100)
 			{
 				""
 				""
@@ -218,9 +230,12 @@ function RobomoveByFolder {
 				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
 				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
 				""
-				$Details = $true
+				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $true -logfile $logpath.Path
 			}
-			RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $Details -logfile $logpath.Path
+			else
+			{
+				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $false -logfile $logpath.Path
+			}
 		}
 	}
 }
