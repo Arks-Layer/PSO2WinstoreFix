@@ -2,9 +2,9 @@
 #Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
 Param(
 	[Bool]$ForceReinstall = $false,
-    [Bool]$TweakerMode = $false,
-    [Bool]$PauseOnFail = $true,
-    [Bool]$SkipRobomove = $true
+	[Bool]$TweakerMode = $false,
+	[Bool]$PauseOnFail = $true,
+	[Bool]$SkipRobomove = $true
 )
 
 #f there an unhandled error, just stop
@@ -878,9 +878,13 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 }
 
 "Making sure that the Appx volume is online"
-"Curect Appx Volume setup"
+"REPOR: Currect Appx Volume setup"
+""
 Get-AppxVolume
+""
 "End of Report of Appx Volumes"
+""
+"Status of Appx Volume that Custom PSO2 is on"
 $AppxVols = @()
 try {
 Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name) -ErrorAction Continue
@@ -892,13 +896,14 @@ If ($AppxVols.Count -eq 0)
 }
 ElseIf ($AppxVols.IsOffline -In $true)
 {
-    "	Custom PSO2 folder is on a drive with a broken Appx setup"
+	"	Custom PSO2 folder is on a drive with a broken Appx setup"
 	#PauseAndFail -ErrorLevel 29
 }
 else
 {
 	"	OK"
 }
+""
 
 If ($EmptyFiles.Count -gt 0)
 {
