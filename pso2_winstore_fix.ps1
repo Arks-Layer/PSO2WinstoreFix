@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_0300" #29
+"Version 2020_06_11_1136" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -888,17 +888,25 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 }
 
 "Making sure that the Appx volume is online"
+"Curect Appx Volume setup"
 Get-AppxVolume
+"End of Report of Appx Volumes"
 $AppxVols = @()
-Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
+try {
+Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name) -ErrorAction Continue
 $Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
-If ($AppxVols.IsOffline -In $true)
+} catch {}
+If ($AppxVols.Count -eq 0)
 {
-    "Custom PSO2 folder is on a drive with a broken Appx setup"
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 29
+	"	TRAP"
+}
+ElseIf ($AppxVols.IsOffline -In $true)
+{
+    "	Custom PSO2 folder is on a drive with a broken Appx setup"
+	#"Press any key to exit."
+	#Stop-Transcript
+	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	#exit 29
 }
 else
 {
