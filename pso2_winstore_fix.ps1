@@ -73,6 +73,7 @@ Function DownloadMe
 		$OutFile,
 		[Parameter(Mandatory=$true)]
 		[ValidateNotNullOrEmpty()]
+		[Int]
 		$ErrorLevel = 255,
 		[Bool]
 		$Overwrite = $false
@@ -87,15 +88,17 @@ Function DownloadMe
 		{
 			""
 			"Error: Failed to download file, if you want, you can manually download"
+""
 			$URI
-			exit $ErrorLevel
+""
+			PauseAndFail -ErrorLevel $ErrorLevel
 		}
 		Return Resolve-Path -Path $OutFile
 	}
 	Catch
 	{
 		$_ | Failure
-		exit $ErrorLevel
+		PauseAndFail -ErrorLevel $ErrorLevel
 	}
 }
 
@@ -260,33 +263,53 @@ function Takeownship {
 	}
 }
 
+Function PauseAndFail {
+	[CmdletBinding()]
+	Param
+	(
+		
+		[Parameter(Mandatory=$true)]
+		[Int]
+		$ErrorLevel = 255
+	)
+	Stop-Transcript
+	if (Test-Path variable:global:psISE)
+	{
+		$ObjShell = New-Object -ComObject "WScript.Shell"
+		$Button = $ObjShell.Popup("Click OK to fail hard.", 0, "Script failing", 0)
+		throw $ErrorLevel
+	}
+	Else
+	{
+		""
+		"Press any key to exit."
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		exit $ErrorLevel
+	}
+}
+
+PauseAndFail -ErrorLevel 0
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
 if ($WinVer.Major -lt 10)
 {
 	""
 	"Reported Windows Major version $($WinVer.Major)"
-	"ERROR: PSO2NA is only supported on Windows 10. Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 1
+	"ERROR: PSO2NA is only supported on Windows 10."
+	PauseAndFail -ErrorLevel 1
 }
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
 	"Reported Windows Build version $($WinVer.Build)"
-	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows. Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 2
+	"ERROR: PSO2NA is only supported on Windows 10 (1903+). You need to update your Windows."
+	PauseAndFail -ErrorLevel 2
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 {
 	""
-	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if you CPU is 64-bit. Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 21
+	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if you CPU is 64-bit."
+	PauseAndFail -ErrorLevel 21
 }
 "[OK]"
 ""
@@ -307,8 +330,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 	Stop-Transcript
 	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
 	exit
-	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	#exit 3
+	#PauseAndFail -ErrorLevel 3
 }
 "[OK]"
 ""
@@ -362,9 +384,7 @@ Else
 	"ERROR: Look like XBOX Identify Provider had been uninstalled, please get it back"
 	""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 27
+	PauseAndFail -ErrorLevel 27
 }
 
 "Checking for NET Framework 2.2 (2.2.27912.0+)"
@@ -407,9 +427,7 @@ If ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 24
+	PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
@@ -441,9 +459,7 @@ ElseIf ($false) #($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
-		Stop-Transcript
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-		exit 25
+		PauseAndFail -ErrorLevel 25
 		#Resolve-Path -Path $FileD | Remove-Item -Verbose
 	}
 }
@@ -453,9 +469,7 @@ If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 	""
 	"ERROR: Please make sure to install the Gaming Services from the MS Store"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 26
+	PauseAndFail -ErrorLevel 26
 }
 
 "Restarting XBOX services"
@@ -501,10 +515,8 @@ If ($JSONPath)
 Else
 {
 	""
-	"ERROR: Cannot find %APPDATA% folder - Is your Windows properly set up? Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 5
+	"ERROR: Cannot find %APPDATA% folder - Is your Windows properly set up?"
+	PauseAndFail -ErrorLevel 5
 }
 If ($JSONData)
 {
@@ -515,10 +527,8 @@ If ($JSONData)
 Else
 {
 	""
-	"ERROR: Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet? Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 6
+	"ERROR: Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet?"
+	PauseAndFail -ErrorLevel 6
 }
 If ($JSONObj)
 {
@@ -531,46 +541,32 @@ If ($JSONObj)
 Else
 {
 	""
-	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen! Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 7
+	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen!"
+	PauseAndFail -ErrorLevel 7
 }
 If ($PSO2NABinFolder -eq "")
 {
 	""
 	"ERROR: Old version of the Tweaker config file found, please update Tweaker."
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 20
+	PauseAndFail -ErrorLevel 20
 }
 ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 {
 	""
 	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name."
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 28
+	PauseAndFail -ErrorLevel 28
 }
 ElseIf ($PSO2NABinFolder -eq $null)
 {
 	""
 	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA"
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 20
+	PauseAndFail -ErrorLevel 20
 }
 ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
 {
 	""
 	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 16
+	PauseAndFail -ErrorLevel 16
 }
 ElseIf ($PSO2NABinFolder)
 {
@@ -579,19 +575,14 @@ ElseIf ($PSO2NABinFolder)
 Else
 {
 	""
-	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it. Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 8
+	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it."
+	PauseAndFail -ErrorLevel 8
 }
 If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
 {
 	""
 	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 17
+	PauseAndFail -ErrorLevel 17
 }
 ElseIf ($PSO2NAFolder)
 {
@@ -602,10 +593,7 @@ ElseIf ($PSO2NAFolder)
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
 		""
 		"WARNING: you just wanted to fix XBOX login mess, you should be fine now"
-		"Press any key to exit."
-		Stop-Transcript
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-		exit 10
+		PauseAndFail -ErrorLevel 10
 	}
 	"Moving instance to $($PSO2NAFolder) Folder"
 	Set-Location -Path $PSO2NAFolder -Verbose
@@ -613,10 +601,8 @@ ElseIf ($PSO2NAFolder)
 Else
 {
 	""
-	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions? Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 9
+	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions?"
+	PauseAndFail -ErrorLevel 9
 }
 
 "Checking if Volume is formated as NTFS..."
@@ -630,9 +616,7 @@ Try
 }
 Catch
 {
-	#Stop-Transcript
-	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	#exit 19
+	#PauseAndFail -ErrorLevel 19
 }
 
 If ($BrokenNTFS -eq $true)
@@ -643,9 +627,7 @@ ElseIf ($PSO2Vol.Count -eq 0)
 {
 	""
 	"WARNING: Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
-	#Stop-Transcript
-	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	#exit 15
+	#PauseAndFail -ErrorLevel 15
 }
 Else
 {
@@ -723,9 +705,7 @@ If ($MissingFiles -eq $true)
 	""
 	"extract it to your PHANTASYSTARONLINE2 folder and DO A FILE CHECK!"
 	"(Troubleshooting -> New Method)"
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 11
+	PauseAndFail -ErrorLevel 11
 }
 
 Write-Host -NoNewline "Checking for Developer Mode..."
@@ -746,10 +726,7 @@ if (Test-Path -Path $RegistryKeyPath)
 If ($DevMode -EQ $false)
 {
 	"You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/"
-	"Press any key to exit."
-	Stop-Transcript
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	exit 4
+	PauseAndFail -ErrorLevel 4
 }
 "[OK]"
 
@@ -767,8 +744,6 @@ If ($OldBackups.Count -gt 0)
 		Takeownship -path $OldBin
 		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2"
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		#"Press any key to resume"
-		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old $($OldBin) folder..."
 try {
 		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
@@ -790,8 +765,6 @@ If ($OldPackages.Count -gt 0)
 		Takeownship -path $BadBin
 		"Going to move the MS STORE files to your Tweaker copy of PSO2"
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		#"Press any key to resume"
-		#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 		"Deleting old MS STORE's pso2_bin folder..."
 try {
 		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
@@ -903,10 +876,7 @@ If ($AppxVols.Count -eq 0)
 ElseIf ($AppxVols.IsOffline -In $true)
 {
     "	Custom PSO2 folder is on a drive with a broken Appx setup"
-	#"Press any key to exit."
-	#Stop-Transcript
-	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	#exit 29
+	#PauseAndFail -ErrorLevel 29
 }
 else
 {
@@ -944,7 +914,7 @@ Else
 If ($False) #Catch
 {
 	$_ | Failure
-	exit 14
+	PauseAndFail -ErrorLevel 14
 }
 If ($NewPackages.Count -gt 0)
 {
