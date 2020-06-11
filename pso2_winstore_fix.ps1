@@ -34,7 +34,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_0123" #29
+"Version 2020_06_11_0249" #29
 
 #All the fun helper functinons
 #Crash hander
@@ -620,6 +620,7 @@ Else
 }
 
 "Checking if Volume is formated as NTFS..."
+Get-Volume
 $PSO2Vol = @()
 Try
 {
@@ -883,6 +884,7 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 }
 
 "Making sure that the Appx volume is online"
+Get-AppxVolume
 $AppxVols = @()
 $Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
 If ($AppxVols.IsOffline -In $true)
