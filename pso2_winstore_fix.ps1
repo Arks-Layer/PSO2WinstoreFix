@@ -12,7 +12,6 @@ Param(
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false
 )
-
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
 {
@@ -44,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0237" # Error codes: 29
+"Version 2020_06_12_0248" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -392,7 +391,7 @@ If ($TweakerMode -eq $true)
 	$SkipRobomove = $true
 }
 
-Start-Service -Name "Winmgmt" -ErrorAction Stop
+#Start-Service -Name "Winmgmt" -ErrorAction Stop
 
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
@@ -552,7 +551,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
 {
 	"Downloading Gaming Services App... (10MB)"
-	$URI = `http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice/files/ec6723c5-ce3d-47a8-b26a-578afec45e08?P1=1591942750&P2=402&P3=2&P4=UCKokr18U%2b06Zs52g4%2b3rCL%2frZyR6tyJcGILvp%2bREY%2boBFV5m8B%2bl4LVJKMbk%2biLu63Tdvlk6P5eoDsVFGidmQ%3d%3d`
+	$URI = "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice/files/ec6723c5-ce3d-47a8-b26a-578afec45e08?P1=1591942750&P2=402&P3=2&P4=UCKokr18U%2b06Zs52g4%2b3rCL%2frZyR6tyJcGILvp%2bREY%2boBFV5m8B%2bl4LVJKMbk%2biLu63Tdvlk6P5eoDsVFGidmQ%3d%3d"
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
