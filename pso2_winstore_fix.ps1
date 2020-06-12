@@ -1,5 +1,11 @@
-#Script failed to start in Windows PowerShell ISE, run this to disable the block policy
-#Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
+# Script failed to start in Windows PowerShell ISE, run this to disable the block policy
+#
+#	Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
+#
+# and if that fails,try this comamand:
+#
+#	Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
+#
 Param(
 	[Bool]$ForceReinstall = $false,
 	[Bool]$TweakerMode = $false,
@@ -38,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_2330" # Error codes: 29
+"Version 2020_06_12_0221" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -375,8 +381,8 @@ try {
 	If ($PackageFolders.Count -gt 0)
 	{
 		Return $PackageFolders.ProvidePath
-    }
-    Return @()
+	}
+	Return @()
 }
 
 
@@ -542,10 +548,10 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 	"Installing Gaming Service to user account"
 	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
-ElseIf ($false) #($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
+ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
 {
 	"Downloading Gaming Services App... (10MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices.x64.2.41.10001.0.appx?raw=true"
+	$URI = `http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice/files/ec6723c5-ce3d-47a8-b26a-578afec45e08?P1=1591942750&P2=402&P3=2&P4=UCKokr18U%2b06Zs52g4%2b3rCL%2frZyR6tyJcGILvp%2bREY%2boBFV5m8B%2bl4LVJKMbk%2biLu63Tdvlk6P5eoDsVFGidmQ%3d%3d`
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
