@@ -96,7 +96,7 @@ Function DownloadMe
 		If (-Not (Test-Path -Path $OutFile -PathType Leaf))
 		{
 			""
-			"Error: Failed to download file, if you want, you can manually download"
+			"Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
 			""
 			$URI
 			""
@@ -239,11 +239,11 @@ function RobomoveByFolder {
 				""
 				""
 				""
-				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
-				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
-				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
-				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
-				"WARNING: large number of files detected, this may take a while, A LONG WHILE"
+				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
+				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
+				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
+				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
+				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
 				""
 				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $true -logfile $logpath.Path
 			}
@@ -272,7 +272,7 @@ function Takeownship {
 	}
 	Else
 	{
-		"WARNING: takeown.exe is missing"
+		"WARNING: Takeown.exe is missing from your system32 folder!"
 	}
 }
 
@@ -407,13 +407,13 @@ ElseIf ($WinVer.Build -lt 18362)
 {
 	""
 	"Reported Windows Build $($WinVer.Build), Verion $(Window10Version -Build $WinVer.Build)"
-	"ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer Build/Version."
+	"ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer build/version."
 	PauseAndFail -ErrorLevel 2
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 {
 	""
-	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if you CPU is 64-bit."
+	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if your CPU is 64-bit."
 	PauseAndFail -ErrorLevel 21
 }
 "[OK]"
@@ -458,13 +458,13 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
-	"XBOX Identify Provider not installed to the user account, forcing install"
+	"XBOX Identify Provider not installed to the user account, forcing install..."
 	$XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0)
 {
 	""
-	"ERROR: Look like XBOX Identify Provider had been removed from the OS?"
+	"ERROR: Looks like the XBOX Identify Provider has been removed from the OS?"
 	""
 }
 
@@ -472,7 +472,7 @@ $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFil
 
 If ($XBOXIP -ne $null)
 {
-	"Looking for the XBOX Identify Provider folder to wipe"
+	"Looking for the XBOX Identify Provider folder to wipe..."
 	$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
 	$XBOXIPFN = $XBOXIP.PackageFamilyName
 	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
@@ -486,7 +486,7 @@ If ($XBOXIP -ne $null)
 Else
 {
 	""
-	"ERROR: Look like XBOX Identify Provider had been uninstalled, please get it back"
+	"ERROR: Look like XBOX Identify Provider has been uninstalled. Please use the Windows Store to get it back."
 	""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
 	PauseAndFail -ErrorLevel 27
@@ -503,7 +503,7 @@ Else
 {
 	"	INSTALLED"
 }
-"Checking needed GamingService App for runtime"
+"Checking for needed Gaming Services App runtime..."
 $GamingServices_User = @()
 $GamingServices_Any = @()
 $GamingServices_All = @()
@@ -514,22 +514,22 @@ $GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.42.5001.
 Try
 {
 	$ForceReinstallGS = $true
-	"Checking if we can get the Gaming services working"
+	"Checking if we can get the Gaming Services working..."
 	Get-Service | Where-Object Name -In "GamingServices_","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
-	"No Errors found"
+	"No errors found! :D"
 	$ForceReinstallGS = $false
 }
 Catch
 {
-	"There was issues checking the Gaming services, we will try to reinstall the app..."
+	"There was an issue checking the Gaming Services, we will try to reinstall the app..."
 }
 
 If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 {
 	""
-	"WARING: Old version of Gaming Service found"
+	"WARING: Old version of Gaming Services found!"
 	""
-	"	Please udpate Gaming Services from the MS Store"
+	"	Please udpate Gaming Services from the MS Store."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	PauseOnly
 }
@@ -545,7 +545,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
-	"Installing Gaming Service to user account"
+	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
@@ -581,20 +581,20 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	""
-	"ERROR: Please make sure to install the Gaming Services from the MS Store"
+	"ERROR: Please make sure to install the Gaming Services from the MS Store."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	PauseAndFail -ErrorLevel 26
 }
 
-"Restarting XBOX services"
+"Restarting XBOX services..."
 Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service -Verbose
 
-"Finding GameGuard Service"
+"Finding GameGuard Service..."
 $npggsvc = @()
 $npggsvc += Get-Service | Where-Object Name -eq "npggsvc"
 If ($npggsvc.Count -gt 0)
 {
-	"Found GameGuard Service"
+	"Found GameGuard Service..."
 	"Trying to stop it..."
 	Try
 	{
@@ -673,7 +673,7 @@ ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 ElseIf ($PSO2NABinFolder -eq $null)
 {
 	""
-	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA"
+	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA."
 	PauseAndFail -ErrorLevel 20
 }
 ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
@@ -706,10 +706,10 @@ ElseIf ($PSO2NAFolder)
 		""
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
 		""
-		"WARNING: you just wanted to fix XBOX login mess, you should be fine now"
+		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
 		PauseAndFail -ErrorLevel 10
 	}
-	"Moving instance to $($PSO2NAFolder) Folder"
+	"Moving instance to $($PSO2NAFolder) Folder..."
 	Set-Location -Path $PSO2NAFolder -Verbose
 }
 Else
@@ -817,7 +817,7 @@ If ($MissingFiles -eq $true)
 	""
 	"https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
 	""
-	"extract it to your PHANTASYSTARONLINE2 folder and DO A FILE CHECK!"
+	"extract it to your PHANTASYSTARONLINE2 or PHANTASYSTARONLINE2_NA folder and DO A FILE CHECK!"
 	"(Troubleshooting -> New Method)"
 	PauseAndFail -ErrorLevel 11
 }
@@ -845,18 +845,18 @@ If ($DevMode -EQ $false)
 "[OK]"
 
 $OldBackups = @()
-"Looking for old PSO2NA MutableBackup folders"
+"Looking for old PSO2NA MutableBackup folders..."
 $OldBackups += FindMutableBackup
 $OldPackages = @()
 $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
 If ($OldBackups.Count -gt 0)
 {
-	"Found some MutableBackup folders"
+	"Found some MutableBackup folders!"
 	$OldBackups |fl
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
-		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2"
+		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old $($OldBin) folder..."
 try {
@@ -872,9 +872,9 @@ If ($BadBins.Count -gt 0)
 {
 	$BadBins | ForEach-Object -Process {
 		$OldBin = $_
-		"Found the old MS STORE's pso2_bin folder"
+		"Found the old MS STORE's pso2_bin folder!"
 		Takeownship -path $OldBin
-		"Going to move the MS STORE files to your Tweaker copy of PSO2"
+		"Going to move the MS STORE files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old MS STORE's pso2_bin folder..."
 try {
@@ -977,14 +977,14 @@ ElseIf ($PSO2Packages_Bad.Count -gt 0)
 	$PSO2Packages_Bad | Remove-AppxPackage -Verbose -AllUsers
 }
 
-"Making sure that the Appx volume is online"
-"REPOR: Currect Appx Volume setup"
+"Making sure that the Appx volume is online..."
+"REPORT: Current Appx volume setup"
 ""
 Get-AppxVolume
 ""
-"End of Report of Appx Volumes"
+"End of Appx volume report."
 ""
-"Status of Appx Volume that Custom PSO2 is on"
+"Status of Appx volume that your custom PSO2 install is on:"
 $AppxVols = @()
 try {
 Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name) -ErrorAction Continue
@@ -1010,7 +1010,7 @@ If ($EmptyFiles.Count -gt 0)
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
-	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker"
+	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker."
 	"(Troubleshooting -> New Method)"
 	"List of bad files:"
 	$EmptyFiles
@@ -1052,7 +1052,7 @@ Get-AppxPackage -Name "100B7A24.oxyna"
 ""
 If ($CustomPSO2.Count -eq 0)
 {
-	 "Cannot find custom PSO2 installation!"
+	 "Cannot find a custom PSO2 installation!"
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
