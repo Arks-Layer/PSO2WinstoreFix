@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_1639" # Error codes: 29
+"Version 2020_06_12_1846" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -203,7 +203,9 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -Path $logfile
-	Get-ChildItem -Path $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Verbose -ErrorAction Continue
+	"Deleting empty files..."
+	Get-ChildItem -Path $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -ErrorAction Continue
+	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
 	{
@@ -216,12 +218,12 @@ function RobomoveByFolder {
 	{
 		$Subs | ForEach-Object {
 			$NewSub = $_.Name
-			If ($NewSub -ne "win32" -and $NewSub -ne "win32_na")
+			$FilesCount = @()
+			$DirsCount = @()
+			If ($NewSub -notlike "win32*")
 			{
-				$FilesCount = @()
 				"Counting Files..."
 				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
-				$DirsCount = @()
 				"Counting Folders..."
 				$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
 				"Digging into $($_.FullName) Folder"
@@ -229,7 +231,7 @@ function RobomoveByFolder {
 				"	$($DirsCount.Count) Directories"
 			}
 			$Details = $false
-			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
+			If ($NewSub -like "win32*")
 			{
 				(0..0xf|% ToString X1) | ForEach-Object {
 					""
@@ -863,13 +865,18 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
-		"Going to move the old MS STORE backup files to your Tweaker copy of PSO2..."
+		"Going to move the old MS STORE backup files from $($OldBin) to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old $($OldBin) folder..."
 try {
-		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+		"Deleting files in $($OldBin) Folder..."
+		Get-ChildItem -Path $OldBin -ErrorAction Continue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 } Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction Continue
+} Catch {}
+
 	}
 }
 
@@ -885,9 +892,13 @@ If ($BadBins.Count -gt 0)
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old MS STORE's pso2_bin folder..."
 try {
-		Get-ChildItem -Path $OldBin -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
-} catch {}
+		"Deleting files in $($OldBin) Folder..."
+		Get-ChildItem -Path $OldBin -ErrorAction Continue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+} Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction Continue
+} Catch {}
 	}
 }
 
