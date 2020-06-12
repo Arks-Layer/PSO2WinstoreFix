@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0330" # Error codes: 29
+"Version 2020_06_12_0421" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -203,7 +203,8 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -Path $logfile
-	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/XJ","/MAX:1","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
+	Get-ChildItem -Path $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Verbose -ErrorAction Continue
+	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
 	{
 		$Cmdlist += "/V"
@@ -216,8 +217,13 @@ function RobomoveByFolder {
 		$Subs | ForEach-Object {
 			$NewSub = $_.Name
 			$FilesCount = @()
-			$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
+			{
+				"Counting Files..."
+				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+			}
 			$DirsCount = @()
+			"Counting Folders..."
 			$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
 			"Digging into $($_.FullName) Folder"
 			"	$($FilesCount.Count) Files"
@@ -267,7 +273,7 @@ function Takeownship {
 	If (Test-Path -Path $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
-		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/F",('"{0}"' -f $path) -ErrorAction Continue
+		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path), -ErrorAction Continue
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
