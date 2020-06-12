@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0433" # Error codes: 29
+"Version 2020_06_12_0920" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -231,7 +231,7 @@ function RobomoveByFolder {
 			$Details = $false
 			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
 			{
-				(0..0xff|% ToString X2) | ForEach-Object {
+				(0..0xf|% ToString X1) | ForEach-Object {
 					""
 					"WARNING: large number of files detected, only moving files starting with $($_)"
 					""
@@ -273,7 +273,7 @@ function Takeownship {
 	If (Test-Path -Path $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
-		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path), -ErrorAction Continue
+		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
