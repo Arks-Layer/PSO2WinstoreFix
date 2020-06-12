@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0421" # Error codes: 29
+"Version 2020_06_12_0433" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -216,18 +216,18 @@ function RobomoveByFolder {
 	{
 		$Subs | ForEach-Object {
 			$NewSub = $_.Name
-			$FilesCount = @()
 			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
 			{
+				$FilesCount = @()
 				"Counting Files..."
 				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+				$DirsCount = @()
+				"Counting Folders..."
+				$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
+				"Digging into $($_.FullName) Folder"
+				"	$($FilesCount.Count) Files"
+				"	$($DirsCount.Count) Directories"
 			}
-			$DirsCount = @()
-			"Counting Folders..."
-			$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
-			"Digging into $($_.FullName) Folder"
-			"	$($FilesCount.Count) Files"
-			"	$($DirsCount.Count) Directories"
 			$Details = $false
 			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
 			{
