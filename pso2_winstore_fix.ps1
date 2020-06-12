@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0920" # Error codes: 29
+"Version 2020_06_12_1515" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -209,7 +209,7 @@ function RobomoveByFolder {
 	{
 		$Cmdlist += "/V"
 	}
-	& "cmd.exe" -Wait -ArgumentList $Cmdlist
+	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist
 	$Subs = @()
 	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue
 	If ($Subs.Count -gt 0)
@@ -618,7 +618,7 @@ If ($npggsvc.Count -gt 0)
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
-		& sc.exe delete npggsvc
+		Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList "/C","C:\Windows\system32\sc.exe","delete","npggsvc"
 	}
 }
 
