@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0325" # Error codes: 29
+"Version 2020_06_12_0330" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -551,7 +551,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
 {
 	"Downloading Gaming Services App... (10MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle?raw=true"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
 
