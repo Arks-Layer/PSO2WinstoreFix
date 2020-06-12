@@ -38,7 +38,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_2149" # Error codes: 29
+"Version 2020_06_11_2230" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -946,7 +946,7 @@ $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
 $EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
-$PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
+$PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
@@ -1038,6 +1038,10 @@ If ($NewPackages.Count -gt 0)
 "Now double checking the custom PSO2 install..."
 $CustomPSO2 = @()
 $CustomPSO2 += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object IsDevelopmentMode -eq $true | Where-Object Status -EQ "Ok"
+
+"Raw PSO2 install status:"
+Get-AppxPackage -Name "100B7A24.oxyna"
+""
 If ($CustomPSO2.Count -eq 0)
 {
 	 "Cannot find custom PSO2 installation!"
@@ -1050,9 +1054,7 @@ Else
 {
 	"What? why are there $($CustomPSO2) custom PSO2 install?!"
 }
-"Raw PSO2 install status:"
-Get-AppxPackage -Name "100B7A24.oxyna"
-
+""
 Stop-Transcript -ErrorAction Continue
 Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
