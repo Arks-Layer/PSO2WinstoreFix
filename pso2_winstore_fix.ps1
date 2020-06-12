@@ -38,7 +38,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_1923" # Error codes: 29
+"Version 2020_06_11_2149" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -92,9 +92,9 @@ Function DownloadMe
 		{
 			""
 			"Error: Failed to download file, if you want, you can manually download"
-""
+			""
 			$URI
-""
+			""
 			PauseAndFail -ErrorLevel $ErrorLevel
 		}
 		Return Resolve-Path -Path $OutFile
@@ -339,6 +339,46 @@ Function Window10Version
 	Return "Unknown"
 }
 
+Function FindMutable_Appx
+{
+	Param
+	(
+		[String]
+		$Folder = "pso2_bin"
+	)
+	$OnlineVolumes = @()
+	$MutableVolumes = @()
+$PackageFolder = @()
+try {
+	$OnlineVolules += Get-AppxVolume -Online -Verbose
+} catch {}
+	If ($OnlineVolules.Count -gt 0)
+	{
+		$MutableVolumes += $OnlineVolules | ForEach-Object {
+			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps"
+			If (Test-Path -Path $ModifiableFolder -PathType Container)
+			{
+				$_
+			}
+		}
+	}
+	If ($MutableVolumes.Count -gt 0)
+	{
+		$PackageFolders += $MutableVolumes | ForEach-Object {
+			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps\$($Folder)"
+			If (Test-Path -Path $MutableFolder -PathType Container)
+			{
+				Return Resolve-Path -Path $MutableFolder
+			}
+		}
+	}
+	If ($PackageFolders.Count -gt 0)
+	{
+		Return $PackageFolders.ProvidePath
+    }
+    Return @()
+}
+
 
 If ($TweakerMode -eq $true)
 {
@@ -459,9 +499,9 @@ Else
 $GamingServices_User = @()
 $GamingServices_Any = @()
 $GamingServices_All = @()
-$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.41.50001.0"
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.42.5001.0"
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.41.50001.0"
+$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.42.5001.0"
 
 Try
 {
@@ -476,10 +516,10 @@ Catch
 	"There was issues checking the Gaming services, we will try to reinstall the app..."
 }
 
-If ($GamingServices_All.Count -gt 0 -and $GamingServices_Any.Count -gt 0)
+If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 {
 	""
-	"WARING: Old versoin of Gaming Service found"
+	"WARING: Old version of Gaming Service found"
 	""
 	"	Please udpate Gaming Services from the MS Store"
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
@@ -817,18 +857,15 @@ try {
 } Catch {}
 	}
 }
-"Looking for a PSO2NA Windows Store installation..."
-If ($OldPackages.Count -gt 0)
+
+"Looking for a PSO2NA Windows Store installation to wipe..."
+$BadBins =  FindMutable_Appx -Folder "pso2_bin"
+If ($BadBins.Count -gt 0)
 {
-	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
-	"If this takes more then 30 minutes, you may have to reboot."
-	$OldBin = $false
-	$BadBin = "C:\Program Files\WindowsModifiableApps\pso2_bin"
-	$OldBin = Test-Path $BadBin -ErrorAction SilentlyContinue -PathType Container
-	If ($OldBin)
-	{
+	$BadBins | ForEach-Object -Process {
+		$OldBin = $_
 		"Found the old MS STORE's pso2_bin folder"
-		Takeownship -path $BadBin
+		Takeownship -path $OldBin
 		"Going to move the MS STORE files to your Tweaker copy of PSO2"
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old MS STORE's pso2_bin folder..."
@@ -837,6 +874,12 @@ try {
 		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue -Verbose
 } catch {}
 	}
+}
+
+If ($OldPackages.Count -gt 0)
+{
+	"If this takes more then 30 minutes, you may have to reboot."
+	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
 }
 Else
