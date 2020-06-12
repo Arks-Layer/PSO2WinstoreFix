@@ -4,7 +4,7 @@
 #
 # and if that fails,try this comamand:
 #
-#	Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy ByPass -Confirm:$false
+#	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
 Param(
 	[Bool]$ForceReinstall = $false,
@@ -44,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_0221" # Error codes: 29
+"Version 2020_06_12_0237" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -403,6 +403,7 @@ if ($WinVer.Major -lt 10)
 	"ERROR: PSO2NA is only supported on Windows 10."
 	PauseAndFail -ErrorLevel 1
 }
+Elseif ($WinVer.Minor -gt 0) {}
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
