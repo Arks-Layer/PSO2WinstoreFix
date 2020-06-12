@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_1515" # Error codes: 29
+"Version 2020_06_12_1639" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -216,7 +216,7 @@ function RobomoveByFolder {
 	{
 		$Subs | ForEach-Object {
 			$NewSub = $_.Name
-			If ($NewSub -eq "win32" -or $NewSub -eq "win32_na")
+			If ($NewSub -ne "win32" -and $NewSub -ne "win32_na")
 			{
 				$FilesCount = @()
 				"Counting Files..."
@@ -630,6 +630,7 @@ $PSO2NAFolder = $null
 $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Tweaker\settings.json")
 If ($JSONPath)
 {
+	"Loading Tweaker Config from $($JSONPath)"
 	$JSONData = Get-Content -Path $JSONPath -Verbose
 }
 Else
