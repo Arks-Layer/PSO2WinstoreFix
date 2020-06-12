@@ -38,7 +38,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_11_2230" # Error codes: 29
+"Version 2020_06_11_2330" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -385,6 +385,8 @@ If ($TweakerMode -eq $true)
 	$PauseOnFail = $false
 	$SkipRobomove = $true
 }
+
+Start-Service -Name "Winmgmt" -ErrorAction Stop
 
 Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
