@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_12_1846" # Error codes: 29
+"Version 2020_06_12_2212" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -235,7 +235,7 @@ function RobomoveByFolder {
 			{
 				(0..0xf|% ToString X1) | ForEach-Object {
 					""
-					"WARNING: large number of files detected, only moving files starting with $($_)"
+					"WARNING: large number of files detected, only moving files starting with $($_) pf (0 to f)"
 					""
 					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
 				}
@@ -361,7 +361,7 @@ Function FindMutable_Appx
 	)
 	$OnlineVolumes = @()
 	$MutableVolumes = @()
-$PackageFolder = @()
+	$PackageFolders = @()
 try {
 	$OnlineVolules += Get-AppxVolume -Online -Verbose
 } catch {}
@@ -385,11 +385,14 @@ try {
 			}
 		}
 	}
+	If (Test-Path -Path "C:\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
+	{
+		$PackageFolders +=  Resolve-Path -Path "C:\Program Files\WindowsModifiableApps\$($Folder)"
+	}
 	If ($PackageFolders.Count -gt 0)
 	{
 		Return $PackageFolders.ProvidePath
 	}
-	Return @()
 }
 
 
@@ -870,11 +873,11 @@ If ($OldBackups.Count -gt 0)
 		"Deleting old $($OldBin) folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 
 	}
@@ -893,11 +896,11 @@ If ($BadBins.Count -gt 0)
 		"Deleting old MS STORE's pso2_bin folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 	}
 }
