@@ -10,7 +10,8 @@ Param(
 	[Bool]$ForceReinstall = $false,
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
-	[Bool]$SkipRobomove = $false
+	[Bool]$SkipRobomove = $false,
+	[Bool]$ForceLocalInstall = $false
 )
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
@@ -43,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_13_1229" # Error codes: 29
+"Version 2020_06_13_1951" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -453,12 +454,21 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 ""
+"Report Windows Verion"
+$WinVer | fl
+"Getting Windows Patch list"
+Get-Hotfix -Verbose -ErrorAction Continue
 
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
-Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue
+Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
+
+"Restarting XBOX services..."
+Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service -Verbose
+"Killing any XBOX process"
+Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object Name -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 
@@ -557,9 +567,9 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
-	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
-ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true))
+ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
@@ -597,8 +607,10 @@ If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 	PauseAndFail -ErrorLevel 26
 }
 
-"Restarting XBOX services..."
-Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service -Verbose
+""
+"Status of GamingService App"
+Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+"End of Status Report"
 
 "Finding GameGuard Service..."
 $npggsvc = @()
@@ -965,14 +977,21 @@ if ($VCLibs_User.Count -eq 0)
 If ($NewPackages.Count -gt 0)
 {
 	"Installing requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
-	$NewPackages | Add-AppxPackage -Stage -Volume $SystemVolume -Verbose -ErrorAction Continue
-	$NewPackages | Add-AppxPackage -Volume $SystemVolume -Verbose -ErrorAction Continue
+	$NewPackages | Add-AppxPackage -Stage -Volume $SystemVolume -Verbose -ErrorAction Continue -Update
+	$NewPackages | Add-AppxPackage -Volume $SystemVolume -Verbose -ErrorAction Continue -Update
 	#$NewPackages | Remove-Item -Verbose
 }
 Else
 {
 	"Requirements already installed"
 }
+""
+"Status of DirectX framework"
+Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+"Status of VCLIB framework"
+Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+"End of Framework status"
+
 
 $PSO2Packages = @()
 $PSO2Packages_User = @()
