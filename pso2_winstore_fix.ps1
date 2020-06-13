@@ -43,7 +43,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_13_0042" # Error codes: 29
+"Version 2020_06_13_1229" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -873,7 +873,7 @@ If ($OldBackups.Count -gt 0)
 		"Deleting old $($OldBin) folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
@@ -896,7 +896,7 @@ If ($BadBins.Count -gt 0)
 		"Deleting old MS STORE's pso2_bin folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
