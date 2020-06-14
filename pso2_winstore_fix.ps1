@@ -44,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_14_1523" # Error codes: 29
+"Version 2020_06_14_1608" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -753,33 +753,50 @@ Else
 	PauseAndFail -ErrorLevel 9
 }
 
+"Report of Drive status"
+Get-Volume | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
+"End of Report"
 "Checking if Volume is formated as NTFS..."
-Get-Volume
 $PSO2Vol = @()
 Try
 {
-	$BrokenNTFS = $true
-	$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder | Where-Object -Property FileSystemType -EQ NTFS
-	$BrokenNTFS = $false
+	$BrokenVolume = $true
+	$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder
+	$BrokenVolume = $false
 }
 Catch
 {
 	#PauseAndFail -ErrorLevel 19
 }
+$PSO2Vol_exFAT = @()
+$PSO2Vol_NTFS = @()
+$PSO2Vol_exFAT +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
+$PSO2Vol_NTFS +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
 
-If ($BrokenNTFS -eq $true)
-{
-	"WARNING: Your system's WMI database is broken, please repair it."
-}
-ElseIf ($PSO2Vol.Count -eq 0)
+If ($BrokenVolume -eq $true)
 {
 	""
-	"WARNING: Your PSO2NA installation is not on a NTFS drive, please move the PSO2NA installation elsewhere."
-	#PauseAndFail -ErrorLevel 15
+	"WARNING: Your system's WMI database is broken, please repair it."
+}
+ElseIf ($PSO2Vol_exFAT.Count -gt 0)
+{
+	""
+	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere."
+	PauseAndFail -ErrorLevel 15
+}
+
+If ($PSO2Vol_NTFS.Count -gt 0)
+{
+	"Your PSO2NA installation is on a NTFS drive \o/"
+}
+ElseIF ($PSO2Vol.Count -gt 0)
+{
+	"WARNING: Your PSO2NA installtion in on an unknown filesytem: $($PSO2Vol.FileSystem -join ",")?"
+	PauseOnly
 }
 Else
 {
-	"Your PSO2NA installation is on a NTFS drive \o/"
+	PauseOnly
 }
 
 $MissingFiles = $false
