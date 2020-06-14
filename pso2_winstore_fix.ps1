@@ -44,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_13_1951" # Error codes: 29
+"Version 2020_06_13_2011" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -318,12 +318,12 @@ Function PauseOnly {
 	If (Test-Path variable:global:psISE)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
-		$Button = $ObjShell.Popup("Click OK to fail hard.", 0, "Script failing", 0)
+		$Button = $ObjShell.Popup("Click OK to keep going.", 0, "Script pausing", 0)
 	}
 	Else
 	{
 		""
-		"Press any key to exit."
+		"Press any key to continue."
 		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 	}
 }
@@ -454,10 +454,20 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 ""
+
 "Report Windows Verion"
 $WinVer | fl
 "Getting Windows Patch list"
-Get-Hotfix -Verbose -ErrorAction Continue
+$WinPatchs = @()
+$WinPatchs = Get-Hotfix -Verbose -ErrorAction Continue
+$WinPatchs
+If ($WinPatchs.HotFixID -contains "KB4560960")
+{
+	""
+	"KB4560960 patch is installed, it may cause issues with PSO2"
+	"You may want to uninstall it"
+	#PauseOnly
+}
 
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
@@ -901,11 +911,11 @@ If ($BadBins.Count -gt 0)
 {
 	$BadBins | ForEach-Object -Process {
 		$OldBin = $_
-		"Found the old MS STORE's pso2_bin folder!"
+		"Found the old MS STORE's pso2_bin Mutable folder!"
 		Takeownship -path $OldBin
-		"Going to move the MS STORE files to your Tweaker copy of PSO2..."
+		"Going to move the MS STORE Mutable files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		"Deleting old MS STORE's pso2_bin folder..."
+		"Deleting old MS STORE's pso2_bin Mutable folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
 		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
@@ -919,6 +929,22 @@ try {
 
 If ($OldPackages.Count -gt 0)
 {
+	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
+		$OldBin = $_.InstallLocation
+		"Found the old MS STORE's pso2_bin core folder!"
+		Takeownship -path $OldBin
+		"Going to move the MS STORE core files to your Tweaker copy of PSO2..."
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
+		"Deleting old MS STORE's pso2_bin core folder..."
+try {
+		"Deleting files in $($OldBin) Folder..."
+		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+	}
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
@@ -1018,7 +1044,9 @@ If ($ForceReinstall)
 }
 ElseIf ($PSO2Packages_Bad.Count -gt 0)
 {
-	"Found a old custom PSO2 install, removing it..."
+	"Found a old custom PSO2 install:"
+	$PSO2Packages_Bad
+	"removing it..."
 	$PSO2Packages_Bad | Remove-AppxPackage -Verbose -AllUsers
 }
 
