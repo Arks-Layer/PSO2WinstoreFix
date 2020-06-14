@@ -44,7 +44,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_13_2011" # Error codes: 29
+"Version 2020_06_13_1144" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -224,9 +224,9 @@ function RobomoveByFolder {
 			If ($NewSub -notlike "win32*")
 			{
 				"Counting Files..."
-				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File | Where-Object BaseName -NotLike "*.pat"
+				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File -ErrorAction Continue | Where-Object BaseName -NotLike "*.pat"
 				"Counting Folders..."
-				$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory
+				$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory -ErrorAction Continue
 				"Digging into $($_.FullName) Folder"
 				"	$($FilesCount.Count) Files"
 				"	$($DirsCount.Count) Directories"
@@ -236,7 +236,7 @@ function RobomoveByFolder {
 			{
 				(0..0xf|% ToString X1) | ForEach-Object {
 					""
-					"WARNING: large number of files detected, only moving files starting with $($_) pf (0 to f)"
+					"WARNING: large number of files detected, only moving files starting with $($_) of (0 to f)"
 					""
 					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
 				}
