@@ -11,7 +11,8 @@ Param(
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false,
-	[Bool]$ForceLocalInstall = $false
+	[Bool]$ForceLocalInstall = $false,
+	[Bool]$SkipStorageCheck = $false
 )
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
@@ -44,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_14_1608" # Error codes: 29
+"Version 2020_06_14_2006" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -469,6 +470,13 @@ If ($WinPatchs.HotFixID -contains "KB4560960")
 	#PauseOnly
 }
 
+If (Test-Path -Path "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+{
+	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf"
+}
+
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
@@ -753,15 +761,24 @@ Else
 	PauseAndFail -ErrorLevel 9
 }
 
+"Get Storage Service Ready"
+Restart-Service -Name "StorSvc"
+
 "Report of Drive status"
-Get-Volume | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
+If ($SkipStorageCheck -ne $true)
+{
+	Get-Volume | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
+}
 "End of Report"
 "Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
 Try
 {
 	$BrokenVolume = $true
-	$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder
+	If ($SkipStorageCheck -ne $true)
+	{
+		$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder
+	}
 	$BrokenVolume = $false
 }
 Catch
