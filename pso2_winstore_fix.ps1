@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_14_2006" # Error codes: 29
+"Version 2020_06_14_2211" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -237,7 +237,7 @@ function RobomoveByFolder {
 			{
 				(0..0xf|% ToString X1) | ForEach-Object {
 					""
-					"WARNING: large number of files detected, only moving files starting with $($_) of (0 to f)"
+					"WARNING: large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
 					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
 				}
@@ -939,28 +939,6 @@ try {
 	}
 }
 
-"Looking for a PSO2NA Windows Store installation to wipe..."
-$BadBins =  FindMutable_Appx -Folder "pso2_bin"
-If ($BadBins.Count -gt 0)
-{
-	$BadBins | ForEach-Object -Process {
-		$OldBin = $_
-		"Found the old MS STORE's pso2_bin Mutable folder!"
-		Takeownship -path $OldBin
-		"Going to move the MS STORE Mutable files to your Tweaker copy of PSO2..."
-		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		"Deleting old MS STORE's pso2_bin Mutable folder..."
-try {
-		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
-try {
-		"Deleting $($OldBin) Folder..."
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
-	}
-}
-
 If ($OldPackages.Count -gt 0)
 {
 	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
@@ -975,8 +953,8 @@ try {
 		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
-		"Deleting $($OldBin) Folder..."
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		#"Deleting $($OldBin) Folder..."
+		#Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 	}
 	"If this takes more then 30 minutes, you may have to reboot."
