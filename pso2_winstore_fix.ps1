@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_14_2211" # Error codes: 29
+"Version 2020_06_16_1401" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -462,7 +462,7 @@ $WinVer | fl
 $WinPatchs = @()
 $WinPatchs = Get-Hotfix -Verbose -ErrorAction Continue
 $WinPatchs
-If ($WinPatchs.HotFixID -contains "KB4560960")
+If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 {
 	""
 	"KB4560960 patch is installed, it may cause issues with PSO2"
@@ -476,6 +476,27 @@ If (Test-Path -Path "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf"
 }
+
+If (Test-Path -Path "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
+{
+	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf"
+}
+
+"Getting Software list..."
+$MSIList = @()
+$MSIList_Bad = @()
+$MSIList += Get-WmiObject -Class win32_product
+"[OK]"
+$MSIList_Bad += $MSIList | Where-Object Name -Like "Nahimic*"
+If ($MSIList_Bad.Count -gt 0)
+{
+	"Found Bad software:"
+	$MSIList_Bad | select -Property Vendor, Name, Caption, Description, IdentifyingNumber, PackageName
+	PauseOnly
+}
+
 
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
@@ -554,7 +575,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming Services working..."
-	Get-Service | Where-Object Name -In "GamingServices_","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
+	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
 	"No errors found! :D"
 	$ForceReinstallGS = $false
 }
