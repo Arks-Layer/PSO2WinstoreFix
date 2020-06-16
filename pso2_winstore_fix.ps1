@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_16_1401" # Error codes: 29
+"Version 2020_06_16_1446" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -470,21 +470,8 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 	#PauseOnly
 }
 
-If (Test-Path -Path "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
-{
-	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf"
-}
-
-If (Test-Path -Path "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
-{
-	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf"
-}
-
 "Getting Software list..."
+"Please note: if you have any broken MSI installtions, you may get errors"
 $MSIList = @()
 $MSIList_Bad = @()
 $MSIList += Get-WmiObject -Class win32_product
@@ -495,6 +482,20 @@ If ($MSIList_Bad.Count -gt 0)
 	"Found Bad software:"
 	$MSIList_Bad | select -Property Vendor, Name, Caption, Description, IdentifyingNumber, PackageName
 	PauseOnly
+}
+
+If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -Path "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+{
+	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf"
+}
+
+If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -Path "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
+{
+	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf"
 }
 
 
