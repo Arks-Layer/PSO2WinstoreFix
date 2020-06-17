@@ -45,7 +45,8 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_16_2048" # Error codes: 29
+"Version 2020_06_16_2132" # Error codes: 29
+Import-Module Storage
 
 #All the fun helper functinons
 #Crash hander
@@ -213,7 +214,7 @@ function RobomoveByFolder {
 	{
 		$Cmdlist += "/V"
 	}
-	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist
+	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
 	$Subs = @()
 	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue
 	If ($Subs.Count -gt 0)
@@ -277,7 +278,7 @@ function Takeownship {
 	If (Test-Path -Path $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
-		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue
+		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Minimized
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
@@ -448,7 +449,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 	""
 	"WARNING: You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
 	Stop-Transcript
-	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
+	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs -WindowStyle Maximized
 	exit
 	#PauseAndFail -ErrorLevel 3
 }
@@ -490,14 +491,14 @@ If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber)
 {
 	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf" -WindowStyle Minimized
 }
 
 If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -Path "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
 {
 	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf" -WindowStyle Minimized
 }
 
 
@@ -680,7 +681,7 @@ If ($npggsvc.Count -gt 0)
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
-		Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList "/C","C:\Windows\system32\sc.exe","delete","npggsvc"
+		Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList "/C","C:\Windows\system32\sc.exe","delete","npggsvc" -WindowStyle Minimized
 	}
 }
 
