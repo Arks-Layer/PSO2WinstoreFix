@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_17_1131" # Error codes: 30
+"Version 2020_06_17_1218" # Error codes: 30
 Import-Module Storage
 
 #All the fun helper functinons
@@ -414,7 +414,7 @@ Function Set-ConsoleQuickEdit
 	}
 	$OldMode = $null
 	$OldMode = Get-ConsoleQuickEdit
-	Set-ItemProperty -Path $RegPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
+	Set-ItemProperty -Path $RegistryKeyPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
 	Return $oldMode
 }
 
@@ -426,14 +426,14 @@ Function Get-ConsoleQuickEdit
 		Return $null
 	}
 	$RegData = $null
-	$RegData = Get-ItemProperty -Path $RegPath -Name "QuickEdit" -ErrorAction SilentlyContinue
+	$RegData = Get-ItemProperty -Path $RegistryKeyPath -Name "QuickEdit" -ErrorAction SilentlyContinue
 	If ($RegData -ne $Null)
 	{
 		Return $RegData.QuickEdit
 	}
 }
 
-Set-ConsoleQuickEdit -Mode $false
+Set-ConsoleQuickEdit -Mode $false | Out-Null
 
 If ($TweakerMode -eq $true)
 {
@@ -1051,7 +1051,10 @@ $DirectXRuntime_version = [Version]"9.29.952.0"
 $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $DirectXRuntime_version
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $DirectXRuntime_version
 
-if ($DirectXRuntime_All.Count -gt 0 -and $DirectXRuntime_User.Count -eq 0)
+$DirectXRuntime_Error = @()
+$DirectXRuntime_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -ne "Installed" 
+
+if ($DirectXRuntime_All.Count -gt 0 -and ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_Error.Count -gt 0))
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
 	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
@@ -1073,7 +1076,10 @@ $VCLibs_Version = [Version]"14.0.24217.0"
 $VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $VCLibs_Version
 $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $VCLibs_Version
 
-If ($VCLibs_All.Count -gt 0 -And $VCLibs_User.Count -eq 0 )
+$VCLibs_Error = @()
+$VCLibs_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -ne "Installed" 
+
+If ($VCLibs_All.Count -gt 0 -And ($VCLibs_User.Count -eq 0 -or $VCLibs_Error.Count -gt 0))
 {
 	"System already has a good copy of VCLibs, trying to install the user profile"
 	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
