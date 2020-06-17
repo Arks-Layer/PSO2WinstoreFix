@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_17_1609" # Error codes: 30
+"Version 2020_06_17_1701" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Host
@@ -658,7 +658,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
-	Restart-Computer -Timeoutv 30 -Wait -Verbose
+	Restart-Computer -Timeout 30 -Wait -Verbose
 	PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
@@ -691,7 +691,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
-		Restart-Computer -Timeoutv 30 -Wait -Verbose
+		Restart-Computer -Timeout 30 -Wait -Verbose
 		PauseAndFail -ErrorLevel 25
 		#Resolve-Path -Path $FileD | Remove-Item -Verbose
 	}
