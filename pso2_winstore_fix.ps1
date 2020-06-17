@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_16_1446" # Error codes: 29
+"Version 2020_06_16_2003" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -402,6 +402,8 @@ If ($TweakerMode -eq $true)
 {
 	$PauseOnFail = $false
 	$SkipRobomove = $true
+	$ForceLocalInstall = $true
+	$SkipStorageCheck = $trie
 }
 
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
@@ -467,7 +469,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 	""
 	"KB4560960 patch is installed, it may cause issues with PSO2"
 	"You may want to uninstall it"
-	#PauseOnly
+	PauseOnly
 }
 
 "Getting Software list..."
@@ -555,7 +557,8 @@ Else
 
 "Checking for NET Framework 2.2 (2.2.27912.0+)"
 $NETFramework = @()
-$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version "2.2.27912.0"
+$NETFramework_version = [Version]"2.2.27912.0"
+$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version $NETFramework_version
 If ($NETFramework.Count -eq 0)
 {
 	"	NOT INSTALLED"
@@ -568,9 +571,10 @@ Else
 $GamingServices_User = @()
 $GamingServices_Any = @()
 $GamingServices_All = @()
-$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version "2.42.5001.0"
+$GamingServices_version = [Version]"2.42.5001.0"
+$GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $GamingServices_version
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-$GamingServices_All += $GamingServices_Any | PackageVersion -Version "2.42.5001.0"
+$GamingServices_All += $GamingServices_Any | PackageVersion -Version $GamingServices_version
 
 Try
 {
@@ -629,7 +633,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	}
 	Catch {}
 	$GamingServices_Any = @()
-	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
+	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
@@ -642,8 +646,9 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	""
-	"ERROR: Please make sure to install the Gaming Services from the MS Store."
+	"Starting MS Store App with the Gaming Service Listing..."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
+	"ERROR: Please make sure to install the Gaming Services from the MS Store."
 	PauseAndFail -ErrorLevel 26
 }
 
