@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_16_2003" # Error codes: 29
+"Version 2020_06_16_2048" # Error codes: 29
 
 #All the fun helper functinons
 #Crash hander
@@ -476,7 +476,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 "Please note: if you have any broken MSI installtions, you may get errors"
 $MSIList = @()
 $MSIList_Bad = @()
-$MSIList += Get-WmiObject -Class win32_product
+$MSIList += Get-CimInstance -ClassName Win32_Product
 "[OK]"
 $MSIList_Bad += $MSIList | Where-Object Name -Like "Nahimic*"
 If ($MSIList_Bad.Count -gt 0)
