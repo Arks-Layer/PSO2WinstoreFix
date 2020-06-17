@@ -45,7 +45,12 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_17_1218" # Error codes: 30
+"Version 2020_06_17_1609" # Error codes: 30
+Import-Module Appx
+Import-Module CimCmdlets
+Import-Module Microsoft.PowerShell.Host
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
 
 #All the fun helper functinons
@@ -216,7 +221,7 @@ function RobomoveByFolder {
 	}
 	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
 	$Subs = @()
-	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue
+	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
 	If ($Subs.Count -gt 0)
 	{
 		$Subs | ForEach-Object {
@@ -703,7 +708,7 @@ If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 
 ""
 "Status of GamingService App"
-Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 "End of Status Report"
 
 "Finding GameGuard Service..."
@@ -1107,9 +1112,9 @@ Else
 }
 ""
 "Status of DirectX framework"
-Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 "Status of VCLIB framework"
-Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 "End of Framework status"
 
 
@@ -1117,7 +1122,7 @@ $PSO2Packages = @()
 $PSO2Packages_User = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
-$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Length -eq 0
+$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
