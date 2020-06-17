@@ -11,7 +11,7 @@ Param(
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false,
-	[Bool]$ForceLocalInstall = $false,
+	[Bool]$ForceLocalInstall = $true,
 	[Bool]$SkipStorageCheck = $false
 )
 #f there an unhandled error, just stop
@@ -297,6 +297,7 @@ Function PauseAndFail {
 		$ErrorLevel = 255
 	)
 	Stop-Transcript
+	Set-ConsoleQuickEdit -Mode $true
 	If ($PauseOnFail = $false)
 	{
 		exit $ErrorLevel
@@ -398,6 +399,41 @@ try {
 	}
 }
 
+Function Set-ConsoleQuickEdit
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[Bool]
+		$Mode
+	)
+	$RegistryKeyPath = "HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe"
+	If (-Not (Test-Path -Path $RegistryKeyPath -PathType Container))
+	{
+		Return
+	}
+	$OldMode = $null
+	$OldMode = Get-ConsoleQuickEdit
+	Set-ItemProperty -Path $RegPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
+	Return $oldMode
+}
+
+Function Get-ConsoleQuickEdit
+{
+	$RegistryKeyPath = "HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe"
+	If (-Not (Test-Path -Path $RegistryKeyPath -PathType Container))
+	{
+		Return $null
+	}
+	$RegData = $null
+	$RegData = Get-ItemProperty -Path $RegPath -Name "QuickEdit" -ErrorAction SilentlyContinue
+	If ($RegData -ne $Null)
+	{
+		Return $RegData.QuickEdit
+	}
+}
+
+Set-ConsoleQuickEdit -Mode $false
 
 If ($TweakerMode -eq $true)
 {
@@ -607,6 +643,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
+	Restart-Computer -Timeoutv 30 -Wait -Verbose
 	PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
@@ -639,6 +676,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
+		Restart-Computer -Timeoutv 30 -Wait -Verbose
 		PauseAndFail -ErrorLevel 25
 		#Resolve-Path -Path $FileD | Remove-Item -Verbose
 	}
@@ -1177,5 +1215,6 @@ Else
 }
 ""
 Stop-Transcript -ErrorAction Continue
+Set-ConsoleQuickEdit -Mode $true
 Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
