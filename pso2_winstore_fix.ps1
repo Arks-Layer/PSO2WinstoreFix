@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_16_2132" # Error codes: 29
+"Version 2020_06_17_1131" # Error codes: 30
 Import-Module Storage
 
 #All the fun helper functinons
@@ -551,21 +551,43 @@ Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Princ
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 
+"Checking for NET Framework 2.2 (2.2.27912.0+)"
+$NETFramework = @()
+$NETFramework_version = [Version]"2.2.27912.0"
+$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version $NETFramework_version
+If ($NETFramework.Count -eq 0)
+{
+	"	NOT INSTALLED"
+}
+Else
+{
+	"	INSTALLED"
+}
 $XBOXIP_User = @()
+$XBOXIP_Any = @()
 $XBOXIP_All = @()
-$XBOXIP_User += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
-$XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers -Verbose
+$XBOXIP_version = [Version]"12.64.28001.0"
+$XBOXIP_User += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose | PackageVersion -Version $XBOXIP_version
+$XBOXIP_Any += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
+$XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers -Verbose | PackageVersion -Version $XBOXIP_version
 
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
 	"XBOX Identify Provider not installed to the user account, forcing install..."
 	$XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
-ElseIf ($XBOXIP_All.Count -eq 0)
+ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
-	""
-	"ERROR: Looks like the XBOX Identify Provider has been removed from the OS?"
-	""
+	"Downloading XBOX Identify Provider App... (13MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
+	$FileD = "Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
+	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 30
+
+	"Installing XBOX Identify Provider app..."
+	Try {
+		$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion
+	}
+	Catch {}
 }
 
 $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
@@ -592,18 +614,6 @@ Else
 	PauseAndFail -ErrorLevel 27
 }
 
-"Checking for NET Framework 2.2 (2.2.27912.0+)"
-$NETFramework = @()
-$NETFramework_version = [Version]"2.2.27912.0"
-$NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version $NETFramework_version
-If ($NETFramework.Count -eq 0)
-{
-	"	NOT INSTALLED"
-}
-Else
-{
-	"	INSTALLED"
-}
 "Checking for needed Gaming Services App runtime..."
 $GamingServices_User = @()
 $GamingServices_Any = @()
