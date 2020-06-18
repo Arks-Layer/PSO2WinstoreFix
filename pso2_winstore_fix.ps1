@@ -201,7 +201,7 @@ function RobomoveByFolder {
 	}
 	If (-Not (Test-Path -LiteralPath $destination -PathType Container))
 	{
-		New-Item -LiteralPath $destination -ItemType Directory -Verbose -ErrorAction Continue | Out-Null
+		New-Item -Path $destination -ItemType Directory -Verbose -ErrorAction Continue | Out-Null
 		If (-Not (Test-Path -LiteralPath $destination -PathType Container))
 		{
 			return
@@ -209,7 +209,7 @@ function RobomoveByFolder {
 	}
 	If (-Not (Test-Path -LiteralPath $logfile -PathType Leaf))
 	{
-		New-Item -LiteralPath $logfile -ItemType File #-WhatIf
+		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -LiteralPath $logfile
 	"Deleting empty files..."
