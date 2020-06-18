@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_17_1911" # Error codes: 30
+"Version 2020_06_18_0052" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Host
@@ -550,7 +550,7 @@ Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Restarting XBOX services..."
-Get-Service -Name "XblAuthManager","XboxNetApiSvc" | Where-Object Statis -NE "Running" | Start-Service -Verbose
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Service -Verbose
 "Killing any XBOX process"
 Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object Name -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
@@ -1122,7 +1122,7 @@ $PSO2Packages = @()
 $PSO2Packages_User = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
-$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
+$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -ne "PSO2NA_PSLOG.log" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
