@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -Path $ScriptLog
 #Version number
-"Version 2020_06_17_1701" # Error codes: 30
+"Version 2020_06_17_1911" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Host
@@ -372,7 +372,7 @@ Function FindMutable_Appx
 	$MutableVolumes = @()
 	$PackageFolders = @()
 try {
-	$OnlineVolules += Get-AppxVolume -Online -Verbose
+	$OnlineVolules += Get-AppxVolume -Verbose
 } catch {}
 	If ($OnlineVolules.Count -gt 0)
 	{
@@ -584,7 +584,7 @@ If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
 	"Downloading XBOX Identify Provider App... (13MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.XboxIdentityProvider_12.64.28001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 30
 
