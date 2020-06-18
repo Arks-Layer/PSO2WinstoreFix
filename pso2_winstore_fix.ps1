@@ -43,11 +43,12 @@ Else
 }
 
 #Start logging
-Start-Transcript -Path $ScriptLog
+Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_18_0148" # Error codes: 30
+"Version 2020_06_18_1243" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
+Import-Module Microsoft.PowerShell.Archive
 Import-Module Microsoft.PowerShell.Host
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
@@ -97,11 +98,11 @@ Function DownloadMe
 	)
 	Try
 	{
-		If (-Not (Test-Path -Path $OutFile -PathType Leaf) -Or $Overwrite)
+		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf) -Or $Overwrite)
 		{
 			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose  -ErrorAction Stop
 		}
-		If (-Not (Test-Path -Path $OutFile -PathType Leaf))
+		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf))
 		{
 			""
 			"Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
@@ -110,7 +111,7 @@ Function DownloadMe
 			""
 			PauseAndFail -ErrorLevel $ErrorLevel
 		}
-		Return Resolve-Path -Path $OutFile
+		Return Resolve-Path -LiteralPath $OutFile
 	}
 	Catch
 	{
@@ -157,14 +158,14 @@ Function FindMutableBackup {
 		$Mutable = @()
 		$Mutable += $AppxVols | ForEach-Object {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
-			If (Test-Path $Test -PathType Container)
+			If (Test-Path -LiteralPath $Test -PathType Container)
 			{
-				Return Resolve-Path -Path $Test -Verbose
+				Return Resolve-Path -LiteralPath $Test -Verbose
 			}
 		}
 		$Backups = @()
 		$Backups += $Mutable | ForEach-Object {
-			Return Get-ChildItem -Path $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
+			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
 		}
 		If ($Backups.Count -gt 0)
 		{
@@ -193,26 +194,26 @@ function RobomoveByFolder {
 	{
 		return
 	}
-	If (-Not (Test-Path -Path $source -PathType Container))
+	If (-Not (Test-Path -LiteralPath $source -PathType Container))
 	{
 		"ERROR: $($source) is not a folder"
 		return
 	}
-	If (-Not (Test-Path -Path $destination -PathType Container))
+	If (-Not (Test-Path -LiteralPath $destination -PathType Container))
 	{
-		New-Item -Path $destination -ItemType Directory -Verbose -ErrorAction Continue | Out-Null
-		If (-Not (Test-Path -Path $destination -PathType Container))
+		New-Item -LiteralPath $destination -ItemType Directory -Verbose -ErrorAction Continue | Out-Null
+		If (-Not (Test-Path -LiteralPath $destination -PathType Container))
 		{
 			return
 		}
 	}
-	If (-Not (Test-Path -Path $logfile -PathType Leaf))
+	If (-Not (Test-Path -LiteralPath $logfile -PathType Leaf))
 	{
-		New-Item -Path $logfile -ItemType File #-WhatIf
+		New-Item -LiteralPath $logfile -ItemType File #-WhatIf
 	}
-	$logpath = Resolve-Path -Path $logfile
+	$logpath = Resolve-Path -LiteralPath $logfile
 	"Deleting empty files..."
-	Get-ChildItem -Path $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -ErrorAction Continue
+	Get-ChildItem -LiteralPath $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -ErrorAction Continue
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
@@ -221,7 +222,7 @@ function RobomoveByFolder {
 	}
 	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
 	$Subs = @()
-	$Subs += Get-ChildItem -Directory -Depth 0 -Path $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
+	$Subs += Get-ChildItem -Directory -Depth 0 -LiteralPath $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
 	If ($Subs.Count -gt 0)
 	{
 		$Subs | ForEach-Object {
@@ -231,9 +232,9 @@ function RobomoveByFolder {
 			If ($NewSub -notlike "win32*")
 			{
 				"Counting Files..."
-				$FilesCount += Get-ChildItem -Path $_.FullName -Force -File -ErrorAction Continue | Where-Object BaseName -NotLike "*.pat"
+				$FilesCount += Get-ChildItem -LiteralPath $_.FullName -Force -File -ErrorAction Continue | Where-Object BaseName -NotLike "*.pat"
 				"Counting Folders..."
-				$DirsCount += Get-ChildItem -Path $_.FullName -Force -Directory -ErrorAction Continue
+				$DirsCount += Get-ChildItem -LiteralPath $_.FullName -Force -Directory -ErrorAction Continue
 				"Digging into $($_.FullName) Folder"
 				"	$($FilesCount.Count) Files"
 				"	$($DirsCount.Count) Directories"
@@ -280,7 +281,7 @@ function Takeownship {
 
 	)
 	$takeownEXE = "C:\Windows\system32\takeown.exe"
-	If (Test-Path -Path $takeownEXE)
+	If (Test-Path -LiteralPath $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
 		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Minimized
@@ -378,7 +379,7 @@ try {
 	{
 		$MutableVolumes += $OnlineVolules | ForEach-Object {
 			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps"
-			If (Test-Path -Path $ModifiableFolder -PathType Container)
+			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container)
 			{
 				$_
 			}
@@ -388,15 +389,15 @@ try {
 	{
 		$PackageFolders += $MutableVolumes | ForEach-Object {
 			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps\$($Folder)"
-			If (Test-Path -Path $MutableFolder -PathType Container)
+			If (Test-Path -LiteralPath $MutableFolder -PathType Container)
 			{
-				Return Resolve-Path -Path $MutableFolder
+				Return Resolve-Path -LiteralPath $MutableFolder
 			}
 		}
 	}
-	If (Test-Path -Path "C:\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
+	If (Test-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
 	{
-		$PackageFolders +=  Resolve-Path -Path "C:\Program Files\WindowsModifiableApps\$($Folder)"
+		$PackageFolders +=  Resolve-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)"
 	}
 	If ($PackageFolders.Count -gt 0)
 	{
@@ -413,25 +414,25 @@ Function Set-ConsoleQuickEdit
 		$Mode
 	)
 	$RegistryKeyPath = "HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe"
-	If (-Not (Test-Path -Path $RegistryKeyPath -PathType Container))
+	If (-Not (Test-Path -LiteralPath $RegistryKeyPath -PathType Container))
 	{
 		Return
 	}
 	$OldMode = $null
 	$OldMode = Get-ConsoleQuickEdit
-	Set-ItemProperty -Path $RegistryKeyPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
+	Set-ItemProperty -LiteralPath $RegistryKeyPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
 	Return $oldMode
 }
 
 Function Get-ConsoleQuickEdit
 {
 	$RegistryKeyPath = "HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe"
-	If (-Not (Test-Path -Path $RegistryKeyPath -PathType Container))
+	If (-Not (Test-Path -LiteralPath $RegistryKeyPath -PathType Container))
 	{
 		Return $null
 	}
 	$RegData = $null
-	$RegData = Get-ItemProperty -Path $RegistryKeyPath -Name "QuickEdit" -ErrorAction SilentlyContinue
+	$RegData = Get-ItemProperty -LiteralPath $RegistryKeyPath -Name "QuickEdit" -ErrorAction SilentlyContinue
 	If ($RegData -ne $Null)
 	{
 		Return $RegData.QuickEdit
@@ -528,14 +529,14 @@ If ($MSIList_Bad.Count -gt 0)
 	PauseOnly
 }
 
-If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -Path "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
 {
 	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",$MSILog,"/qf" -WindowStyle Minimized
 }
 
-If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -Path "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
+If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
 {
 	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
@@ -550,7 +551,7 @@ Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Restarting XBOX services..."
-Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Service -Verbose
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Service -Force -Verbose
 "Killing any XBOX process"
 Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object Name -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
@@ -604,7 +605,7 @@ If ($XBOXIP -ne $null)
 	$XBOXIPFN = $XBOXIP.PackageFamilyName
 	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
-	If (Test-Path -Path $XBOXTBF -PathType Container)
+	If (Test-Path -LiteralPath $XBOXTBF -PathType Container)
 	{
 		Takeownship -path $XBOXTBF
 		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
@@ -693,7 +694,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 		"ERROR: Gaming Services installed, please reboot."
 		Restart-Computer -Timeout 30 -Verbose
 		PauseAndFail -ErrorLevel 25
-		#Resolve-Path -Path $FileD | Remove-Item -Verbose
+		#Resolve-Path -LiteralPath $FileD | Remove-Item -Verbose
 	}
 }
 
@@ -726,7 +727,7 @@ If ($npggsvc.Count -gt 0)
 	}
 	Catch {}
 	$npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
-	If (-Not (Test-Path -Path $npggsvcK))
+	If (-Not (Test-Path -LiteralPath $npggsvcK))
 	{
 		$BrokenGG = $true
 	}
@@ -747,7 +748,7 @@ $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Twe
 If ($JSONPath)
 {
 	"Loading Tweaker Config from $($JSONPath)"
-	$JSONData = Get-Content -Path $JSONPath -Verbose
+	$JSONData = Get-Content -LiteralPath $JSONPath -Verbose
 }
 Else
 {
@@ -799,7 +800,7 @@ ElseIf ($PSO2NABinFolder -eq $null)
 	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA."
 	PauseAndFail -ErrorLevel 20
 }
-ElseIf (-Not (Test-Path -Path "$($PSO2NABinFolder)" -PathType Container))
+ElseIf (-Not (Test-Path -LiteralPath "$($PSO2NABinFolder)" -PathType Container))
 {
 	""
 	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
@@ -815,7 +816,7 @@ Else
 	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it."
 	PauseAndFail -ErrorLevel 8
 }
-If (-Not (Test-Path -Path $PSO2NAFolder -PathType Container))
+If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 {
 	""
 	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
@@ -833,7 +834,7 @@ ElseIf ($PSO2NAFolder)
 		PauseAndFail -ErrorLevel 10
 	}
 	"Moving instance to $($PSO2NAFolder) Folder..."
-	Set-Location -Path $PSO2NAFolder -Verbose
+	Set-Location -LiteralPath $PSO2NAFolder -Verbose
 }
 Else
 {
@@ -960,23 +961,36 @@ else
 }
 If ($MissingFiles -eq $true)
 {
-	""
-	"ERROR: Cannot find required files - Go back to http://arks-layer.com/setup.html and make sure you follow ALL the steps and do a fresh new install."
-	"If you think you did it right (you probably didn't!), download"
-	""
-	"https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/pso2_bin_na_starter.zip"
-	""
-	"extract it to your PHANTASYSTARONLINE2 or PHANTASYSTARONLINE2_NA folder and DO A FILE CHECK!"
-	"(Troubleshooting -> New Method)"
-	PauseAndFail -ErrorLevel 11
+	"Downloading Starter files... (3 MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/pso2_bin_na_starter.zip"
+	$FileD = "pso2_bin_na_starter.zip"
+	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11 -Overwrite $true
+	$TMPFolder = New-Item -Path "UNPACK" -ItemType Directory -Verbose -Force
+	$TMPBinFolder = New-Item -Path "UNPACK\pso2_bin" -ItemType Directory -Verbose -Force
+	Expand-Archive -LiteralPath $MISSING -DestinationPath $TMPFolder -Force
+	Get-ChildItem -LiteralPath $TMPFolder -File | ForEach-Object {
+		$OldFile = Join-Path -Path $PSO2NAFolder -ChildPath $_.Name
+		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
+		{
+			Copy-Item -LiteralPath $_ -Destination $OldFile
+		}
+	}
+	Get-ChildItem -LiteralPath $TMPBinFolder -File | ForEach-Object {
+		$OldFile = Join-Path -Path $PSO2NABinFolder -ChildPath $_.Name
+		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
+		{
+			Copy-Item -LiteralPath $_ -Destination $OldFile
+		}
+	}
+	Remove-Item -LiteralPath $TMPFolder -Recurse -Force -Confirm:$false
 }
 
 Write-Host -NoNewline "Checking for Developer Mode..."
 $DevMode = $false
 $RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-if (Test-Path -Path $RegistryKeyPath)
+if (Test-Path -LiteralPath $RegistryKeyPath)
 {
-	$AppModelUnlock = Get-ItemProperty -Path $RegistryKeyPath
+	$AppModelUnlock = Get-ItemProperty -LiteralPath $RegistryKeyPath
 	if ($AppModelUnlock -ne $null -and ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) -ne $null)
 	{
 		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
@@ -1010,11 +1024,11 @@ If ($OldBackups.Count -gt 0)
 		"Deleting old $($OldBin) folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
-		Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 
 	}
@@ -1031,11 +1045,11 @@ If ($OldPackages.Count -gt 0)
 		"Deleting old MS STORE's pso2_bin core folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -Path $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
 		#"Deleting $($OldBin) Folder..."
-		#Remove-Item -Path $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		#Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 	}
 	"If this takes more then 30 minutes, you may have to reboot."
@@ -1122,7 +1136,7 @@ $PSO2Packages = @()
 $PSO2Packages_User = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
-$EmptyFiles = Get-ChildItem -Path $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -ne "PSO2NA_PSLOG.log" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
+$EmptyFiles = Get-ChildItem -LiteralPath $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -ne "PSO2NA_PSLOG.log" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
 $PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
@@ -1130,7 +1144,7 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFol
 $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 #$PSO2Packages_Bad += $PSO2Packages | PackageVersion -Version "1.0.7.0"
 
-$XBOXURI = Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
+$XBOXURI = Test-Path -LiteralPath "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
 If ($XBOXURI -eq $false -or $PSO2Packages_User.Count -eq 0)
 {
 	$ForceReinstall = $true
@@ -1159,8 +1173,8 @@ Get-AppxVolume
 "Status of Appx volume that your custom PSO2 install is on:"
 $AppxVols = @()
 try {
-Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name) -ErrorAction Continue
-$Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -Path $PSO2NAFolder).Drive.Name)
+Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name) -ErrorAction Continue
+$Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 } catch {}
 If ($AppxVols.Count -eq 0)
 {
