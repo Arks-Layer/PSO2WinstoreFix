@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_18_1412" # Error codes: 30
+"Version 2020_06_18_1831" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -154,7 +154,7 @@ Function FindMutableBackup {
 	PROCESS
 	{
 		$AppxVols = @()
-		$AppxVols += Get-AppxVolume -Online -Verbose
+		$AppxVols += Get-AppxVolume -Verbose
 		$Mutable = @()
 		$Mutable += $AppxVols | ForEach-Object {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
@@ -1033,6 +1033,30 @@ try {
 
 	}
 }
+
+$MWA = @()
+$MWA += FindMutable_Appx
+
+If ($MWA.Count -gt 0)
+{
+	$MWA | ForEach-Object -Process {
+		$OldBin = $_
+		"Found the old MS STORE's pso2_bin patch folder!"
+		Takeownship -path $OldBin
+		"Going to move the MS STORE patch files to your Tweaker copy of PSO2..."
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
+		"Deleting old MS STORE's pso2_bin patch folder..."
+try {
+		"Deleting files in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		#"Deleting $($OldBin) Folder..."
+		#Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+	}
+}
+
 
 If ($OldPackages.Count -gt 0)
 {
