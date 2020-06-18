@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_18_1243" # Error codes: 30
+"Version 2020_06_18_1412" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -284,7 +284,7 @@ function Takeownship {
 	If (Test-Path -LiteralPath $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
-		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Minimized
+		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Normal
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
