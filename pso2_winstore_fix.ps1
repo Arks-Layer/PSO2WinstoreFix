@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_18_2335" # Error codes: 30
+"Version 2020_06_19_1340" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -154,7 +154,7 @@ Function FindMutableBackup {
 	PROCESS
 	{
 		$AppxVols = @()
-		$AppxVols += Get-AppxVolume -Verbose
+		$AppxVols += Get-AppxVolume -Online -Verbose
 		$Mutable = @()
 		$Mutable += $AppxVols | ForEach-Object {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
@@ -373,7 +373,7 @@ Function FindMutable_Appx
 	$MutableVolumes = @()
 	$PackageFolders = @()
 try {
-	$OnlineVolules += Get-AppxVolume -Verbose
+	$OnlineVolules += Get-AppxVolume -Online -Verbose
 } catch {}
 	If ($OnlineVolules.Count -gt 0)
 	{
@@ -659,7 +659,8 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
-	Restart-Computer -Timeout 30 -Verbose
+	Start-Sleep -Seconds 30
+	Restart-Computer -Verbose
 	PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
@@ -692,7 +693,8 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	{
 		""
 		"ERROR: Gaming Services installed, please reboot."
-		Restart-Computer -Timeout 30 -Verbose
+		Start-Sleep -Seconds 30
+		Restart-Computer -Verbose
 		PauseAndFail -ErrorLevel 25
 		#Resolve-Path -LiteralPath $FileD | Remove-Item -Verbose
 	}
