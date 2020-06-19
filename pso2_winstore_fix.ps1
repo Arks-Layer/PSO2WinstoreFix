@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_18_1831" # Error codes: 30
+"Version 2020_06_18_2335" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -964,7 +964,7 @@ If ($MissingFiles -eq $true)
 	"Downloading Starter files... (3 MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/pso2_bin_na_starter.zip"
 	$FileD = "pso2_bin_na_starter.zip"
-	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11 -Overwrite $true
+	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11
 	$TMPFolder = New-Item -Path "UNPACK" -ItemType Directory -Verbose -Force
 	$TMPBinFolder = New-Item -Path "UNPACK\pso2_bin" -ItemType Directory -Verbose -Force
 	Expand-Archive -LiteralPath $MISSING -DestinationPath $TMPFolder -Force
@@ -972,14 +972,14 @@ If ($MissingFiles -eq $true)
 		$OldFile = Join-Path -Path $PSO2NAFolder -ChildPath $_.Name
 		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
 		{
-			Copy-Item -LiteralPath $_ -Destination $OldFile
+			Copy-Item -LiteralPath $_.FullName -Destination $OldFile
 		}
 	}
 	Get-ChildItem -LiteralPath $TMPBinFolder -File | ForEach-Object {
 		$OldFile = Join-Path -Path $PSO2NABinFolder -ChildPath $_.Name
 		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
 		{
-			Copy-Item -LiteralPath $_ -Destination $OldFile
+			Copy-Item -LiteralPath $_.FullName -Destination $OldFile
 		}
 	}
 	Remove-Item -LiteralPath $TMPFolder -Recurse -Force -Confirm:$false
