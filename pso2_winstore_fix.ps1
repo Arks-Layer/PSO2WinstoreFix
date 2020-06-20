@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_19_1340" # Error codes: 30
+"Version 2020_06_20_1927" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -547,6 +547,28 @@ If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber)
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",$MSILog,"/qf" -WindowStyle Minimized
 }
 
+"Getting list of PNP devices"
+$PNPDevices = @()
+$PNPDevices += Get-WmiObject Win32_PNPEntity
+"Getting list of Windows Drivers"
+$Drivers = @()
+$Drivers += Get-WindowsDriver -Online
+$PNPDevices_AVOL = @()
+$PNPDevices_AVOL += $PNPDevices | Where-Object HardwareID -Contains "SWC\VEN_AVOL&AID_0001"
+$Drivers_AVOL = @()
+$Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
+If ($PNPDevices_AVOL.Count -gt 0)
+{
+	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing"
+	PauseOnly
+	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service
+	If ($Drivers_AVOL.Count -gt 0)
+	{
+		$Drivers_AVOL  | ForEach-Object {
+			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
+		}
+	}
+}
 
 "Checking MS Store Setup"
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
