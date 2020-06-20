@@ -94,13 +94,17 @@ Function DownloadMe
 		[Int]
 		$ErrorLevel = 255,
 		[Bool]
-		$Overwrite = $false
+		$Overwrite = $true
 	)
+	If ($Overwrite -eq $true)
+	{
+		Remove-Item -Path $OutFile -ErrorAction SilentlyContinue
+	}
 	Try
 	{
-		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf) -Or $Overwrite)
+		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf))
 		{
-			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose  -ErrorAction Stop
+			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose
 		}
 		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf))
 		{
