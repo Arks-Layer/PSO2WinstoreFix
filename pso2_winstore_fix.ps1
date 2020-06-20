@@ -910,6 +910,14 @@ If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Pat
 else
 {
 	"	FOUND"
+	$XMLPath = (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml")
+	[xml]$XMLContent = Get-Content -LiteralPath $XMLPath -Verbose
+	If ($XMLContent.Package.Extension -ne $null)
+	{
+		"	BUT it is the MS Store copy, not Custom one"
+		Remove-Item -LiteralPath $XMLPath -Force -Verbose
+		$MissingFiles = $true
+	}
 }
 "Checking for MicrosoftGame.config..."
 If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf))
