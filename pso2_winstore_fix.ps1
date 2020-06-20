@@ -1026,13 +1026,16 @@ If ($OldBackups.Count -gt 0)
 		"Deleting old $($OldBin) folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting subfolders in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 try {
 		"Deleting $($OldBin) Folder..."
-		Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
-
 	}
 }
 
@@ -1050,11 +1053,15 @@ If ($MWA.Count -gt 0)
 		"Deleting old MS STORE's pso2_bin patch folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
-		#"Deleting $($OldBin) Folder..."
-		#Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		"Deleting subfolders in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
 }
@@ -1071,11 +1078,15 @@ If ($OldPackages.Count -gt 0)
 		"Deleting old MS STORE's pso2_bin core folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {}
 try {
-		#"Deleting $($OldBin) Folder..."
-		#Remove-Item -LiteralPath $OldBin -Force -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+		"Deleting subfolders in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
 	"If this takes more then 30 minutes, you may have to reboot."
