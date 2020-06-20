@@ -1004,7 +1004,7 @@ if (Test-Path -LiteralPath $RegistryKeyPath)
 }
 If ($DevMode -EQ $false)
 {
-	"You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/"
+	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
 	PauseAndFail -ErrorLevel 4
 }
 "[OK]"
