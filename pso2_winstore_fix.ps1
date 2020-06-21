@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_20_1927" # Error codes: 30
+"Version 2020_06_20_2321" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -216,8 +216,13 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -LiteralPath $logfile
-	"Deleting empty files..."
-	Get-ChildItem -LiteralPath $source -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -ErrorAction Continue
+	If ($file -eq "*.*" -or $file -eq "0*.*")
+	{
+		"Deleting empty files..."
+		Get-ChildItem  -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+		"Deleting broken patch files..."
+		Remove-Item -LiteralPath $source -Filter "*.pat" -Force -ErrorAction Continue
+	}
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
@@ -225,6 +230,7 @@ function RobomoveByFolder {
 		$Cmdlist += "/V"
 	}
 	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
+	Get-ChildItem -LiteralPath $source -Filter $file -Depth 0 -Force -File -ErrorAction Continue | Remove-Item -Foce -ErrorAction Continue
 	$Subs = @()
 	$Subs += Get-ChildItem -Directory -Depth 0 -LiteralPath $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
 	If ($Subs.Count -gt 0)
@@ -248,7 +254,7 @@ function RobomoveByFolder {
 			{
 				(0..0xf|% ToString X1) | ForEach-Object {
 					""
-					"WARNING: large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
+					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
 					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
 				}
@@ -634,7 +640,7 @@ If ($XBOXIP -ne $null)
 	If (Test-Path -LiteralPath $XBOXTBF -PathType Container)
 	{
 		Takeownship -path $XBOXTBF
-		Get-ChildItem $XBOXTBF | Remove-Item -Force -Recurse -Confirm:$false -ErrorAction Continue
+		Get-ChildItem -LiteralPath $XBOXTBF -Force | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction Continue
 	}
 }
 Else
@@ -1051,7 +1057,7 @@ $OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -
 If ($OldBackups.Count -gt 0)
 {
 	"Found some MutableBackup folders!"
-	$OldBackups |fl
+	$OldBackups | fl
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
@@ -1071,6 +1077,8 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
+	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
 $MWA = @()
@@ -1098,18 +1106,20 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
+	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
 
 If ($OldPackages.Count -gt 0)
 {
 	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
-		$OldBin = $_.InstallLocation
-		"Found the old MS STORE's pso2_bin core folder!"
+		$OldBin = Join-Path -Path $_.InstallLocation -ChildPath "data"
+		"Found the old MS STORE's pso2_bin core's data folder!"
 		Takeownship -path $OldBin
-		"Going to move the MS STORE core files to your Tweaker copy of PSO2..."
+		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		"Deleting old MS STORE's pso2_bin core folder..."
+		"Deleting old MS STORE's pso2_bin core's date folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
@@ -1126,6 +1136,8 @@ try {
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
+	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 Else
 {
@@ -1264,16 +1276,18 @@ else
 
 If ($EmptyFiles.Count -gt 0)
 {
-	$JSONObj.PSO2NARemoteVersion = 0
+	$JSONObj.PSO2NARemoteVersion = $null
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
 	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker."
 	"(Troubleshooting -> New Method)"
-	"List of bad files:"
-	$EmptyFiles
+	#"List of bad files:"
+	#$EmptyFiles | Format-Table Name
+    $EmptyFiles | Remove-Item -Force -Verbose
 	""
 }
-ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
+
+If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
 	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
@@ -1284,6 +1298,8 @@ ElseIf ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Continue
 	}
+	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 Else
 {
