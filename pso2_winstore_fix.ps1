@@ -1108,13 +1108,28 @@ If (Test-Path "client_na.json" -PathType Leaf)
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders..."
 $OldBackups += FindMutableBackup
+$MWA = @()
+$MWA += FindMutable_Appx
 $OldPackages = @()
-$OldPackages = Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
+$OldPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
+
+If ($OldBackups.Count -gt 0)
+{
+	"Found $($OldBackups.Count) MS Store backup copies of PSO2NA, this may take a while" | PauseOnly
+}
+If ($MWA.Count -gt 0)
+{
+	"Found MS Store patch folder of PSO2NA, this may take a while" | PauseOnly
+}
+If ($OldPackages.Count -gt 0)
+{
+	"Found MS Store copy of PSO2NA, this may take a while" | PauseOnly
+}
+
 If ($OldBackups.Count -gt 0)
 {
 	"Found some MutableBackup folders!"
 	$OldBackups | fl
-	"Found $($OldBackups.Count) MS Store backup copies of PSO2NA, this may take a while" | PauseOnly
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
@@ -1139,9 +1154,6 @@ try {
 	$JSONObj.PSO2NARemoteVersion = $null
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
-
-$MWA = @()
-$MWA += FindMutable_Appx
 
 If ($MWA.Count -gt 0)
 {
