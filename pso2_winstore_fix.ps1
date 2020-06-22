@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1810" # Error codes: 31
+"Version 2020_06_22_1826" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1114,6 +1114,7 @@ If ($OldBackups.Count -gt 0)
 {
 	"Found some MutableBackup folders!"
 	$OldBackups | fl
+	"Found $($OldBackups.Count) MS Store backup copies of PSO2NA, this may take a while" | PauseOnly
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
