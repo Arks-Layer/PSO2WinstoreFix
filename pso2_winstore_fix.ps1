@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1344" # Error codes: 31
+"Version 2020_06_22_1657" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -114,14 +114,14 @@ Function DownloadMe
 			""
 			$URI
 			""
-			PauseAndFail -ErrorLevel $ErrorLevel
+			"Download Failed" | PauseAndFail -ErrorLevel $ErrorLevel
 		}
 		Return Resolve-Path -LiteralPath $OutFile
 	}
 	Catch
 	{
 		$_ | Failure
-		PauseAndFail -ErrorLevel $ErrorLevel
+		"BAD CRASH" | PauseAndFail -ErrorLevel $ErrorLevel
 	}
 }
 
@@ -311,19 +311,23 @@ Function PauseAndFail {
 		
 		[Parameter(Mandatory=$true)]
 		[Int]
-		$ErrorLevel = 255
+		$ErrorLevel = 255,
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[String]
+		$ErrorMessage = "Click OK to fail hard."
 	)
+	$ErrorMessage
 	Stop-Transcript
 	Set-ConsoleQuickEdit -Mode $true
 	If ($PauseOnFail = $false)
 	{
 		exit $ErrorLevel
 	}
-	ElseIf (Test-Path variable:global:psISE)
+	ElseIf (Test-Path variable:global:psISE -or $true)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
-		$Button = $ObjShell.Popup("Click OK to fail hard.", 0, "Script failing", 0)
-		throw $ErrorLevel
+		$Button = $ObjShell.Popup($ErrorMessage, 0, "Script failing", 0)
+		exit $ErrorLevel
 	}
 	Else
 	{
@@ -485,22 +489,19 @@ if ($WinVer.Major -lt 10)
 {
 	""
 	"Reported Windows Major version $($WinVer.Major)"
-	"ERROR: PSO2NA is only supported on Windows 10."
-	PauseAndFail -ErrorLevel 1
+	"ERROR: PSO2NA is only supported on Windows 10." | PauseAndFail -ErrorLevel 1
 }
 Elseif ($WinVer.Minor -gt 0) {}
 ElseIf ($WinVer.Build -lt 18362)
 {
 	""
 	"Reported Windows Build $($WinVer.Build), Verion $(Window10Version -Build $WinVer.Build)"
-	"ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer build/version."
-	PauseAndFail -ErrorLevel 2
+	"ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer build/version." |	PauseAndFail -ErrorLevel 2
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 {
 	""
-	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if your CPU is 64-bit."
-	PauseAndFail -ErrorLevel 21
+	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if your CPU is 64-bit." | PauseAndFail -ErrorLevel 21
 }
 "[OK]"
 ""
@@ -664,11 +665,9 @@ If ($XBOXIP -ne $null)
 }
 Else
 {
-	""
-	"ERROR: Look like XBOX Identify Provider has been uninstalled. Please use the Windows Store to get it back."
-	""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9wzdncrd1hkw")
-	PauseAndFail -ErrorLevel 27
+	""
+	"ERROR: Look like XBOX Identify Provider has been uninstalled. Please use the Windows Store to get it back." | PauseAndFail -ErrorLevel 27
 }
 
 "Checking for needed Gaming Services App runtime..."
@@ -729,10 +728,9 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
-	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it"
 	Start-Sleep -Seconds 30
 	Restart-Computer -Verbose
-	PauseAndFail -ErrorLevel 24
+	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it" | PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
@@ -763,10 +761,9 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
-		"ERROR: Gaming Services installed, please reboot."
 		Start-Sleep -Seconds 30
 		Restart-Computer -Verbose
-		PauseAndFail -ErrorLevel 25
+		"ERROR: Gaming Services installed, please reboot." | PauseAndFail -ErrorLevel 25
 		#Resolve-Path -LiteralPath $FileD | Remove-Item -Verbose
 	}
 }
@@ -776,8 +773,7 @@ If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 	""
 	"Starting MS Store App with the Gaming Service Listing..."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-	"ERROR: Please make sure to install the Gaming Services from the MS Store."
-	PauseAndFail -ErrorLevel 26
+	"ERROR: Please make sure to install the Gaming Services from the MS Store." | PauseAndFail -ErrorLevel 26
 }
 
 ""
@@ -826,8 +822,7 @@ If ($JSONPath)
 Else
 {
 	""
-	"ERROR: Cannot find %APPDATA% folder - Is your Windows properly set up?"
-	PauseAndFail -ErrorLevel 5
+	"ERROR: Cannot find %APPDATA% folder - Is your Windows properly set up?" | PauseAndFail -ErrorLevel 5
 }
 If ($JSONData)
 {
@@ -838,8 +833,7 @@ If ($JSONData)
 Else
 {
 	""
-	"ERROR: Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet?"
-	PauseAndFail -ErrorLevel 6
+	"ERROR: Cannot read Tweaker Setting JSON - Did you set up the Tweaker yet?" | PauseAndFail -ErrorLevel 6
 }
 If ($JSONObj)
 {
@@ -852,32 +846,27 @@ If ($JSONObj)
 Else
 {
 	""
-	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen!"
-	PauseAndFail -ErrorLevel 7
+	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen!" | PauseAndFail -ErrorLevel 7
 }
 If ($PSO2NABinFolder -eq "")
 {
 	""
-	"ERROR: Old version of the Tweaker config file found, please update Tweaker."
-	PauseAndFail -ErrorLevel 20
+	"ERROR: Old version of the Tweaker config file found, please update Tweaker."| PauseAndFail -ErrorLevel 20
 }
 ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 {
 	""
-	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name."
-	PauseAndFail -ErrorLevel 28
+	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name." | PauseAndFail -ErrorLevel 28
 }
 ElseIf ($PSO2NABinFolder -eq $null)
 {
 	""
-	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA."
-	PauseAndFail -ErrorLevel 20
+	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA." | PauseAndFail -ErrorLevel 20
 }
 ElseIf (-Not (Test-Path -LiteralPath "$($PSO2NABinFolder)" -PathType Container))
 {
 	""
-	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings."
-	PauseAndFail -ErrorLevel 16
+	"ERROR: The $($PSO2NABinFolder) folder does not exist. Please check your PSO2 Tweaker settings." | PauseAndFail -ErrorLevel 16
 }
 ElseIf ($PSO2NABinFolder)
 {
@@ -886,14 +875,12 @@ ElseIf ($PSO2NABinFolder)
 Else
 {
 	""
-	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it."
-	PauseAndFail -ErrorLevel 8
+	"ERROR: Cannot find a PSO2NABinFolder setting - Did you set up PSO2NA through the Tweaker yet? If not, do it." | PauseAndFail -ErrorLevel 8
 }
 If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 {
 	""
-	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings."
-	PauseAndFail -ErrorLevel 17
+	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings." | PauseAndFail -ErrorLevel 17
 }
 ElseIf ($PSO2NAFolder)
 {
@@ -904,7 +891,7 @@ ElseIf ($PSO2NAFolder)
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
-		PauseAndFail -ErrorLevel 10
+		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
 	}
 	#"Moving instance to $($PSO2NAFolder) Folder..."
 	#Set-Location -LiteralPath $PSO2NAFolder -Verbose
@@ -912,8 +899,7 @@ ElseIf ($PSO2NAFolder)
 Else
 {
 	""
-	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions?"
-	PauseAndFail -ErrorLevel 9
+	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions?" | PauseAndFail -ErrorLevel 9
 }
 
 "Get Storage Service Ready"
@@ -955,14 +941,12 @@ If ($BrokenVolume -eq $true)
 ElseIf ($PSO2Vol_exFAT.Count -gt 0)
 {
 	""
-	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere."
-	PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIf ($PSO2Vol_ReFS.Count -gt 0)
 {
 	""
-	"WARNING: Your PSO2NA installation on an ReFS formatted drive, please move the PSO2NA installation elsewhere."
-	PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation on an ReFS formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 
 If ($PSO2Vol_NTFS.Count -gt 0)
@@ -1092,16 +1076,13 @@ if (Test-Path -LiteralPath $RegistryKeyPath)
 If ($DevMode -EQ $false)
 {
 	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
-	PauseAndFail -ErrorLevel 4
+	"Developer mode is disabled" | PauseAndFail -ErrorLevel 4
 }
 "[OK]"
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
-	"The PowerScript need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files"
-	"The script had been running from the following folder:"
-	Get-Location -Verbose
-	PauseAndFail -ErrorLevel 31
+	"The PowerScript need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
 }
 
 $NAFiles = @()
@@ -1384,7 +1365,7 @@ Else
 If ($False) #Catch
 {
 	$_ | Failure
-	PauseAndFail -ErrorLevel 14
+	#PauseAndFail -ErrorLevel 14
 }
 If ($NewPackages.Count -gt 0)
 {
