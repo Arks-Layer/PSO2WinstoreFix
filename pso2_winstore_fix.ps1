@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1234" # Error codes: 31
+"Version 2020_06_22_1344" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1363,14 +1363,15 @@ If ($EmptyFiles.Count -gt 0)
 
 If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
+    $APPXXML = Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml"
 	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
 	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -DependencyPath $PSO2NAFolder
+		Add-AppxPackage -Register $APPXXML -Verbose -DependencyPath $PSO2NAFolder
 	}
 	Else
 	{
-		Add-AppxPackage -Register .\appxmanifest.xml -Verbose -ErrorAction Continue
+		Add-AppxPackage -Register $APPXXML -Verbose -ErrorAction Continue
 	}
 	$JSONObj.PSO2NARemoteVersion = $null
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
