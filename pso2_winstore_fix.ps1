@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1826" # Error codes: 31
+"Version 2020_06_22_1838" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1103,6 +1103,11 @@ If (Test-Path "client_na.json" -PathType Leaf)
 	$NAState = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose | ConvertFrom-Json -Verbose
 	"Getting list of data files to exclude"
 	$NAFiles += ($NAState | Get-Member -MemberType NoteProperty).Name
+}
+
+If ($NAFiles.Count -eq 0)
+{
+    $NAFiles += "version.ver"
 }
 
 $OldBackups = @()
