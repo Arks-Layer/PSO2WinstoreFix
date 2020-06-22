@@ -55,11 +55,6 @@ Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
 
-If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
-{
-	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
-}
-
 #All the fun helper functinons
 #Crash hander
 Function Failure
@@ -481,6 +476,11 @@ Function Join-Paths
 	{
 		Return Join-Path -Path $Path -ChildPath $ChildPath
 	}
+}
+
+If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
+{
+	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
 }
 
 Set-ConsoleQuickEdit -Mode $false | Out-Null
