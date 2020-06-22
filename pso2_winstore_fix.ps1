@@ -901,7 +901,7 @@ ElseIf ($PSO2NAFolder)
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		""
-		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://arks-layer.com/setup.html and do a fresh install."
+		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
 		PauseAndFail -ErrorLevel 10
