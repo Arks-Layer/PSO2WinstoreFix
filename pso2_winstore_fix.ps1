@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_21_2143" # Error codes: 30
+"Version 2020_06_22_0122" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -446,6 +446,23 @@ Function Get-ConsoleQuickEdit
 	If ($RegData -ne $Null)
 	{
 		Return $RegData.QuickEdit
+	}
+}
+
+Function Join-Paths
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[String[]]
+		$Path,
+		[Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+		[String]
+		$ChildPath
+	)
+	PROCESS
+	{
+		Return Join-Path -Path $Path -ChildPath $ChildPath
 	}
 }
 
@@ -1069,6 +1086,21 @@ If ($DevMode -EQ $false)
 }
 "[OK]"
 
+If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
+{
+	"The PowerScript need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files"
+	PauseAndFail -ErrorLevel 31
+}
+
+$NAFiles = @()
+If (Test-Path "client_na.json" -PathType Leaf)
+{
+	"Reading Tweaker's UpdateEngine for PSO2NA"
+	$NAState = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose | ConvertFrom-Json -Verbose
+	"Getting list of data files to exclude"
+	$NAFiles += ($NAState | Get-Member -MemberType NoteProperty).Name
+}
+
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders..."
 $OldBackups += FindMutableBackup
@@ -1079,8 +1111,10 @@ If ($OldBackups.Count -gt 0)
 	"Found some MutableBackup folders!"
 	$OldBackups | fl
 	$OldBackups | ForEach-Object -Process {
-		$OldBin = Join-Path -Path $_ -ChildPath "data"
+		$OldBin = $_
 		Takeownship -path $OldBin
+		"Removed unneeded files..."
+		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the old MS STORE backup files from $($OldBin) to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old $($OldBin) folder..."
@@ -1107,9 +1141,11 @@ $MWA += FindMutable_Appx
 If ($MWA.Count -gt 0)
 {
 	$MWA | ForEach-Object -Process {
-		$OldBin = Join-Path -Path $_ -ChildPath "data"
+		$OldBin = $_
 		"Found the old MS STORE's pso2_bin patch folder!"
 		Takeownship -path $OldBin
+		"Removed unneeded files..."
+		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the MS STORE patch files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old MS STORE's pso2_bin patch folder..."
@@ -1134,9 +1170,11 @@ try {
 If ($OldPackages.Count -gt 0)
 {
 	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
-		$OldBin = Join-Path -Path $_.InstallLocation -ChildPath "data"
+		$OldBin = $_
 		"Found the old MS STORE's pso2_bin core's data folder!"
 		Takeownship -path $OldBin
+		"Removed unneeded files..."
+		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		"Deleting old MS STORE's pso2_bin core's date folder..."
