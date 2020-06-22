@@ -45,7 +45,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_20_2321" # Error codes: 30
+"Version 2020_06_21_2143" # Error codes: 30
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -570,7 +570,7 @@ If ($PNPDevices_AVOL.Count -gt 0)
 	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service
 	If ($Drivers_AVOL.Count -gt 0)
 	{
-		$Drivers_AVOL  | ForEach-Object {
+		$Drivers_AVOL | ForEach-Object {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
 	}
@@ -661,11 +661,31 @@ $GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -Packag
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 $GamingServices_All += $GamingServices_Any | PackageVersion -Version $GamingServices_version
 
+$GamingSrv = @()
+$GamingSrv += Get-Service | Where-Object Name -In "GamingServices"
+$GamingSrv_STOP = @()
+$GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
+$GamingNetSrv = @()
+$GamingNetSrv += Get-Service | Where-Object Name -In "GamingServicesNet"
+$Drivers_XBOX = $Drivers | Where-Object ProviderName -eq "Xbox"
+
+If ($GamingSrv_STOP.Count -gt 0)
+{
+    "GamingServices is not running, going to remove the XBOX drivers"
+    If ($Drivers_XBOXL.Count -gt 0)
+	{
+		$Drivers_XBOX | ForEach-Object {
+			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
+		}
+	}
+}
+
 Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming Services working..."
-	Get-Service | Where-Object Name -In "GamingServices","GamingServicesNet" | Where-Object Status -NE "Running" | Restart-Service
+	$GamingNetSrv | Where-Object Status -NE "Running" | Restart-Service
+	$GamingSrv | Where-Object Status -NE "Running" | Restart-Service
 	"No errors found! :D"
 	$ForceReinstallGS = $false
 }
@@ -1059,7 +1079,7 @@ If ($OldBackups.Count -gt 0)
 	"Found some MutableBackup folders!"
 	$OldBackups | fl
 	$OldBackups | ForEach-Object -Process {
-		$OldBin = $_
+		$OldBin = Join-Path -Path $_ -ChildPath "data"
 		Takeownship -path $OldBin
 		"Going to move the old MS STORE backup files from $($OldBin) to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
@@ -1087,7 +1107,7 @@ $MWA += FindMutable_Appx
 If ($MWA.Count -gt 0)
 {
 	$MWA | ForEach-Object -Process {
-		$OldBin = $_
+		$OldBin = Join-Path -Path $_ -ChildPath "data"
 		"Found the old MS STORE's pso2_bin patch folder!"
 		Takeownship -path $OldBin
 		"Going to move the MS STORE patch files to your Tweaker copy of PSO2..."
