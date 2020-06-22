@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1714" # Error codes: 31
+"Version 2020_06_22_1810" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -54,6 +54,11 @@ Import-Module Microsoft.PowerShell.Host
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
+
+If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
+{
+	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
+}
 
 #All the fun helper functinons
 #Crash hander
@@ -308,7 +313,6 @@ Function PauseAndFail {
 	[CmdletBinding()]
 	Param
 	(
-		
 		[Parameter(Mandatory=$true)]
 		[Int]
 		$ErrorLevel = 255,
@@ -339,10 +343,18 @@ Function PauseAndFail {
 }
 
 Function PauseOnly {
-	If (Test-Path variable:global:psISE)
+	[CmdletBinding()]
+	Param
+	(
+		[Parameter(ValueFromPipeline=$true)]
+		[String]
+		$PauseMessage = "Click OK to keep going."
+	)
+	$PauseMessage
+	If (Test-Path variable:global:psISE -or $true)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
-		$Button = $ObjShell.Popup("Click OK to keep going.", 0, "Script pausing", 0)
+		$Button = $ObjShell.Popup($PauseMessage, 0, "Script pausing", 0)
 	}
 	Else
 	{
@@ -555,7 +567,7 @@ If ($MSIList_Bad.Count -gt 0)
 {
 	"Found Bad software:"
 	$MSIList_Bad | select -Property Vendor, Name, Caption, Description, IdentifyingNumber, PackageName
-	PauseOnly
+	#PauseOnly
 }
 
 If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
@@ -591,8 +603,7 @@ $Drivers_AVOL = @()
 $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
 If ($PNPDevices_AVOL.Count -gt 0)
 {
-	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing"
-	PauseOnly
+	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing" | PauseOnly
 	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service
 	If ($Drivers_AVOL.Count -gt 0)
 	{
@@ -696,8 +707,8 @@ $Drivers_XBOX = $Drivers | Where-Object ProviderName -eq "Xbox"
 
 If ($GamingSrv_STOP.Count -gt 0)
 {
-    "GamingServices is not running, going to remove the XBOX drivers"
-    If ($Drivers_XBOXL.Count -gt 0)
+	"GamingServices is not running, going to remove the XBOX drivers"
+	If ($Drivers_XBOXL.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
@@ -724,9 +735,8 @@ If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 	""
 	"WARING: Old version of Gaming Services found!"
 	""
-	"	Please udpate Gaming Services from the MS Store."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-	PauseOnly
+	"	Please udpate Gaming Services from the MS Store." | PauseOnly
 }
 ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
@@ -962,8 +972,7 @@ If ($PSO2Vol_NTFS.Count -gt 0)
 }
 ElseIF ($PSO2Vol.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installtion in on an unknown filesytem: $($PSO2Vol.FileSystem -join ",")?"
-	PauseOnly
+	"WARNING: Your PSO2NA installtion in on an unknown filesytem: $($PSO2Vol.FileSystem -join ",")?" | PauseOnly
 }
 Else
 {
@@ -1086,11 +1095,6 @@ If ($DevMode -EQ $false)
 	"Developer mode is disabled" | PauseAndFail -ErrorLevel 4
 }
 "[OK]"
-
-If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
-{
-	"The PowerScript need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
-}
 
 $NAFiles = @()
 If (Test-Path "client_na.json" -PathType Leaf)
@@ -1345,13 +1349,13 @@ If ($EmptyFiles.Count -gt 0)
 	"(Troubleshooting -> New Method)"
 	#"List of bad files:"
 	#$EmptyFiles | Format-Table Name
-    $EmptyFiles | Remove-Item -Force -Verbose
+	$EmptyFiles | Remove-Item -Force -Verbose
 	""
 }
 
 If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
-    $APPXXML = Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml"
+	$APPXXML = Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml"
 	"Registering our new shiny PSO2 with the Windows Store... (This may take a while, don't panic!)"
 	If ($NewPackages.Count -gt 0 -and $false)
 	{
@@ -1392,7 +1396,7 @@ If ($CustomPSO2.Count -eq 0)
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
-	"Good, only found one custom PSO2 install."
+	"Good, only found one custom PSO2 install." | PauseOnly
 }
 Else
 {
