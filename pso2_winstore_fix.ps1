@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1227" # Error codes: 31
+"Version 2020_06_22_1234" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -942,8 +942,10 @@ Catch
 }
 $PSO2Vol_exFAT = @()
 $PSO2Vol_NTFS = @()
+$PSO2Vol_ReFS = @()
 $PSO2Vol_exFAT +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
 $PSO2Vol_NTFS +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
+$PSO2Vol_ReFS +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ ReFS
 
 If ($BrokenVolume -eq $true)
 {
@@ -954,6 +956,12 @@ ElseIf ($PSO2Vol_exFAT.Count -gt 0)
 {
 	""
 	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere."
+	PauseAndFail -ErrorLevel 15
+}
+ElseIf ($PSO2Vol_ReFS.Count -gt 0)
+{
+	""
+	"WARNING: Your PSO2NA installation on an ReFS formatted drive, please move the PSO2NA installation elsewhere."
 	PauseAndFail -ErrorLevel 15
 }
 
