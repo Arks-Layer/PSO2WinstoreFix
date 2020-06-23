@@ -33,7 +33,7 @@ Try
 }
 Catch {}
 #Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
-If ($PSScriptRoot -ne $null)
+If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
 	Set-Location -LiteralPath $PSScriptRoot
@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_2236" # Error codes: 31
+"Version 2020_06_23_1940" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -500,7 +500,7 @@ If ($TweakerMode -eq $true)
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
 
 Write-Host -NoNewline "Checking Windows version..."
-$WinVer = [Version](Get-CimInstance Win32_OperatingSystem).version
+$WinVer = [System.Environment]::OSVersion.Version
 if ($WinVer.Major -lt 10)
 {
 	""
@@ -1424,7 +1424,7 @@ Get-AppxPackage -Name "100B7A24.oxyna"
 ""
 If ($CustomPSO2.Count -eq 0)
 {
-	 "Cannot find a custom PSO2 installation!"
+	 Write-Host "Cannot find a custom PSO2 installation!" -ForegroundColor Red
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
