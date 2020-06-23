@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_2049" # Error codes: 31
+"Version 2020_06_22_2139" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -324,7 +324,7 @@ Function PauseAndFail {
 	{
 		exit $ErrorLevel
 	}
-	ElseIf (Test-Path variable:global:psISE -or $true)
+	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
 		$Button = $ObjShell.Popup($ErrorMessage, 0, "Script failing", 0)
@@ -1098,18 +1098,21 @@ If ($DevMode -EQ $false)
 }
 "[OK]"
 
-$NAFiles = @()
+$NAFiles = @("version.ver")
 If (Test-Path "client_na.json" -PathType Leaf)
 {
+    $NAState = @()
 	"Reading Tweaker's UpdateEngine for PSO2NA"
-	$NAState = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose | ConvertFrom-Json -Verbose
+	$NAFile = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose
+	If ($NAFile.Length -gt 10)
+	{
+		$NAState += $NAFile | ConvertFrom-Json -Verbose
+	}
 	"Getting list of data files to exclude"
-	$NAFiles += ($NAState | Get-Member -MemberType NoteProperty).Name
-}
-
-If ($NAFiles.Count -eq 0)
-{
-    $NAFiles += "version.ver"
+	If ($NAState.Count -gt 0)
+	{
+		$NAFiles += (($NAState | Get-Member -MemberType NoteProperty) | Where-Object Name -ne $null).Name
+	}
 }
 
 $OldBackups = @()
