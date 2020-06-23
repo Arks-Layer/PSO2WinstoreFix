@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_1838" # Error codes: 31
+"Version 2020_06_22_2005" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -220,9 +220,9 @@ function RobomoveByFolder {
 	If ($file -eq "*.*" -or $file -eq "0*.*")
 	{
 		"Deleting empty files..."
-		Get-ChildItem  -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 		"Deleting broken patch files..."
-		Get-ChildItem  -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
 	}
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
@@ -1138,7 +1138,7 @@ If ($OldBackups.Count -gt 0)
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
-		"Removed unneeded files..."
+		"Removing $($NAFiles.Count) unneeded files..."
 		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the old MS STORE backup files from $($OldBin) to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
@@ -1156,7 +1156,7 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
-	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
@@ -1166,7 +1166,7 @@ If ($MWA.Count -gt 0)
 		$OldBin = $_
 		"Found the old MS STORE's pso2_bin patch folder!"
 		Takeownship -path $OldBin
-		"Removed unneeded files..."
+		"Removing $($NAFiles.Count) unneeded files..."
 		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the MS STORE patch files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
@@ -1184,7 +1184,7 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {}
 	}
-	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
@@ -1195,7 +1195,7 @@ If ($OldPackages.Count -gt 0)
 		$OldBin = $_
 		"Found the old MS STORE's pso2_bin core's data folder!"
 		Takeownship -path $OldBin
-		"Removed unneeded files..."
+		"Removing $($NAFiles.Count) unneeded files..."
 		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
@@ -1216,7 +1216,7 @@ try {
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
-	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 Else
@@ -1360,7 +1360,7 @@ else
 
 If ($EmptyFiles.Count -gt 0)
 {
-	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
 	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker."
@@ -1383,7 +1383,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Add-AppxPackage -Register $APPXXML -Verbose -ErrorAction Continue
 	}
-	$JSONObj.PSO2NARemoteVersion = $null
+	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 Else
