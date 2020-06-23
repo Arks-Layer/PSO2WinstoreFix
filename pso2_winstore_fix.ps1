@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_2005" # Error codes: 31
+"Version 2020_06_22_2049" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -66,6 +66,7 @@ Function Failure
 		[ValidateNotNullOrEmpty()]
 		$Error
 	)
+try {
 	$global:result = $Error.Exception.Response.GetResponseStream()
 	$global:reader = New-Object System.IO.StreamReader($global:result)
 	$global:responseBody = $global:reader.ReadToEnd();
@@ -73,6 +74,7 @@ Function Failure
 	$global:responsebody
 	Stop-Transcript
 	$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+} catch {}
 	#exit 254
 }
 
@@ -346,7 +348,7 @@ Function PauseOnly {
 		$PauseMessage = "Click OK to keep going."
 	)
 	$PauseMessage
-	If (Test-Path variable:global:psISE -or $true)
+	If ((Test-Path variable:global:psISE) -eq $true -or $true)
 	{
 		$ObjShell = New-Object -ComObject "WScript.Shell"
 		$Button = $ObjShell.Popup($PauseMessage, 0, "Script pausing", 0)
