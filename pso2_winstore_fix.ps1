@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_2139" # Error codes: 31
+"Version 2020_06_22_2155" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -226,6 +226,8 @@ function RobomoveByFolder {
 		"Deleting broken patch files..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
 	}
+	"Deleting empty files..."
+	Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
@@ -233,6 +235,7 @@ function RobomoveByFolder {
 		$Cmdlist += "/V"
 	}
 	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
+	"Deleting source files..."
 	Get-ChildItem -LiteralPath $source -Filter $file -Depth 0 -Force -File -ErrorAction Continue | Remove-Item -Force -ErrorAction Continue
 	$Subs = @()
 	$Subs += Get-ChildItem -Directory -Depth 0 -LiteralPath $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
@@ -326,8 +329,7 @@ Function PauseAndFail {
 	}
 	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
 	{
-		$ObjShell = New-Object -ComObject "WScript.Shell"
-		$Button = $ObjShell.Popup($ErrorMessage, 0, "Script failing", 0)
+		[System.Windows.MessageBox]::Show($PauseMessage)
 		exit $ErrorLevel
 	}
 	Else
@@ -350,8 +352,7 @@ Function PauseOnly {
 	$PauseMessage
 	If ((Test-Path variable:global:psISE) -eq $true -or $true)
 	{
-		$ObjShell = New-Object -ComObject "WScript.Shell"
-		$Button = $ObjShell.Popup($PauseMessage, 0, "Script pausing", 0)
+		[System.Windows.MessageBox]::Show($PauseMessage)
 	}
 	Else
 	{
