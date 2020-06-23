@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_22_2155" # Error codes: 31
+"Version 2020_06_22_2236" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -54,6 +54,7 @@ Import-Module Microsoft.PowerShell.Host
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
+Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 #All the fun helper functinons
 #Crash hander
@@ -1105,14 +1106,15 @@ If (Test-Path "client_na.json" -PathType Leaf)
     $NAState = @()
 	"Reading Tweaker's UpdateEngine for PSO2NA"
 	$NAFile = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose
+	"Loading $($NAFile.Length) bytes client JSON file"
 	If ($NAFile.Length -gt 10)
 	{
 		$NAState += $NAFile | ConvertFrom-Json -Verbose
 	}
-	"Getting list of data files to exclude"
-	If ($NAState.Count -gt 0)
+	"Getting list of data files to exclude: $($NAState.Count)"
+	If ($NAState.Count -gt 10)
 	{
-		$NAFiles += (($NAState | Get-Member -MemberType NoteProperty) | Where-Object Name -ne $null).Name
+		$NAFiles += (($NAState | Get-Member -MemberType NoteProperty) | Where-Object Name -ne $null | Where-Object Name -ne "").Name
 	}
 }
 
@@ -1369,7 +1371,7 @@ If ($EmptyFiles.Count -gt 0)
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 	""
-	"ERROR: Bad PSO2 files found, please run a full file check in Tweaker."
+	"ERROR: Empty PSO2 files found, please run a full file check in Tweaker."
 	"(Troubleshooting -> New Method)"
 	#"List of bad files:"
 	#$EmptyFiles | Format-Table Name
