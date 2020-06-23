@@ -564,7 +564,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 "Please note: if you have any broken MSI installtions, you may get errors"
 $MSIList = @()
 $MSIList_Bad = @()
-$MSIList += Get-CimInstance -ClassName Win32_Product
+$MSIList += Get-CimInstance -ClassName Win32_Product -ErrorAction Continue
 "[OK]"
 $MSIList_Bad += $MSIList | Where-Object Name -Like "Nahimic*"
 If ($MSIList_Bad.Count -gt 0)
