@@ -1134,9 +1134,37 @@ If ($MWA.Count -gt 0)
 {
 	"Found MS Store patch folder of PSO2NA, this may take a while" | PauseOnly
 }
-If ($OldPackages.Count -gt 0)
+ElseIf ($OldPackages.Count -gt 0)
 {
 	"Found MS Store copy of PSO2NA, this may take a while" | PauseOnly
+}
+
+If ($OldPackages.Count -gt 0)
+{
+	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
+		$OldBin = $_.InstallLocation
+		"Found the old MS STORE's pso2_bin core's data folder!"
+		Takeownship -path $OldBin
+		"Removing $($NAFiles.Count) unneeded files..."
+		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
+		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
+		"Deleting old MS STORE's pso2_bin core's date folder..."
+try {
+		"Deleting files in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting subfolders in $($OldBin) Folder..."
+		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+} Catch {}
+try {
+		"Deleting $($OldBin) Folder..."
+		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+} Catch {}
+	}
+	$JSONObj.PSO2NARemoteVersion = 0
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
 If ($OldBackups.Count -gt 0)
@@ -1199,28 +1227,6 @@ try {
 
 If ($OldPackages.Count -gt 0)
 {
-	$OldPackages | Where-Object InstallLocation -ne $null | ForEach-Object -Process {
-		$OldBin = $_
-		"Found the old MS STORE's pso2_bin core's data folder!"
-		Takeownship -path $OldBin
-		"Removing $($NAFiles.Count) unneeded files..."
-		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
-		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
-		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
-		"Deleting old MS STORE's pso2_bin core's date folder..."
-try {
-		"Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
-try {
-		"Deleting subfolders in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
-try {
-		"Deleting $($OldBin) Folder..."
-		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
-	}
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
