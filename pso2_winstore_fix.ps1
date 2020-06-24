@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_1659" # Error codes: 32
+"Version 2020_06_24_1825" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -553,6 +553,30 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 
+"Testing for broken IPv6 network setup"
+$IPv6DR = @()
+$IPv6DR += Get-NetRoute -AddressFamily IPv6 -DestinationPrefix "::/0" -Verbose | Where-Object NextHop -ne "::" | Sort-Object RouteMetric
+If ($IPv6DR.Count -gt 0)
+{
+	"Found IPv6 network setup"
+	$IPv6DR
+	$IPv6Test = $null
+	try {
+	"Testing if we can get an IPv6 only data..."
+	$IPv6Test = Invoke-RestMethod -Uri "http://ipv6.alam.srb2.org/PSO2/BASICDev_proxy/config.json" -UserAgent "Arks-Layer pso2_winstore_fix" -TimeoutSec 10 -ErrorAction Stop
+	} catch {}
+	If ($IPv6Test -eq $null)
+	{
+		"Failed IPv6 test, disabling IPv6"
+        $IPv6DR | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -Verbose
+	}
+	Else
+	{
+		"	[OK]"
+	}
+}
+
+
 "Getting Windows Patch list"
 $WinPatchs = @()
 try {
@@ -656,7 +680,11 @@ If ($PNPDevices_AVOL.Count -gt 0)
 }
 
 "Checking MS Store Setup"
+try {
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
+} catch {
+"ERROR: Windows Service Manager is broken, try rebooting" | PauseAndFail -ErrorLevel 33
+}
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
