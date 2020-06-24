@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_0110" # Error codes: 32
+"Version 2020_06_24_0136" # Error codes: 32
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -555,8 +555,16 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 
 "Getting Windows Patch list"
 $WinPatchs = @()
-$WinPatchs += Get-Hotfix -Verbose -ErrorAction Continue | Sort-Object InstalledOn
-$WinPatchs
+$WinPatchs += Get-Hotfix -Verbose -ErrorAction Continue
+If ($WinPatchs.Count -gt 0)
+{
+try {
+	$WinPatchs | Where-Object InstalledOn -ne $null | Sort-Object InstalledOn
+	$WinPatchs | Where-Object InstalledOn -eq $null
+} catch {
+	$WinPatchs
+}
+}
 If ($WinPatchs.HotFixID -contains "KB4560960")
 {
 	""
