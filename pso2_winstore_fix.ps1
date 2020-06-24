@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_23_1940" # Error codes: 31
+"Version 2020_06_23_2011" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -838,7 +838,7 @@ $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Twe
 If ($JSONPath)
 {
 	"Loading Tweaker Config from $($JSONPath)"
-	$JSONData = Get-Content -LiteralPath $JSONPath -Verbose
+	$JSONData = Get-Content -LiteralPath $JSONPath -Encoding UTF8 -Verbose
 }
 Else
 {
@@ -994,7 +994,7 @@ else
 {
 	"	FOUND"
 	$XMLPath = (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml")
-	[xml]$XMLContent = Get-Content -LiteralPath $XMLPath -Verbose
+	[xml]$XMLContent = Get-Content -LiteralPath $XMLPath -Encoding UTF8 -Verbose
 	If ($XMLContent.Package.Extension -ne $null)
 	{
 		"	BUT it is the MS Store copy, not Custom one"
@@ -1105,7 +1105,7 @@ If (Test-Path "client_na.json" -PathType Leaf)
 {
     $NAState = @()
 	"Reading Tweaker's UpdateEngine for PSO2NA"
-	$NAFile = Get-Content -Path "client_na.json" -Force -Encoding UTF8 -Verbose
+	$NAFile = Get-Content -Path "client_na.json" -Encoding UTF8 -Force -Verbose
 	"Loading $($NAFile.Length) bytes client JSON file"
 	If ($NAFile.Length -gt 10)
 	{
