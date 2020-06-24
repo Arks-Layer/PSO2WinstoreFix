@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_23_2208" # Error codes: 31
+"Version 2020_06_23_2233" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -927,6 +927,8 @@ ElseIf ($PSO2NAFolder)
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
+		Get-Item -Path $PSO2NABinFolder | fl *
+		Takeownship -path $PSO2NABinFolder
 		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
 	}
 	#"Moving instance to $($PSO2NAFolder) Folder..."
