@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_0236" # Error codes: 32
+"Version 2020_06_24_1204" # Error codes: 32
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -555,7 +555,11 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 
 "Getting Windows Patch list"
 $WinPatchs = @()
-$WinPatchs += Get-Hotfix -Verbose -ErrorAction Continue
+try {
+	$WinPatchs += Get-Hotfix -Verbose -ErrorAction Continue
+} catch {
+	"Broken Windows Update system" | PauseOnly
+}
 If ($WinPatchs.Count -gt 0)
 {
 try {
@@ -568,6 +572,14 @@ try {
 If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -contains "KB4567512")))
 {
 	""
+	If ($WinVer.Build -eq 18362 -or $WinVer.Build -eq 18363) # 1903 and 1909 are the "same"
+	{
+		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512%2010%201909%20x64")
+	}
+	Else
+	{
+    	[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512")
+	}
 	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
 
