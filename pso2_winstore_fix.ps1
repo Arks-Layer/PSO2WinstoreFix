@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_23_2011" # Error codes: 31
+"Version 2020_06_23_2208" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -520,6 +520,8 @@ Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if your CPU is 64-bit." | PauseAndFail -ErrorLevel 21
 }
 "[OK]"
+"Report Windows Verion"
+$WinVer | fl
 ""
 ""
 ""
@@ -546,11 +548,9 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 
-"Report Windows Verion"
-$WinVer | fl
 "Getting Windows Patch list"
 $WinPatchs = @()
-$WinPatchs = Get-Hotfix -Verbose -ErrorAction Continue
+$WinPatchs += Get-Hotfix -Verbose -ErrorAction Continue | Sort-Object InstalledOn
 $WinPatchs
 If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 {
@@ -565,6 +565,11 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and $false)
 $MSIList = @()
 $MSIList_Bad = @()
 $MSIList += Get-CimInstance -ClassName Win32_Product -ErrorAction Continue
+If ($MSIList.Count -gt 0)
+{
+    "Exporting Installed programs for troubleshooting..."
+	$MSIList | Export-Clixml -Path "Installed.xml"
+}
 "[OK]"
 $MSIList_Bad += $MSIList | Where-Object Name -Like "Nahimic*"
 If ($MSIList_Bad.Count -gt 0)
@@ -595,12 +600,22 @@ If ("{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}" -In $MSIList_Bad.IdentifyingNumber)
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}","/l*vx",('"{0}"' -f $MSILog),"/qf"
 }
 
-"Getting list of PNP devices"
+"Getting list of PNP devices..."
 $PNPDevices = @()
-$PNPDevices += Get-WmiObject Win32_PNPEntity
-"Getting list of Windows Drivers"
+$PNPDevices += Get-CimInstance -ClassName Win32_PNPEntity -ErrorAction Continue
+If ($PNPDevices.Count -gt 0)
+{
+	"Export PNP Devices incause of troubleshooting.."
+	$PNPDevices | Export-Clixml -Path "PNPDevices.xml"
+}
+"Getting list of Windows Drivers.."
 $Drivers = @()
 $Drivers += Get-WindowsDriver -Online
+IF ($Drivers.Count -gt 0)
+{
+    "Export Windows Drivers incause of troubleshooting..."
+    $Drivers | Export-Clixml -Path "DriversOFB.xml"
+}
 $PNPDevices_AVOL = @()
 $PNPDevices_AVOL += $PNPDevices | Where-Object HardwareID -Contains "SWC\VEN_AVOL&AID_0001"
 $Drivers_AVOL = @()
@@ -927,10 +942,11 @@ Else
 Restart-Service -Name "StorSvc"
 
 "Report of Drive status"
-If ($SkipStorageCheck -ne $true)
-{
-	Get-Volume | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
-}
+$Volumes = @()
+try{
+$Volumes += Get-Volume -ErrorAction Continue
+} catch {}
+$Volumes | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
 "End of Report"
 "Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
