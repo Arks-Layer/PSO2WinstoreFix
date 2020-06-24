@@ -874,6 +874,10 @@ If ($SkipOneDrive -ne $true)
 		}
 	}
 	$SegaFolder = Join-Path $PersonalFolder -ChildPath "SEGA"
+	If (-Not (Test-Path -LiteralPath $SegaFolder -PathType Container))
+	{
+		New-Item -Path $SegaFolder -ItemType Directory | Out-Null
+	}   
 	"Removing READONLY attrib bit from SEGA folder..."
 	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
 	If ($OneDriveFolder -ne $null)
