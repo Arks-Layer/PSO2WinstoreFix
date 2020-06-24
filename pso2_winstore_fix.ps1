@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_1204" # Error codes: 32
+"Version 2020_06_24_1659" # Error codes: 32
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -331,7 +331,7 @@ Function PauseAndFail {
 	}
 	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
 	{
-		[System.Windows.MessageBox]::Show($PauseMessage)
+		[System.Windows.MessageBox]::Show($ErrorMessage)
 		exit $ErrorLevel
 	}
 	Else
