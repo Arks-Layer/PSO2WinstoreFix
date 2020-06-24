@@ -851,7 +851,7 @@ If ($npggsvc.Count -gt 0)
 
 If ($SkipOneDrive -ne $true)
 {
-    $OneDriveEnv = @()
+	$OneDriveEnv = @()
 	$PersonalFolder = [environment]::getfolderpath("mydocuments")
 	$OneDriveEnv += Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*"
 	If (-Not (Test-Path -LiteralPath $PersonalFolder -PathType Container))
@@ -877,7 +877,7 @@ If ($SkipOneDrive -ne $true)
 	If (-Not (Test-Path -LiteralPath $SegaFolder -PathType Container))
 	{
 		New-Item -Path $SegaFolder -ItemType Directory | Out-Null
-	}   
+	}
 	"Removing READONLY attrib bit from SEGA folder..."
 	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
 	If ($OneDriveFolder -ne $null)
