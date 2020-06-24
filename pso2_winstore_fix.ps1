@@ -12,7 +12,8 @@ Param(
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false,
 	[Bool]$ForceLocalInstall = $true,
-	[Bool]$SkipStorageCheck = $false
+	[Bool]$SkipStorageCheck = $false,
+	[Bool]$SkipOneDrive = $false
 )
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
@@ -46,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_23_2255" # Error codes: 31
+"Version 2020_06_24_0032" # Error codes: 32
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -845,6 +846,40 @@ If ($npggsvc.Count -gt 0)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
 		Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList "/C","C:\Windows\system32\sc.exe","delete","npggsvc" -WindowStyle Minimized
+	}
+}
+
+If ($SkipOneDrive -ne $true)
+{
+    $OneDriveEnv = @()
+	$PersonalFolder = [environment]::getfolderpath("mydocuments")
+	$OneDriveEnv += Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*"
+	If (-Not (Test-Path -LiteralPath $PersonalFolder -PathType Container))
+	{
+		"ERROR: The Documents folder is missing: $($PersonalFolder)" | PauseAndFail -ErrorLevel 32
+	}
+	$OneDriveFolder = $null
+	If ($OneDriveEnv.Count -gt 0)
+	{
+		$OneDriveEnv | ForEach-Object {
+			If (-Not (Test-Path -LiteralPath $_.Value -PathType Container))
+			{
+				Return
+			}
+			Elseif (-Not (($PersonalFolder | Get-Item).Parent.FullName -eq $_.Value))
+			{
+				Return
+			}
+			$OneDriveFolder = $_.Value
+		}
+	}
+	$SegaFolder = Join-Path $PersonalFolder -ChildPath "SEGA"
+	"Removing READONLY attrib bit from SEGA folder..."
+	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
+	If ($OneDriveFolder -ne $null)
+	{
+		"Found OneDrive usage, pinning SEGA folder to always on local computer.."
+		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
 	}
 }
 
