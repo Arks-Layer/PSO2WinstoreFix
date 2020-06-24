@@ -46,7 +46,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_23_2233" # Error codes: 31
+"Version 2020_06_23_2255" # Error codes: 31
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -489,12 +489,16 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 
 Set-ConsoleQuickEdit -Mode $false | Out-Null
 
+If ($MyInvocation.MyCommand.Name -eq "pso2_winstore_fix_freshinstall.ps1")
+{
+	$SkipRobomove = $true
+}
+
 If ($TweakerMode -eq $true)
 {
 	$PauseOnFail = $false
 	$SkipRobomove = $true
 	$ForceLocalInstall = $true
-	$SkipStorageCheck = $trie
 }
 
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
@@ -955,7 +959,7 @@ $PSO2Vol = @()
 Try
 {
 	$BrokenVolume = $true
-	If ($SkipStorageCheck -ne $true)
+	If ($SkipStorageCheck -ne $true -and $Volumes.Count -gt 0)
 	{
 		$PSO2Vol += Get-Volume -FilePath $PSO2NAFolder
 	}
