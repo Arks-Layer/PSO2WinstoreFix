@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_0136" # Error codes: 32
+"Version 2020_06_24_0236" # Error codes: 32
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -565,10 +565,10 @@ try {
 	$WinPatchs
 }
 }
-If ($WinPatchs.HotFixID -contains "KB4560960")
+If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -contains "KB4567512")))
 {
 	""
-	"KB4560960 patch is installed, it may cause issues with PSO2, crashing in gpapi.dll" | PauseOnly
+	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
 
 "Getting Software list..."
