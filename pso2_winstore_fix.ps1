@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_24_1535" # Error codes: 33
+"Version 2020_06_24_1737" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -102,10 +102,20 @@ Function DownloadMe
 		[ValidateNotNullOrEmpty()]
 		[Int]
 		$ErrorLevel = 255,
-		[Bool]
-		$Overwrite = $true
+		[bool]
+		$Overwrite = $false,
+		[String]
+		$SHA512 = $null
 	)
-	If ($Overwrite -eq $true)
+	If (Test-Path -LiteralPath $OutFile -PathType Leaf)
+	{
+		$FileHash = Get-FileHash -LiteralPath $OutFile -Algorithm SHA512 -Verbose
+		If ($FileHash.Hash -ne $SHA512)
+		{
+			$OverWrite = $true
+		}
+	}
+	If ($OverWrite)
 	{
 		Remove-Item -Path $OutFile -ErrorAction SilentlyContinue
 	}
@@ -115,7 +125,20 @@ Function DownloadMe
 		{
 			Invoke-WebRequest -Uri $URI -OutFile $OutFile -UserAgent "Arks-Layer pso2_winstore_fix" -Verbose
 		}
-		If (-Not (Test-Path -LiteralPath $OutFile -PathType Leaf))
+		If (Test-Path -LiteralPath $OutFile -PathType Leaf)
+		{
+			$FileHash = Get-FileHash -LiteralPath $OutFile -Algorithm SHA512 -Verbose
+			If ($SHA512 -ne $null -and $FileHash.Hash -ne $SHA512)
+			{
+				""
+				"Error: Failed to download file! The File had been does not match the checksum"
+				""
+				$URI
+				""
+				"Download Failed" | PauseAndFail -ErrorLevel $ErrorLevel
+			}
+		}
+		Else
 		{
 			""
 			"Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
@@ -579,7 +602,7 @@ If ($IPv6DR.Count -gt 0)
 	If ($IPv6Test -eq $null)
 	{
 		"Failed IPv6 test, disabling IPv6"
-        $IPv6DR | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -Verbose
+		$IPv6DR | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -Verbose
 	}
 	Else
 	{
@@ -617,7 +640,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 	}
 	Else
 	{
-    	[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512")
+		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512")
 	}
 	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
@@ -629,7 +652,7 @@ $MSIList_Bad = @()
 $MSIList += Get-CimInstance -ClassName Win32_Product -ErrorAction Continue
 If ($MSIList.Count -gt 0)
 {
-    "Exporting Installed programs for troubleshooting..."
+	"Exporting Installed programs for troubleshooting..."
 	$MSIList | Export-Clixml -Path "Installed.xml"
 }
 "[OK]"
@@ -675,8 +698,8 @@ $Drivers = @()
 $Drivers += Get-WindowsDriver -Online
 IF ($Drivers.Count -gt 0)
 {
-    "Export Windows Drivers incause of troubleshooting..."
-    $Drivers | Export-Clixml -Path "DriversOFB.xml"
+	"Export Windows Drivers incause of troubleshooting..."
+	$Drivers | Export-Clixml -Path "DriversOFB.xml"
 }
 $PNPDevices_AVOL = @()
 $PNPDevices_AVOL += $PNPDevices | Where-Object HardwareID -Contains "SWC\VEN_AVOL&AID_0001"
@@ -742,7 +765,7 @@ ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and 
 	"Downloading XBOX Identify Provider App... (13MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.XboxIdentityProvider_12.64.28001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
-	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 30
+	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 30 -SHA512 "FF1B99DB8EB30BD1CDF88EEAE310625726E1553B08D95F4001755711C7E32F6254A75C149458DFB8319F32A570B22CF5BD4C1F6D284859BB1FCCCF9132885A0F"
 
 	"Installing XBOX Identify Provider app..."
 	Try {
@@ -844,7 +867,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
-	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18
+	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18 -SHA512 "F6BE8E57F1B50FD42FA827A842FDFC036039A78A5B773E15D50E7BCDC9074D819485424544B8E2958AEAEA7D635AD47399A31D2F6F91C42CE28991A242294FE3"
 
 	"Removing Gaming Services app..."
 	$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false -Verbose
@@ -1025,10 +1048,10 @@ If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 ElseIf ($PSO2NAFolder)
 {
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
-	"Deleting empty files..."
-	Get-ChildItem  -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 	"Deleting broken patch files..."
-	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
+	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -Verbose -ErrorAction Continue
+	"Deleting empty files..."
+	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		""
@@ -1036,7 +1059,7 @@ ElseIf ($PSO2NAFolder)
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
 		Get-Item -Path $PSO2NABinFolder | fl *
-		Takeownship -path $PSO2NABinFolder
+		#Takeownship -path $PSO2NABinFolder
 		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
 	}
 	#"Moving instance to $($PSO2NAFolder) Folder..."
@@ -1183,7 +1206,7 @@ If ($MissingFiles -eq $true)
 	"Downloading Starter files... (3 MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/pso2_bin_na_starter.zip"
 	$FileD = "pso2_bin_na_starter.zip"
-	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11
+	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11 -SHA512 "50D8E90B66751EE4C238521E372D93A80D4767CBE007B74379D3BBD14FE94780C4D2D86A67D6C7E03F889FB777A0290DF08B5DA916CDCC50B294F0E4AA8160A5"
 	$TMPFolder = New-Item -Path "UNPACK" -ItemType Directory -Verbose -Force
 	$TMPBinFolder = New-Item -Path "UNPACK\pso2_bin" -ItemType Directory -Verbose -Force
 	Expand-Archive -LiteralPath $MISSING -DestinationPath $TMPFolder -Force
@@ -1229,7 +1252,7 @@ If ($DevMode -EQ $false)
 $NAFiles = @("version.ver")
 If (Test-Path "client_na.json" -PathType Leaf)
 {
-    $NAState = @()
+	$NAState = @()
 	"Reading Tweaker's UpdateEngine for PSO2NA"
 	$NAFile = Get-Content -Path "client_na.json" -Encoding UTF8 -Force -Verbose
 	"Loading $($NAFile.Length) bytes client JSON file"
@@ -1390,7 +1413,7 @@ If ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_All_Error.Count -gt 0)
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
 	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
-	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 12
+	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 12 -SHA512 "7D6980446CCAB7F08C498CE28DFA3707876768CB0D54E6912D8689F8D92E639A54FDCD0F0730D3FCF9ED9E970F34DFA97816C85C779B63D003AB54324BCCB5FB"
 }
 
 
@@ -1417,7 +1440,7 @@ if ($VCLibs_User.Count -eq 0 -or $VCLibs_All_Error.Count -gt 0)
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
 	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
-	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 13
+	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 13 -SHA512 "AF30593D82995AEF99DB86BF274407DC33D4EB51F3A79E7B636EA1C905F127E34310416EFB43BB9AC958992D175EB76806B27597E0B1AFE24D51D5D84C9ACF3A"
 }
 
 If ($NewPackages.Count -gt 0)
