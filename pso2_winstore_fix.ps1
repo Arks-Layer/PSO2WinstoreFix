@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_24_2147" # Error codes: 33
+"Version 2020_06_24_1535" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1025,6 +1025,10 @@ If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 ElseIf ($PSO2NAFolder)
 {
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
+	"Deleting empty files..."
+	Get-ChildItem  -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+	"Deleting broken patch files..."
+	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		""
