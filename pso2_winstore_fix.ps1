@@ -45,9 +45,13 @@ Else
 }
 
 #Start logging
+try {
 Start-Transcript -LiteralPath $ScriptLog
+} catch {
+".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
+}
 #Version number
-"Version 2020_06_24_2132" # Error codes: 33
+"Version 2020_06_24_2147" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
