@@ -47,7 +47,7 @@ Else
 #Start logging
 Start-Transcript -LiteralPath $ScriptLog
 #Version number
-"Version 2020_06_24_1825" # Error codes: 33
+"Version 2020_06_24_2132" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -555,15 +555,22 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 
 "Testing for broken IPv6 network setup"
 $IPv6DR = @()
-$IPv6DR += Get-NetRoute -AddressFamily IPv6 -DestinationPrefix "::/0" -Verbose | Where-Object NextHop -ne "::" | Sort-Object RouteMetric
+$IPv6DR += Get-NetRoute -AddressFamily IPv6 -Verbose | Where-Object DestinationPrefix -eq "::/0" |Where-Object NextHop -ne "::" | Sort-Object ifMetric
 If ($IPv6DR.Count -gt 0)
 {
 	"Found IPv6 network setup"
+	"Network Adapter with IPv6:"
+	$IPv6DR | Get-NetAdapter
+	"IPv6 Address Settings:"
+	$IPv6DR | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select -ExcludeProperty AddressFamily
+	"Ipv6 DNS Settings:"
+	$IPv6DR | Get-DnsClientServerAddress -AddressFamily IPv6 | Select InterfaceAlias, InterfaceIndex, ServerAddresses
+	"IPv6 Routes:"
 	$IPv6DR
 	$IPv6Test = $null
-	try {
 	"Testing if we can get an IPv6 only data..."
-	$IPv6Test = Invoke-RestMethod -Uri "http://ipv6.alam.srb2.org/PSO2/BASICDev_proxy/config.json" -UserAgent "Arks-Layer pso2_winstore_fix" -TimeoutSec 10 -ErrorAction Stop
+	try {
+	$IPv6Test = Invoke-RestMethod -Uri "http://ipv6.alam.srb2.org/PSO2/BASICDev_proxy/config.json" -UserAgent "Arks-Layer pso2_winstore_fix" -TimeoutSec 10 -ErrorAction Stop -Verbose
 	} catch {}
 	If ($IPv6Test -eq $null)
 	{
@@ -574,6 +581,10 @@ If ($IPv6DR.Count -gt 0)
 	{
 		"	[OK]"
 	}
+}
+Else
+{
+	"There no IPv6 network setup to check if it is broken"
 }
 
 
