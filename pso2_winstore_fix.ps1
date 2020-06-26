@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_1542" # Error codes: 34
+"Version 2020_06_26_1610" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -595,11 +595,11 @@ If ($IPv6DR.Count -gt 0)
 {
 	"Found IPv6 network setup"
 	"Network Adapter with IPv6:"
-	$IPv6DR | Get-NetAdapter
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetAdapter
 	"IPv6 Address Settings:"
-	$IPv6DR | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select -ExcludeProperty AddressFamily
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select IPv6Address, PrefixLength, AddressState, InterfaceAlias, InterfaceIndex, PrefixOrigin, SkipAsSource, Store, SuffixOrigin, Type
 	"Ipv6 DNS Settings:"
-	$IPv6DR | Get-DnsClientServerAddress -AddressFamily IPv6 | Select InterfaceAlias, InterfaceIndex, ServerAddresses
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-DnsClientServerAddress -AddressFamily IPv6 | Select InterfaceAlias, InterfaceIndex, ServerAddresses
 	"IPv6 Routes:"
 	$IPv6DR
 	$IPv6Test = $null
@@ -1103,11 +1103,16 @@ ElseIf ($PSO2NAFolder)
 	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
+		$FolderItem = Get-Item -Path $PSO2NABinFolder
 		""
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
+		$FolderItem | fl *
+		If ($FolderItem.LinkType -eq "Junction" -and $FolderItem.Target.Count -eq 0)
+		{
+			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
+		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
-		Get-Item -Path $PSO2NABinFolder | fl *
 		#Takeownship -path $PSO2NABinFolder
 		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
 	}
