@@ -15,6 +15,39 @@ Param(
 	[Bool]$SkipStorageCheck = $false,
 	[Bool]$SkipOneDrive = $false
 )
+
+Function PauseAndFail {
+	[CmdletBinding()]
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[Int]
+		$ErrorLevel = 255,
+		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[String]
+		$ErrorMessage = "Click OK to fail hard."
+	)
+	$ErrorMessage
+	Stop-Transcript
+	Set-ConsoleQuickEdit -Mode $true
+	If ($PauseOnFail = $false)
+	{
+		exit $ErrorLevel
+	}
+	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
+	{
+		[System.Windows.MessageBox]::Show($ErrorMessage)
+		exit $ErrorLevel
+	}
+	Else
+	{
+		""
+		"Press any key to exit."
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		exit $ErrorLevel
+	}
+}
+
 #f there an unhandled error, just stop
 If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
 {
@@ -51,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_1610" # Error codes: 34
+"Version 2020_06_26_1925" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -252,14 +285,14 @@ function RobomoveByFolder {
 	$logpath = Resolve-Path -LiteralPath $logfile
 	If ($file -eq "*.*" -or $file -eq "0*.*" -and $SkipRemove -eq $false)
 	{
-		"Deleting empty files..."
+		"Deleting empty files in the source folder..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 		"Deleting broken patch files..."
-		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -Verbose -ErrorAction Continue
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
 	}
 	If ($SkipRemove -eq $false)
 	{
-		"Deleting empty files..."
+		"Deleting empty files in the dest folder..."
 		Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 	}
 	"Starting robocopy job..."
@@ -268,7 +301,7 @@ function RobomoveByFolder {
 	{
 		$Cmdlist += "/V"
 	}
-	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
+	Start-Process -Wait -FilePath $env:ComSpec -ArgumentList $Cmdlist -WindowStyle Minimized
 	If ($SkipRemove -eq $false)
 	{
 		"Deleting source files..."
@@ -333,7 +366,7 @@ function Takeownship {
 		$path = "."
 
 	)
-	$takeownEXE = "C:\Windows\system32\takeown.exe"
+	$takeownEXE = "$($Env:SystemRoot)\System32\takeown.exe"
 	If (Test-Path -LiteralPath $takeownEXE)
 	{
 		"Reseting ACL of $($path)"
@@ -343,38 +376,6 @@ function Takeownship {
 	Else
 	{
 		"WARNING: Takeown.exe is missing from your system32 folder!"
-	}
-}
-
-Function PauseAndFail {
-	[CmdletBinding()]
-	Param
-	(
-		[Parameter(Mandatory=$true)]
-		[Int]
-		$ErrorLevel = 255,
-		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-		[String]
-		$ErrorMessage = "Click OK to fail hard."
-	)
-	$ErrorMessage
-	Stop-Transcript
-	Set-ConsoleQuickEdit -Mode $true
-	If ($PauseOnFail = $false)
-	{
-		exit $ErrorLevel
-	}
-	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
-	{
-		[System.Windows.MessageBox]::Show($ErrorMessage)
-		exit $ErrorLevel
-	}
-	Else
-	{
-		""
-		"Press any key to exit."
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-		exit $ErrorLevel
 	}
 }
 
@@ -457,9 +458,9 @@ try {
 			}
 		}
 	}
-	If (Test-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
+	If (Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
 	{
-		$PackageFolders += Resolve-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)"
+		$PackageFolders += Resolve-Path -LiteralPath "$($Env:SystemDrive)\Program Files\WindowsModifiableApps\$($Folder)"
 	}
 	If ($PackageFolders.Count -gt 0)
 	{
@@ -672,7 +673,7 @@ If ($MSIList_Bad.Count -gt 0)
 	#PauseOnly
 }
 
-If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
 {
 	"WARNING: Nahimic 2 software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
@@ -686,7 +687,7 @@ If ("{FE05D491-4625-496D-A27A-FC318DE398B7}" -In $MSIList.IdentifyingNumber)
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FE05D491-4625-496D-A27A-FC318DE398B7}","/l*vx",('"{0}"' -f $MSILog),"/qf"
 }
 
-If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
+If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
 {
 	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
@@ -978,7 +979,7 @@ If ($npggsvc.Count -gt 0)
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
-		Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList "/C","C:\Windows\system32\sc.exe","delete","npggsvc" -WindowStyle Minimized
+		Start-Process -Wait -FilePath $env:ComSpec -ArgumentList "/C","$($env:SystemRoot)\System32\sc.exe","delete","npggsvc" -WindowStyle Minimized
 	}
 }
 
