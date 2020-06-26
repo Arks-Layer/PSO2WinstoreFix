@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_24_1737" # Error codes: 33
+"Version 2020_06_26_0128" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -222,6 +222,8 @@ function RobomoveByFolder {
 		$file = "*.*",
 		[Bool]
 		$Details = $false,
+		[Bool]
+		$SkipRemove = $false,
 		[String]
 		$logfile = "robocopy.log"
 
@@ -248,15 +250,18 @@ function RobomoveByFolder {
 		New-Item -Path $logfile -ItemType File #-WhatIf
 	}
 	$logpath = Resolve-Path -LiteralPath $logfile
-	If ($file -eq "*.*" -or $file -eq "0*.*")
+	If ($file -eq "*.*" -or $file -eq "0*.*" -and $SkipRemove -eq $false)
 	{
 		"Deleting empty files..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 		"Deleting broken patch files..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -Verbose -ErrorAction Continue
 	}
-	"Deleting empty files..."
-	Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+	If ($SkipRemove -eq $false)
+	{
+		"Deleting empty files..."
+		Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+	}
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
@@ -264,8 +269,11 @@ function RobomoveByFolder {
 		$Cmdlist += "/V"
 	}
 	Start-Process -Wait -FilePath "C:\Windows\system32\cmd.exe" -ArgumentList $Cmdlist -WindowStyle Minimized
-	"Deleting source files..."
-	Get-ChildItem -LiteralPath $source -Filter $file -Depth 0 -Force -File -ErrorAction Continue | Remove-Item -Force -ErrorAction Continue
+	If ($SkipRemove -eq $false)
+	{
+		"Deleting source files..."
+		Get-ChildItem -LiteralPath $source -Filter $file -Depth 0 -Force -File -ErrorAction Continue | Remove-Item -Force -ErrorAction Continue
+	}
 	$Subs = @()
 	$Subs += Get-ChildItem -Directory -Depth 0 -LiteralPath $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
 	If ($Subs.Count -gt 0)
@@ -291,7 +299,7 @@ function RobomoveByFolder {
 					""
 					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
-					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -logfile $logpath.Path
+					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -SkipRemove $SkipRemove -logfile $logpath.Path
 				}
 			}
 			ElseIf ($FilesCount.Count -gt 100)
@@ -307,11 +315,11 @@ function RobomoveByFolder {
 				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
 				"WARNING: large number of files detected - this may take a while, maybe even A LONG TIME! Please wait!"
 				""
-				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $true -logfile $logpath.Path
+				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $true -SkipRemove $SkipRemove -logfile $logpath.Path
 			}
 			else
 			{
-				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $false -logfile $logpath.Path
+				RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -Details $false -SkipRemove $SkipRemove -logfile $logpath.Path
 			}
 		}
 	}
@@ -702,20 +710,44 @@ IF ($Drivers.Count -gt 0)
 	$Drivers | Export-Clixml -Path "DriversOFB.xml"
 }
 $PNPDevices_AVOL = @()
-$PNPDevices_AVOL += $PNPDevices | Where-Object HardwareID -Contains "SWC\VEN_AVOL&AID_0001"
-$Drivers_AVOL = @()
-$Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
+$PNPDevices_AVOL += $PNPDevices | Where-Object Manufacturer -eq "A-Volute"
 If ($PNPDevices_AVOL.Count -gt 0)
 {
 	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing" | PauseOnly
 	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service
-	If ($Drivers_AVOL.Count -gt 0)
-	{
-		$Drivers_AVOL | ForEach-Object {
-			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
-		}
+}
+$Drivers_AVOL = @()
+$Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
+If ($Drivers_AVOL.Count -gt 0)
+{
+	$Drivers_AVOL | ForEach-Object {
+		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
 	}
 }
+$Drivers_NV3D = @()
+$Drivers_NV3D += $Drivers | Where-Object ClassName -eq "Display" | Where-Object ProviderName -eq "NVIDIA"
+If ($Drivers_NV3d.Count -gt 0)
+{
+	"NVIDIA 3D Display Driver found"
+	$BadVersion = [Version]"26.21.14.4587"
+	$GoodVersion = $true
+	$Drivers_AVOL | ForEach-Object {
+		If ($_.Version -le $BadVersion)
+		{
+			$GoodVersion = $false
+		}
+	}
+	If ($GoodVersion -eq $false)
+	{
+		[Diagnostics.Process]::Start("https://www.nvidia.com/download/index.aspx")
+		"Please Update your NVIDIA Driver" | PauseOnly
+	}
+	Else
+	{
+		"All Good?"
+	}
+}
+
 
 "Checking MS Store Setup"
 try {
@@ -1244,6 +1276,7 @@ if (Test-Path -LiteralPath $RegistryKeyPath)
 }
 If ($DevMode -EQ $false)
 {
+	""
 	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
 	"Developer mode is disabled" | PauseAndFail -ErrorLevel 4
 }
@@ -1297,7 +1330,7 @@ If ($OldPackages.Count -gt 0)
 		"Removing $($NAFiles.Count) unneeded files..."
 		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		"Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
-		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
+		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder -SkipRemove $true
 		"Deleting old MS STORE's pso2_bin core's date folder..."
 try {
 		"Deleting files in $($OldBin) Folder..."
