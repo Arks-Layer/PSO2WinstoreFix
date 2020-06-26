@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_1303" # Error codes: 34
+"Version 2020_06_26_1542" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -299,7 +299,7 @@ function RobomoveByFolder {
 					""
 					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
-					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_)  -Details $true -SkipRemove $SkipRemove -logfile $logpath.Path
+					RobomoveByFolder -source (Join-Path $source -ChildPath $NewSub) -destination (Join-Path $destination -ChildPath $NewSub) -file ('{0}*.*' -f $_) -Details $true -SkipRemove $SkipRemove -logfile $logpath.Path
 				}
 			}
 			ElseIf ($FilesCount.Count -gt 100)
@@ -459,7 +459,7 @@ try {
 	}
 	If (Test-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
 	{
-		$PackageFolders +=  Resolve-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)"
+		$PackageFolders += Resolve-Path -LiteralPath "C:\Program Files\WindowsModifiableApps\$($Folder)"
 	}
 	If ($PackageFolders.Count -gt 0)
 	{
@@ -728,7 +728,7 @@ $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
 If ($Drivers_AVOL.Count -gt 0)
 {
 	$Drivers_AVOL | ForEach-Object {
-		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
+		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 	}
 }
 $Drivers_NV3D = @()
@@ -797,7 +797,7 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
 	"XBOX Identify Provider not installed to the user account, forcing install..."
-	$XBOXIP_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$XBOXIP_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
@@ -820,7 +820,7 @@ If ($XBOXIP -ne $null)
 	"Looking for the XBOX Identify Provider folder to wipe..."
 	$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
 	$XBOXIPFN = $XBOXIP.PackageFamilyName
-	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN  -Verbose
+	$XBOXIPF = Join-Path -Path $PackageF -ChildPath $XBOXIPFN -Verbose
 	$XBOXTBF = Join-Path $XBOXIPF -ChildPath "AC\TokenBroker" -Verbose
 	If (Test-Path -LiteralPath $XBOXTBF -PathType Container)
 	{
@@ -858,7 +858,7 @@ If ($GamingSrv_STOP.Count -gt 0)
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object {
-			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList  "/delete-driver",$_.Driver,"/uninstall","/force"
+			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
 	}
 }
@@ -908,7 +908,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
-	$GamingServices_All | Where-Object InstallLocation -ne $null |  Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
+	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
 ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
@@ -1145,32 +1145,46 @@ Catch
 {
 	#PauseAndFail -ErrorLevel 19
 }
+
 $PSO2Vol_exFAT = @()
-$PSO2Vol_NTFS = @()
-$PSO2Vol_ReFS = @()
+$PSO2Vol_FAT   = @()
+$PSO2Vol_FAT32 = @()
+$PSO2Vol_NTFS  = @()
+$PSO2Vol_ReFS  = @()
 $PSO2Vol_exFAT += $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
+$PSO2Vol_FAT   += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT
+$PSO2Vol_FAT32 += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT32
 $PSO2Vol_NTFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
 $PSO2Vol_ReFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ ReFS
+$PSO2Vol_UnK   += $PSO2Vol | Where-Object -Property FileSystemType -EQ Unknown
 
 If ($BrokenVolume -eq $true)
 {
-	""
-	"WARNING: Your system's WMI database is broken, please repair it."
+	"WARNING: Your system's WMI database is broken, please repair it." | PauseOnly
 }
 ElseIf ($PSO2Vol_exFAT.Count -gt 0)
 {
-	""
 	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+}
+ElseIf ($PSO2Vol_FAT.Count -gt 0)
+{
+	"WARNING: Your PSO2NA installation on an FAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+}
+ElseIf ($PSO2Vol_FAT32.Count -gt 0)
+{
+	"WARNING: Your PSO2NA installation on an FAT32 formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+}
+ElseIf ($PSO2Vol_NTFS.Count -gt 0)
+{
+	"Your PSO2NA installation is on a NTFS drive \o/"
 }
 ElseIf ($PSO2Vol_ReFS.Count -gt 0)
 {
-	""
 	"WARNING: Your PSO2NA installation on an ReFS formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
-
-If ($PSO2Vol_NTFS.Count -gt 0)
+ElseIf ($PSO2Vol_UnK.Count -gt 0)
 {
-	"Your PSO2NA installation is on a NTFS drive \o/"
+	"WARNING: Your PSO2NA installation on an UNKNOWN formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIF ($PSO2Vol.Count -gt 0)
 {
@@ -1178,7 +1192,7 @@ ElseIF ($PSO2Vol.Count -gt 0)
 }
 Else
 {
-	PauseOnly
+	"Unknown issue geting Storage data"
 }
 
 $MissingFiles = $false
