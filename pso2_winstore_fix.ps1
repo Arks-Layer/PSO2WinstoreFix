@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_0128" # Error codes: 33
+"Version 2020_06_26_0318" # Error codes: 33
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -672,21 +672,28 @@ If ($MSIList_Bad.Count -gt 0)
 	#PauseOnly
 }
 
-If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
 {
-	"WARNING: Nahimic2 software detected, it is known to crash PSO2, We will uninstall it"
+	"WARNING: Nahimic 2 software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",('"{0}"' -f $MSILog),"/qf"
 }
 
-If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList_Bad.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
+If ("{FE05D491-4625-496D-A27A-FC318DE398B7}" -In $MSIList.IdentifyingNumber)
+{
+	"WARNING: Nahimic 2 UI software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2UI.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FE05D491-4625-496D-A27A-FC318DE398B7}","/l*vx",('"{0}"' -f $MSILog),"/qf"
+}
+
+If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "C:\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
 {
 	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",('"{0}"' -f $MSILog),"/qf"
 }
 
-If ("{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}" -In $MSIList_Bad.IdentifyingNumber)
+If ("{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}" -In $MSIList.IdentifyingNumber)
 {
 	"WARNING: Nahimic Settings Configurator software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic.log"
