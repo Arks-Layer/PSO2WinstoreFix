@@ -51,7 +51,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_0318" # Error codes: 33
+"Version 2020_06_26_1303" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -867,7 +867,7 @@ Try
 {
 	$ForceReinstallGS = $true
 	"Checking if we can get the Gaming Services working..."
-	$GamingNetSrv | Where-Object Status -NE "Running" | Restart-Service
+	$GamingNetSrv | Where-Object Status -NE "Running" | Restart-Service -ErrorAction Continue
 	$GamingSrv | Where-Object Status -NE "Running" | Restart-Service
 	"No errors found! :D"
 	$ForceReinstallGS = $false
@@ -875,6 +875,14 @@ Try
 Catch
 {
 	"There was an issue checking the Gaming Services, we will try to reinstall the app..."
+}
+
+$GamingNetSrv_STOP = @()
+$GamingNetSrv_STOP += Get-Service | Where-Object Name -In "GamingServicesNet" | Where-Object Status -NE "Running"
+
+If ($GamingNetSrv_STOP.Count -gt 0)
+{
+	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
 }
 
 If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
@@ -1138,9 +1146,9 @@ Catch
 $PSO2Vol_exFAT = @()
 $PSO2Vol_NTFS = @()
 $PSO2Vol_ReFS = @()
-$PSO2Vol_exFAT +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
-$PSO2Vol_NTFS +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
-$PSO2Vol_ReFS +=  $PSO2Vol | Where-Object -Property FileSystemType -EQ ReFS
+$PSO2Vol_exFAT += $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
+$PSO2Vol_NTFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
+$PSO2Vol_ReFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ ReFS
 
 If ($BrokenVolume -eq $true)
 {
