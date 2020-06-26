@@ -900,6 +900,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
+	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
 	Start-Sleep -Seconds 30
 	Restart-Computer -Verbose
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it" | PauseAndFail -ErrorLevel 24
@@ -933,6 +934,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $tru
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
+		"We going to restart the computer to get Gaming Services App install, please run the script again after reboot" | PauseOnly
 		Start-Sleep -Seconds 30
 		Restart-Computer -Verbose
 		"ERROR: Gaming Services installed, please reboot." | PauseAndFail -ErrorLevel 25
