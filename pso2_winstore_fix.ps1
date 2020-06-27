@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_2337" # Error codes: 34
+"Version 2020_06_27_0110" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -674,13 +674,13 @@ If ($MSIList_Nahimic.Count -gt 0)
 {
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
 	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
+	$MSIList_Nahimic | select -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR = $MSIList_Nahimic | ForEach-Object {
 		Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qr"
 	}
 	If (3010 -IN $MSIR.ExitCode)
 	{
-		"We need to reboot remove the Nahimic software" | PauseOnly
-        
+		"We need to reboot to be done removing the Nahimic software, BUT not right now" | PauseOnly
 	}
 }
 
@@ -1046,11 +1046,11 @@ If ($SkipOneDrive -ne $true)
 		New-Item -Path $SegaFolder -ItemType Directory | Out-Null
 	}
 	"Removing READONLY attrib bit from SEGA folder..."
-	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose -WindowStyle Minimized
+	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
 	If ($OneDriveFolder -ne $null)
 	{
 		"Found OneDrive usage, pinning SEGA folder to always on local computer.."
-		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose -WindowStyle Minimized
+		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
 	}
 }
 
@@ -1150,8 +1150,6 @@ ElseIf ($PSO2NAFolder)
 		#Takeownship -path $PSO2NABinFolder
 		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
 	}
-	#"Moving instance to $($PSO2NAFolder) Folder..."
-	#Set-Location -LiteralPath $PSO2NAFolder -Verbose
 }
 Else
 {
@@ -1681,7 +1679,8 @@ If ($CustomPSO2.Count -eq 0)
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
-	"Good, only found one custom PSO2 install." | PauseOnly
+	"Good, only found one custom PSO2 install."
+	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
 }
 Else
 {
