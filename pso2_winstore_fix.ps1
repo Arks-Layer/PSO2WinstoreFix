@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_26_1925" # Error codes: 34
+"Version 2020_06_26_2337" # Error codes: 34
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -93,6 +93,9 @@ Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
 Add-Type -AssemblyName PresentationCore,PresentationFramework
+
+"Killing PSO2 Tweaker"
+Get-Process | Where-Object ProcessName -eq "PSO2 Tweaker" | Stop-Process -Force -ErrorAction Continue
 
 #All the fun helper functinons
 #Crash hander
@@ -657,6 +660,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 "Getting Software list..."
 "Please note: if you have any broken MSI installtions, you may get errors"
 $MSIList = @()
+$MSIList_Nahimic = @()
 $MSIList_Bad = @()
 $MSIList += Get-CimInstance -ClassName Win32_Product -ErrorAction Continue
 If ($MSIList.Count -gt 0)
@@ -665,7 +669,22 @@ If ($MSIList.Count -gt 0)
 	$MSIList | Export-Clixml -Path "Installed.xml"
 }
 "[OK]"
-$MSIList_Bad += $MSIList | Where-Object Name -Like "Nahimic*"
+$MSIList_Nahimic += $MSIList | Where-Object Vendor -EQ "Nahimic"
+If ($MSIList_Nahimic.Count -gt 0)
+{
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
+	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
+	$MSIR = $MSIList_Nahimic | ForEach-Object {
+		Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qr"
+	}
+	If (3010 -IN $MSIR.ExitCode)
+	{
+		"We need to reboot remove the Nahimic software" | PauseOnly
+        
+	}
+}
+
+$MSIList_Bad += $MSIList | Where-Object Vendor -NE "Nahimic" | Where-Object Name -Like "Nahimic*"
 If ($MSIList_Bad.Count -gt 0)
 {
 	"Found Bad software:"
@@ -699,6 +718,13 @@ If ("{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}" -In $MSIList.IdentifyingNumber)
 	"WARNING: Nahimic Settings Configurator software detected, it is known to crash PSO2, We will uninstall it"
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic.log"
 	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}","/l*vx",('"{0}"' -f $MSILog),"/qf"
+}
+
+If ("{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}" -In $MSIList.IdentifyingNumber)
+{
+	"WARNING: Nahimic 2+ Audio Driver software detected, it is known to crash PSO2, We will uninstall it"
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2AD.log"
+	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","/l*vx",('"{0}"' -f $MSILog),"/qf"
 }
 
 "Getting list of PNP devices..."
@@ -754,6 +780,13 @@ If ($Drivers_NV3d.Count -gt 0)
 	{
 		"All Good?"
 	}
+}
+$Drivers_KILLER = @()
+$Drivers_KILLER += $Drivers | Where-Object ProviderName -eq "Rivet Networks LLC"
+If ($Drivers_KILLER.Count -gt 0)
+{
+	"Found Killer Gaming Drivers:"
+	$Drivers_KILLER
 }
 
 
@@ -1013,11 +1046,11 @@ If ($SkipOneDrive -ne $true)
 		New-Item -Path $SegaFolder -ItemType Directory | Out-Null
 	}
 	"Removing READONLY attrib bit from SEGA folder..."
-	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
+	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose -WindowStyle Minimized
 	If ($OneDriveFolder -ne $null)
 	{
 		"Found OneDrive usage, pinning SEGA folder to always on local computer.."
-		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose
+		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -NoNewWindow -Wait -Verbose -WindowStyle Minimized
 	}
 }
 
@@ -1157,6 +1190,7 @@ $PSO2Vol_FAT   = @()
 $PSO2Vol_FAT32 = @()
 $PSO2Vol_NTFS  = @()
 $PSO2Vol_ReFS  = @()
+$PSO2Vol_Unk   = @()
 $PSO2Vol_exFAT += $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
 $PSO2Vol_FAT   += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT
 $PSO2Vol_FAT32 += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT32
