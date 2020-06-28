@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_28_1344" # Error codes: 35
+"Version 2020_06_28_1501" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1130,7 +1130,7 @@ If ($PSO2NABinFolder -eq "")
 ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 {
 	""
-	"ERROR: The $($PSO2NABinFolder) folder have { or ], PowerShell have issues with folder name." | PauseAndFail -ErrorLevel 28
+	"ERROR: The $($PSO2NABinFolder) folder have [ or ], PowerShell have issues with folder name." | PauseAndFail -ErrorLevel 28
 }
 ElseIf ($PSO2NABinFolder -eq $null)
 {
@@ -1177,6 +1177,10 @@ ElseIf ($PSO2NAFolder)
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
 		#Takeownship -path $PSO2NABinFolder
 		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
+	}
+	else
+	{
+		"Non MS Store copy installation detected"
 	}
 }
 Else
@@ -1674,10 +1678,14 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	}
 	Else
 	{
-		Add-AppxPackage -Register $APPXXML -Verbose -ErrorAction Continue
+		Add-AppxPackage -Register $APPXXML -Verbose
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	If (Test-Path -Path "client_na.json" -Verbose)
+	{
+		Remove-Item -Path "client_na.json" -Force -Verbose
+	}
 }
 Else
 {
