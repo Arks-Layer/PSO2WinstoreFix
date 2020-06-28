@@ -813,7 +813,32 @@ $NETFramework_version = [Version]"2.2.27912.0"
 $NETFramework += Get-AppxPackage -Name "Microsoft.NET.Native.Framework.2.2" -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -PackageTypeFilter Framework | PackageVersion -Version $NETFramework_version
 If ($NETFramework.Count -eq 0)
 {
-	"	NOT INSTALLED"
+	$NetDownload = @()
+	"Downloading NET 2.2 x86 Runtime Framework... (195 KB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
+	$FileD = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
+	$SHA512 = "2CA0D278729CDCE07899FF3791906F7B08BC1ED540B4A72CD72B928CF4F9BC2F58739270DC1978A82089F187898F9E333BBE07FF436E91733AB25C6898C9251C"
+	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 255 -SHA512
+	"Downloading NET 2.2 x64 Runtime Framework... (239 KB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
+	$FileD = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
+	$SHA512 = "55647C44524ACFC25C1AA866D4ED8A73F35EFE6320B458303D5F72A57517760A3B50C03D6022628CBEC95E05E6F4520D89408F989E9C7A1E66E6BFF9B200595C"
+	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 255 -SHA512
+	"Downloading NET 2.2 x86 Support Framework... (5 MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x86__8wekyb3d8bbwe.appx"
+	$FileD = "Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x86__8wekyb3d8bbwe.appx"
+	$SHA512 = "D52BEC2FED3342E58587CF2D1ECA5EB3F68BC6C53D0D7AA8D544DF70F1670B231BFFAA826C6170D311C4241C2DD5103C8AC79611CBCAEAC36A91952EB2B49ADE"
+	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 255 -SHA512
+	"Downloading NET 2.2 x64 Support Framework... (7 MB)"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x64__8wekyb3d8bbwe.appx"
+	$FileD = "Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x64__8wekyb3d8bbwe.appx"
+	$SHA512 = "83C85A05439B4608842DCDF828CCC7B5C6328AED1FC869247321D30E85D1AE1EA141B0D2A5154ECA4BE94E69DE4AB6659782C1C2333266F43A8B3EDE326EEE3E"
+	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 255 -SHA512
+
+	"Installing NET 2.2 requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
+	$NetDownload | Add-AppxPackage -Stage -Volume $SystemVolume -Verbose -ErrorAction Continue
+	$NetDownload | Add-AppxPackage -Volume $SystemVolume -Verbose -ErrorAction Continue
+	#$NewPackages | Remove-Item -Verbose
 }
 Else
 {
