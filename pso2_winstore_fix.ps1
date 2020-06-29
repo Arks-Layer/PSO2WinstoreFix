@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_28_1622" # Error codes: 35
+"Version 2020_06_29_0140" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -296,7 +296,17 @@ function RobomoveByFolder {
 	If ($SkipRemove -eq $false)
 	{
 		"Deleting empty files in the dest folder..."
-		Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
+		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
+		If ($EmptyFiles.Count -gt 0)
+		{
+			$JSONObj.PSO2NARemoteVersion = 0
+			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
+			If (Test-Path -Path "client_na.json" -Verbose)
+			{
+				Remove-Item -Path "client_na.json" -Force -Verbose
+			}
+		}
 	}
 	"Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
@@ -658,7 +668,7 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 }
 
 "Getting Software list..."
-"Please note: if you have any broken MSI installtions, you may get errors"
+"Please note: if you have any broken MSI installations, you may get errors"
 $MSIList = @()
 $MSIList_Nahimic = @()
 $MSIList_Bad = @()
@@ -781,6 +791,13 @@ If ($Drivers_NV3d.Count -gt 0)
 		"All Good?"
 	}
 }
+$Drivers_AMD3D = @()
+$Drivers_AMD3D += $Drivers | Where-Object ClassName -eq "Display" | Where-Object ProviderName -eq "Advanced Micro Devices, Inc."
+If ($Drivers_AMD3D.Count -gt 0)
+{
+	"Found AMD 3D Drivers:"
+	$Drivers_AMD3D
+}
 $Drivers_KILLER = @()
 $Drivers_KILLER += $Drivers | Where-Object ProviderName -eq "Rivet Networks LLC"
 If ($Drivers_KILLER.Count -gt 0)
@@ -788,7 +805,13 @@ If ($Drivers_KILLER.Count -gt 0)
 	"Found Killer Gaming Drivers:"
 	$Drivers_KILLER
 }
-
+$Drivers_SCP = @()
+$Drivers_SCP += $Drivers | Where-Object CatalogFile -eq "ScpVBus.cat"
+If ($Drivers_SCP.Count -gt 0)
+{
+	"Found Scp Drivers:"
+	$Drivers_SCP
+}
 
 "Checking MS Store Setup"
 try {
@@ -1161,8 +1184,6 @@ ElseIf ($PSO2NAFolder)
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	"Deleting broken patch files..."
 	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -Verbose -ErrorAction Continue
-	"Deleting empty files..."
-	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		$FolderItem = Get-Item -Path $PSO2NABinFolder
@@ -1172,6 +1193,17 @@ ElseIf ($PSO2NAFolder)
 		If ($FolderItem.LinkType -eq "Junction" -and $FolderItem.Target.Count -eq 0)
 		{
 			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
+		}
+		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
+		If ($EmptyFiles.Count -gt 0)
+		{
+			$JSONObj.PSO2NARemoteVersion = 0
+			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
+			If (Test-Path -Path "client_na.json" -Verbose)
+			{
+				Remove-Item -Path "client_na.json" -Force -Verbose
+			}
 		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
@@ -1258,7 +1290,7 @@ ElseIf ($PSO2Vol_UnK.Count -gt 0)
 }
 ElseIF ($PSO2Vol.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installtion in on an unknown filesytem: $($PSO2Vol.FileSystem -join ",")?" | PauseOnly
+	"WARNING: Your PSO2NA installation in on an unknown filesytem: $($PSO2Vol.FileSystem -join ",")?" | PauseOnly
 }
 Else
 {
@@ -1507,14 +1539,11 @@ try {
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 
-
 If ($OldPackages.Count -gt 0)
 {
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
 	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 }
 Else
 {
@@ -1680,8 +1709,13 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Add-AppxPackage -Register $APPXXML -Verbose
 	}
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
+	If ($EmptyFiles.Count -gt 0)
+	{
+		$JSONObj.PSO2NARemoteVersion = 0
+		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
+	}
 	If (Test-Path -Path "client_na.json" -Verbose)
 	{
 		Remove-Item -Path "client_na.json" -Force -Verbose
@@ -1716,6 +1750,7 @@ If ($CustomPSO2.Count -eq 0)
 ElseIf ($CustomPSO2.Count -eq 1)
 {
 	"Good, only found one custom PSO2 install."
+	Get-ChildItem -Filter "*.txt" | Remove-Item -Force -Confirm:$false -ErrorAction Continue
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
 }
