@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_29_0140" # Error codes: 35
+"Version 2020_06_29_1816" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -532,6 +532,152 @@ Function Join-Paths
 	}
 }
 
+Function HashOrDelete()
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[String]
+		$Path = $null,
+		[Parameter(Mandatory=$true)]
+		[String]
+		$Folder = $null,
+		[Parameter(Mandatory=$true,ValueFromPipeline)]
+		[String]
+		$Filename
+	)
+	BEGIN
+	{
+		If ($Folder -eq ".")
+		{
+			$BaseDir = $Path
+		}
+		Else
+		{
+			$BaseDir = Join-Path -Path $Path -ChildPath $Folder
+		}
+	}
+	PROCESS
+	{
+		$FilePath =  Join-Path -Path $BaseDir -ChildPath $Filename
+		$MD5Hash = $null
+try {
+		$MD5Hash = Get-FileHash -LiteralPath $FilePath | Select-Object Hash, Path
+} catch {$_}
+		If ($MD5Hash -eq $null)
+		{
+			Remove-Item -LiteralPath $_.PSPath -Force -Verbose -ErrorAction Continue -WhatIf
+			Return
+		}
+		If ($Folder -eq ".")
+		{
+			$HashName = $Filename
+		}
+		Else
+		{
+			$HashName = Join-Path -Path $Folder -ChildPath $FileName
+		}
+		Return @{$HashName = $MD5Hash.Hash}
+	}
+	END
+	{
+		If ($Folder -eq ".")
+		{
+			Write-Verbose "Done processing files in Core Folder"
+		}
+		Else
+		{
+			Write-Verbose "Done processing files in the $($Folder) Folder"
+		}
+	}
+}
+
+Function RemakeClientHashs()
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[String]
+		$Path
+	)
+	$core_files = @()
+	$data_license_files = @()
+	$data_win32na_files = @()
+	$data_win32jp_files = @()
+	$core_files = Get-ChildItem -LiteralPath $Path -File -Filter "*.dll" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.exe" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "otp_notice_na.rtf" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "edition.txt" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "gameversion.ver" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "PSO2US.ini" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "GameGuard.des" -Name
+	$data_folder = Join-Path -Path $Path -ChildPath "data"
+	If (Test-Path -LiteralPath $data_folder -PathType Container)
+	{
+		$data_license_folder = Join-Path -Path $data_folder -ChildPath "license"
+		If (Test-Path -LiteralPath $data_license_folder -PathType Container)
+		{
+			$data_license_files += Get-ChildItem -LiteralPath $data_license_folder -File -Name
+		}
+		$data_win32na_folder = Join-Path -Path $data_folder -ChildPath "win32_na"
+		If (Test-Path -LiteralPath $data_win32na_folder -PathType Container)
+		{
+			$data_win32na_files += Get-ChildItem -LiteralPath $data_win32na_folder -File -Name
+		}
+		$data_win32jp_folder = Join-Path -Path $data_folder -ChildPath "win32"
+		If (Test-Path -LiteralPath $data_win32jp_folder -PathType Container)
+		{
+			$data_win32jp_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
+		}
+	}
+	Write-Verbose "Going to hash all the files, this may take a while"
+	$core_hashs = @()
+	$data_license_hashs = @()
+	$data_win32na_hashs = @()
+	$data_win32jp_hashs = @()
+	If ($core_files.Count -gt 0)
+	{
+		Write-Verbose "Found $($core_files.Count) core files..."
+        $core_hashs += $core_files | HashOrDelete -Path $Path -Folder "."
+	}
+	If ($data_license_files.Count -gt 0)
+	{
+		Write-Verbose "Found $($data_license_files.Count) license files..."
+        $data_license_hashs += $data_license_files | HashOrDelete -Path $Path -Folder "data/license"
+	}
+	If ($data_win32na_files.Count -gt 0)
+	{
+		Write-Verbose "Found $($data_win32na_files.Count) NA data files.."
+        $data_win32na_hashs += $data_win32na_files | HashOrDelete -Path $Path -Folder "data/win32_na"
+	}
+	If ($data_win32jp_files.Count -gt 0)
+	{
+		Write-Verbose "Found $($data_win32jp_files.Count) JP data files.."
+        $data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32"
+	}
+	$r = @()
+	If ($core_hashs.Count -gt 0)
+	{
+		$r += $core_hashs
+	}
+	If ($data_license_hashs.Count -gt 0)
+	{
+		$r += $data_license_hashs
+	}
+	If ($data_win32na_hashs.Count -gt 0)
+	{
+		$r += $data_win32na_hashs
+	}
+	If ($data_win32jp_hashs.Count -gt 0)
+	{
+		$r += $data_win32jp_hashs
+	}
+	Return $r
+}
+
+#$ClientHash = RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose
+
+exit 0
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
@@ -1684,19 +1830,6 @@ else
 }
 ""
 
-If ($EmptyFiles.Count -gt 0)
-{
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
-	""
-	"ERROR: Empty PSO2 files found, please run a full file check in Tweaker."
-	"(Troubleshooting -> New Method)"
-	#"List of bad files:"
-	#$EmptyFiles | Format-Table Name
-	$EmptyFiles | Remove-Item -Force -Verbose
-	""
-}
-
 If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 {
 	$APPXXML = Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml"
@@ -1709,7 +1842,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Add-AppxPackage -Register $APPXXML -Verbose
 	}
-	$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
+	$EmptyFiles = @() + (Get-ChildItem -LiteralPath $PSO2NABinFolder -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
 	If ($EmptyFiles.Count -gt 0)
 	{
 		$JSONObj.PSO2NARemoteVersion = 0
