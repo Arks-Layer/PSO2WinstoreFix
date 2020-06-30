@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_29_2137" # Error codes: 35
+"Version 2020_06_29_2312" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -580,13 +580,14 @@ try {
 		}
 		If ($Folder -eq ".")
 		{
-			$HashName = $Filename
+			$HashName_unix = $Filename
 		}
 		Else
 		{
-			$HashName = Join-Path -Path $Folder -ChildPath $FileName
+			$HashName_dos = (Join-Path -Path $Folder -ChildPath $FileName)
+			$HashName_unix = $HashName_dos.Replace('\','/')
 		}
-		Return @{$HashName = $MD5Hash.Hash}
+		Return @{$HashName_unix = $MD5Hash.Hash}
 	}
 	END
 	{
@@ -665,22 +666,27 @@ Function RemakeClientHashs()
 		Write-Verbose "Found $($data_win32jp_files.Count) JP data files.."
         $data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32" -Hash_Count $data_win32jp_files.Count
 	}
-	$r = @()
-	If ($core_hashs.Count -gt 0)
+	$i = @()
+	If($core_hashs.Count -gt 0)
 	{
-		$r += $core_hashs
+		$i += $core_hashs
 	}
-	If ($data_license_hashs.Count -gt 0)
+	If($data_license_hashs.Count -gt 0)
 	{
-		$r += $data_license_hashs
+		$i += $data_license_hashs
 	}
-	If ($data_win32na_hashs.Count -gt 0)
+	If($data_win32na_hashs.Count -gt 0)
 	{
-		$r += $data_win32na_hashs
+		$i += $data_win32na_hashs
 	}
-	If ($data_win32jp_hashs.Count -gt 0)
+	If($data_win32jp_hashs.Count -gt 0)
 	{
-		$r += $data_win32jp_hashs
+		$i += $data_win32jp_hashs
+	}
+	$r = @{}
+	Foreach ($p in $i)
+	{
+		$r.Add($p.Keys[0] -join "", $p.Values[0] -join "")	
 	}
 	Return $r
 }
@@ -1357,6 +1363,7 @@ ElseIf ($PSO2NAFolder)
 			{
 				Remove-Item -Path "client_na.json" -Force -Verbose
 			}
+			RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
@@ -1860,6 +1867,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Remove-Item -Path "client_na.json" -Force -Verbose
 	}
+	RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 }
 Else
 {
