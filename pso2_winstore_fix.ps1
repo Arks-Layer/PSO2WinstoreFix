@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_30_1144" # Error codes: 35
+"Version 2020_06_30_1848" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -695,7 +695,7 @@ Function RemakeClientHashs()
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
-	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
+	"The Powershell Script NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
 }
 
 Set-ConsoleQuickEdit -Mode $false | Out-Null
@@ -1871,7 +1871,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 		{
 			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
-		RemakeClientHashs -Path $PSO2NABinFoldern -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 	}
 }
 Else
