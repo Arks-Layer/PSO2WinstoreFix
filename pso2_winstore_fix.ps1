@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_29_2312" # Error codes: 35
+"Version 2020_06_30_1113" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -288,10 +288,10 @@ function RobomoveByFolder {
 	$logpath = Resolve-Path -LiteralPath $logfile
 	If ($file -eq "*.*" -or $file -eq "0*.*" -and $SkipRemove -eq $false)
 	{
-		"Deleting empty files in the source folder..."
-		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 		"Deleting broken patch files..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
+		"Deleting empty files in the source folder..."
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
 	}
 	If ($SkipRemove -eq $false)
 	{
@@ -1342,7 +1342,7 @@ ElseIf ($PSO2NAFolder)
 {
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	"Deleting broken patch files..."
-	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -Verbose -ErrorAction Continue
+	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		$FolderItem = Get-Item -Path $PSO2NABinFolder
@@ -1363,7 +1363,7 @@ ElseIf ($PSO2NAFolder)
 			{
 				Remove-Item -Path "client_na.json" -Force -Verbose
 			}
-			RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
@@ -1867,7 +1867,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	{
 		Remove-Item -Path "client_na.json" -Force -Verbose
 	}
-	RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+	RemakeClientHashs -Path $PSO2NABinFoldern -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 }
 Else
 {
