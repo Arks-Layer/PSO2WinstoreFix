@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_29_1816" # Error codes: 35
+"Version 2020_06_29_2137" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -544,21 +544,30 @@ Function HashOrDelete()
 		$Folder = $null,
 		[Parameter(Mandatory=$true,ValueFromPipeline)]
 		[String]
-		$Filename
+		$Filename = $null,
+        [Parameter(Mandatory=$true)]
+		[Int32]
+		$Hash_Count = 0
 	)
 	BEGIN
 	{
 		If ($Folder -eq ".")
 		{
 			$BaseDir = $Path
+			$FolderName = "Core"
 		}
 		Else
 		{
 			$BaseDir = Join-Path -Path $Path -ChildPath $Folder
+			$FolderName = $Folder
 		}
+		Write-Progress -Activity "Making MD5 hashs for files in the $($FolderName) folder" -Status "Ready" -Id 0 -PercentComplete 0
+		$Hash_Counter = 0
 	}
 	PROCESS
 	{
+		Write-Progress -Activity "Making MD5 hashs for files in the $($FolderName) folder" -Status "File $($Hash_Counter + 1) of $($Hash_Count): $($Filename)" -Id 0 -PercentComplete (($Hash_Counter * 100) /$Hash_Count)
+		$Hash_Counter += 1
 		$FilePath =  Join-Path -Path $BaseDir -ChildPath $Filename
 		$MD5Hash = $null
 try {
@@ -581,6 +590,7 @@ try {
 	}
 	END
 	{
+		Write-Progress -Activity "Making MD5 hashs for files in the $($FolderName) folder" -Status "Done" -Id 0 -Completed
 		If ($Folder -eq ".")
 		{
 			Write-Verbose "Done processing files in Core Folder"
@@ -638,22 +648,22 @@ Function RemakeClientHashs()
 	If ($core_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($core_files.Count) core files..."
-        $core_hashs += $core_files | HashOrDelete -Path $Path -Folder "."
+        $core_hashs += $core_files | HashOrDelete -Path $Path -Folder "." -Hash_Count $core_files.Count
 	}
 	If ($data_license_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_license_files.Count) license files..."
-        $data_license_hashs += $data_license_files | HashOrDelete -Path $Path -Folder "data/license"
+        $data_license_hashs += $data_license_files | HashOrDelete -Path $Path -Folder "data/license" -Hash_Count $data_license_files.Count
 	}
 	If ($data_win32na_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_win32na_files.Count) NA data files.."
-        $data_win32na_hashs += $data_win32na_files | HashOrDelete -Path $Path -Folder "data/win32_na"
+        $data_win32na_hashs += $data_win32na_files | HashOrDelete -Path $Path -Folder "data/win32_na" -Hash_Count $data_win32na_files.Count
 	}
 	If ($data_win32jp_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_win32jp_files.Count) JP data files.."
-        $data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32"
+        $data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32" -Hash_Count $data_win32jp_files.Count
 	}
 	$r = @()
 	If ($core_hashs.Count -gt 0)
@@ -675,9 +685,6 @@ Function RemakeClientHashs()
 	Return $r
 }
 
-#$ClientHash = RemakeClientHashs -Path D:\PHANTASYSTARONLINE2_NA\pso2_bin -Verbose
-
-exit 0
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The PowerScript NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
