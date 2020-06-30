@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_30_1113" # Error codes: 35
+"Version 2020_06_30_1144" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -95,7 +95,9 @@ Import-Module Storage
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 "Killing PSO2 Tweaker"
+try {
 Get-Process | Where-Object ProcessName -eq "PSO2 Tweaker" | Stop-Process -Force -ErrorAction Continue
+} catch {}
 
 #All the fun helper functinons
 #Crash hander
