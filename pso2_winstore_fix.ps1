@@ -1865,11 +1865,14 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 	}
-	If (Test-Path -Path "client_na.json" -Verbose)
+	If ($JSONObj.PSO2NARemoteVersion -eq 0)
 	{
-		Remove-Item -Path "client_na.json" -Force -Verbose
+		If (Test-Path -Path "client_na.json" -Verbose)
+		{
+			Remove-Item -Path "client_na.json" -Force -Verbose
+		}
+		RemakeClientHashs -Path $PSO2NABinFoldern -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 	}
-	RemakeClientHashs -Path $PSO2NABinFoldern -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
 }
 Else
 {
