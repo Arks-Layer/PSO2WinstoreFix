@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_06_30_1848" # Error codes: 35
+"Version 2020_07_01_0159" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -763,6 +763,10 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 
+"Look for PSO2 log entries"
+Get-WinEvent -LogName Application | Where-Object Message -like "*pso2*" | fl
+""
+
 "Testing for broken IPv6 network setup"
 $IPv6DR = @()
 $IPv6DR += Get-NetRoute -AddressFamily IPv6 -Verbose | Where-Object DestinationPrefix -eq "::/0" |Where-Object NextHop -ne "::" | Sort-Object ifMetric
@@ -840,18 +844,20 @@ If ($MSIList.Count -gt 0)
 	$MSIList | Export-Clixml -Path "Installed.xml"
 }
 "[OK]"
+$BadMSIs = @()
+$BadMSIs += "{FD585866-680F-4FE0-8082-731D715F90CE}","{FE05D491-4625-496D-A27A-FC318DE398B7}","{85D06868-AE2D-4B82-A4B1-913A757F0A32}"
+$BadMSIs += "{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}"."{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","{0D3E2309-662A-4F32-9A29-278663BEF2E5}"
+$BadMSIs += "{D65C6419-CA01-46F1-B492-18F1BCB71E5D}"
+$MSIR = @()
 $MSIList_Nahimic += $MSIList | Where-Object Vendor -EQ "Nahimic"
+$MSIList_Nahimic += $MSIList | Where-Object IdentifyingNumber -In $BadMSIs
 If ($MSIList_Nahimic.Count -gt 0)
 {
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
 	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
 	$MSIList_Nahimic | select -Property Name, Caption, Description, IdentifyingNumber, PackageName
-	$MSIR = $MSIList_Nahimic | ForEach-Object {
-		Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qr"
-	}
-	If (3010 -IN $MSIR.ExitCode)
-	{
-		"We need to reboot to be done removing the Nahimic software, BUT not right now" | PauseOnly
+	$MSIR += $MSIList_Nahimic | ForEach-Object {
+		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qr"
 	}
 }
 
@@ -863,39 +869,9 @@ If ($MSIList_Bad.Count -gt 0)
 	#PauseOnly
 }
 
-If ("{FD585866-680F-4FE0-8082-731D715F90CE}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\Nahimic\Nahimic2\UserInterface\x64\Nahimic2DevProps.dll" -PathType Leaf)
+If (3010 -In $MSIR.ExitCode)
 {
-	"WARNING: Nahimic 2 software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FD585866-680F-4FE0-8082-731D715F90CE}","/l*vx",('"{0}"' -f $MSILog),"/qf"
-}
-
-If ("{FE05D491-4625-496D-A27A-FC318DE398B7}" -In $MSIList.IdentifyingNumber)
-{
-	"WARNING: Nahimic 2 UI software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2UI.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{FE05D491-4625-496D-A27A-FC318DE398B7}","/l*vx",('"{0}"' -f $MSILog),"/qf"
-}
-
-If ("{85D06868-AE2D-4B82-A4B1-913A757F0A32}" -In $MSIList.IdentifyingNumber) #(Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\Alienware\AWSoundCenter\UserInterface\x64\AWSoundCenterDevProps.dll" -PathType Leaf)
-{
-	"WARNING: AWSoundCenter software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "AWSoundCenter.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{85D06868-AE2D-4B82-A4B1-913A757F0A32}","/l*vx",('"{0}"' -f $MSILog),"/qf"
-}
-
-If ("{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}" -In $MSIList.IdentifyingNumber)
-{
-	"WARNING: Nahimic Settings Configurator software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}","/l*vx",('"{0}"' -f $MSILog),"/qf"
-}
-
-If ("{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}" -In $MSIList.IdentifyingNumber)
-{
-	"WARNING: Nahimic 2+ Audio Driver software detected, it is known to crash PSO2, We will uninstall it"
-	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "Nahimic2AD.log"
-	Start-Process -Wait -FilePath "MsiExec.exe" -ArgumentList "/x","{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","/l*vx",('"{0}"' -f $MSILog),"/qf"
+	"We need to reboot to be done removing the Nahimic software, BUT not right now" | PauseOnly
 }
 
 "Getting list of PNP devices..."
@@ -982,7 +958,7 @@ Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 }
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
-Get-Service -Name "wuauserv","BITS","StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
+Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Restarting XBOX services..."
 Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Service -Force -Verbose
