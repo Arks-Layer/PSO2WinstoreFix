@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_01_0159" # Error codes: 35
+"Version 2020_07_01_0812" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1066,6 +1066,9 @@ $GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -Packag
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 $GamingServices_All += $GamingServices_Any | PackageVersion -Version $GamingServices_version
 
+$GamingServices_Any_Error = @()
+$GamingServices_Any_Error += $GamingServices_Any.PackageUserInformation | Where-Object InstallState -ne "Installed"
+
 $GamingSrv = @()
 $GamingSrv += Get-Service | Where-Object Name -In "GamingServices"
 $GamingSrv_STOP = @()
@@ -1102,9 +1105,14 @@ Catch
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += Get-Service | Where-Object Name -In "GamingServicesNet" | Where-Object Status -NE "Running"
 
-If ($GamingNetSrv_STOP.Count -gt 0)
+If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_All.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
+}
+
+If ($GamingServices_Any_Error.Count -gt 0)
+{
+	$ForceReinstallGS = $true
 }
 
 If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
