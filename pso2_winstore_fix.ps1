@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_0107" # Error codes: 35
+"Version 2020_07_02_0127" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1124,7 +1124,7 @@ If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	"	Please udpate Gaming Services from the MS Store." | PauseOnly
 }
-ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
+ElseIf ($false) #($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
@@ -1135,7 +1135,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 		}
 	}
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
-	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
+	#$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
 	Start-Sleep -Seconds 30
@@ -1147,7 +1147,7 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
-ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
+ElseIf ($false) #($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.24002.0_neutral___8wekyb3d8bbwe.AppxBundle"
