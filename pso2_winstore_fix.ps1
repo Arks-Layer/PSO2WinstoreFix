@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_0245" # Error codes: 35
+"Version 2020_07_02_1100" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -895,8 +895,8 @@ $PNPDevices_AVOL = @()
 $PNPDevices_AVOL += $PNPDevices | Where-Object Manufacturer -eq "A-Volute"
 If ($PNPDevices_AVOL.Count -gt 0)
 {
-	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing" | PauseOnly
-	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service
+	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing"
+	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service -ErrorAction Continue
 }
 $Drivers_AVOL = @()
 $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
@@ -1106,7 +1106,7 @@ Catch
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += Get-Service | Where-Object Name -In "GamingServicesNet" | Where-Object Status -NE "Running"
 
-If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_All.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
+If ($false) #($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_All.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
 }
@@ -1116,7 +1116,7 @@ If ($GamingServices_Any_Error.Count -gt 0)
 	$ForceReinstallGS = $true
 }
 
-If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
+If ($false) #($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 {
 	""
 	"WARING: Old version of Gaming Services found!"
@@ -1142,7 +1142,7 @@ ElseIf ($false) #($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt
 	Restart-Computer -Verbose
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it" | PauseAndFail -ErrorLevel 24
 }
-ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
+ElseIf ($false) #($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
@@ -1185,18 +1185,24 @@ ElseIf ($false) #($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $tr
 	}
 }
 
-If ($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
+If ($false) #($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	""
 	"Starting MS Store App with the Gaming Service Listing..."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	"ERROR: Please make sure to install the Gaming Services from the MS Store." | PauseAndFail -ErrorLevel 26
 }
+ElseIf ($GamingServices_Any.Count -eq 0-or $ForceReinstallGS -eq $true)
+{
+	""
+	"Starting MS Store App with the XBox (Beta) Listing..."
+	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mv0b5hzvk9z")
+}
 
-""
-"Status of GamingService App"
+#""
+#"Status of GamingService App"
 Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
-"End of Status Report"
+#"End of Status Report"
 
 "Finding GameGuard Service..."
 $npggsvc = @()
