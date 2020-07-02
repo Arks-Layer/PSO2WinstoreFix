@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_1341" # Error codes: 35
+"Version 2020_07_02_1858" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1062,7 +1062,7 @@ Else
 $GamingServices_User = @()
 $GamingServices_Any = @()
 $GamingServices_All = @()
-$GamingServices_version = [Version]"2.42.24002.0"
+$GamingServices_version = [Version]"2.42.5001.0"
 $GamingServices_User += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $GamingServices_version
 $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers
 $GamingServices_All += $GamingServices_Any | PackageVersion -Version $GamingServices_version
@@ -1106,7 +1106,7 @@ Catch
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += Get-Service | Where-Object Name -In "GamingServicesNet" | Where-Object Status -NE "Running"
 
-If ($false) #($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_All.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
+If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_Any.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
 }
@@ -1116,7 +1116,7 @@ If ($GamingServices_Any_Error.Count -gt 0)
 	$ForceReinstallGS = $true
 }
 
-If ($false) #($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
+If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 {
 	""
 	"WARING: Old version of Gaming Services found!"
@@ -1124,7 +1124,7 @@ If ($false) #($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	"	Please udpate Gaming Services from the MS Store." | PauseOnly
 }
-ElseIf ($false) #($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
+ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
@@ -1135,14 +1135,14 @@ ElseIf ($false) #($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt
 		}
 	}
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
-	#$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
+	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
 	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
 	Start-Sleep -Seconds 30
 	Restart-Computer -Verbose
 	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it" | PauseAndFail -ErrorLevel 24
 }
-ElseIf ($false) #($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
+ElseIf ($GamingServices_Any.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
@@ -1150,9 +1150,9 @@ ElseIf ($false) #($GamingServices_All.Count -gt 0 -and $GamingServices_User.Coun
 ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
 	"Downloading Gaming Services App... (10MB)"
-	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.24002.0_neutral___8wekyb3d8bbwe.AppxBundle"
-	$FileD = "Microsoft.GamingServices_2.42.24002.0_neutral___8wekyb3d8bbwe.AppxBundle"
-	$SHA512 = "17686F4DC86D8A6E23A76886EC4E2281CD25ACCBB885C6014FA5BCBB6A17B2D41018639279F5F7E255031984A9FCEB0CA1E79FC9CBED056DD64499F8D68C86B4"
+	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
+	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
+	$SHA512 = "F6BE8E57F1B50FD42FA827A842FDFC036039A78A5B773E15D50E7BCDC9074D819485424544B8E2958AEAEA7D635AD47399A31D2F6F91C42CE28991A242294FE3"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18 -SHA512 $SHA512
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
@@ -1174,7 +1174,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	Catch {}
 	$GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
-	If ($false) #($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
+	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
 		"We going to restart the computer to get Gaming Services App install, please run the script again after reboot" | PauseOnly
