@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_1858" # Error codes: 35
+"Version 2020_07_02_1921" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1358,7 +1358,7 @@ ElseIf ($PSO2NAFolder)
 		{
 			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
 		}
-		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
+		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $PSO2NABinFolder -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
 		If ($EmptyFiles.Count -gt 0)
 		{
 			$JSONObj.PSO2NARemoteVersion = 0
