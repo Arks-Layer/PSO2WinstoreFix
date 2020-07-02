@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_0127" # Error codes: 35
+"Version 2020_07_02_0245" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -885,7 +885,7 @@ If ($PNPDevices.Count -gt 0)
 }
 "Getting list of Windows Drivers.."
 $Drivers = @()
-$Drivers += Get-WindowsDriver -Online
+$Drivers += Get-WindowsDriver -Online -ErrorAction Continue
 IF ($Drivers.Count -gt 0)
 {
 	"Export Windows Drivers incause of troubleshooting..."
@@ -1174,7 +1174,7 @@ ElseIf ($false) #($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $tr
 	Catch {}
 	$GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
-	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
+	If ($false) #($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		""
 		"We going to restart the computer to get Gaming Services App install, please run the script again after reboot" | PauseOnly
