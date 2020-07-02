@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_01_1223" # Error codes: 35
+"Version 2020_07_02_0013" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1124,10 +1124,16 @@ If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	"	Please udpate Gaming Services from the MS Store." | PauseOnly
 }
-ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
+ElseIf ($false -and $ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
 	"Removing Gaming Services app..."
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
+	If ($Drivers_XBOXL.Count -gt 0)
+	{
+		$Drivers_XBOX | ForEach-Object {
+			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+		}
+	}
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	""
@@ -1141,13 +1147,18 @@ ElseIf ($GamingServices_All.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
-ElseIf ($GamingServices_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
+ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18 -SHA512 "F6BE8E57F1B50FD42FA827A842FDFC036039A78A5B773E15D50E7BCDC9074D819485424544B8E2958AEAEA7D635AD47399A31D2F6F91C42CE28991A242294FE3"
-
+	If ($Drivers_XBOXL.Count -gt 0)
+	{
+		$Drivers_XBOX | ForEach-Object {
+			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+		}
+	}
 	"Removing Gaming Services app..."
 	$GamingServices_Any | Remove-AppxPackage -PreserveApplicationData:$false -Verbose
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
@@ -1578,11 +1589,11 @@ If (Test-Path "client_na.json" -PathType Leaf)
 	{
 		$NAState += $NAFile | ConvertFrom-Json -Verbose
 	}
-	"Getting list of data files to exclude: $($NAState.Count)"
-	If ($NAState.Count -gt 10)
+	If ($NAState.Count -eq 1)
 	{
 		$NAFiles += (($NAState | Get-Member -MemberType NoteProperty) | Where-Object Name -ne $null | Where-Object Name -ne "").Name
 	}
+  	"Getting list of data files to exclude: $($NAFiles.Count)"
 }
 
 $OldBackups = @()
