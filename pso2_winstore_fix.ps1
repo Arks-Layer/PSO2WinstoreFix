@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_01_0812" # Error codes: 35
+"Version 2020_07_01_1223" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -94,10 +94,11 @@ Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 
-"Killing PSO2 Tweaker"
+"Killing PSO2 processes"
 try {
-Get-Process | Where-Object ProcessName -eq "PSO2 Tweaker" | Stop-Process -Force -ErrorAction Continue
+Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard" | Stop-Process -Force -ErrorAction Continue -Verbose
 } catch {}
+
 
 #All the fun helper functinons
 #Crash hander
@@ -764,7 +765,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 
 "Look for PSO2 log entries"
-Get-WinEvent -LogName Application | Where-Object Message -like "*pso2*" | fl
+Get-WinEvent -LogName Application -ErrorAction Continue | Where-Object Message -like "*pso2*" | fl
 ""
 
 "Testing for broken IPv6 network setup"
@@ -857,7 +858,7 @@ If ($MSIList_Nahimic.Count -gt 0)
 	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
 	$MSIList_Nahimic | select -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR += $MSIList_Nahimic | ForEach-Object {
-		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qr"
+		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb"
 	}
 }
 
@@ -1359,6 +1360,11 @@ ElseIf ($PSO2NAFolder)
 	else
 	{
 		"Non MS Store copy installation detected"
+        $MAX_PATH = ("X:\".Length + 260) - ("\data\win32_na\0000000000000000000000000000000".Length)
+        If ($PSO2NAFolder.Length -ge $MAX_PATH)
+        {
+            "pso2_bin folder is too long and will break old ANSI Win32 programs" | PauseOnly
+        }
 	}
 }
 Else
