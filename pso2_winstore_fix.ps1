@@ -696,7 +696,7 @@ Function RemakeClientHashs()
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
-	"The Powershell Script NOW need to be placed in the Tweaker folder to be able to read the UpdateEngine JSON files" | PauseAndFail -ErrorLevel 31
+	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
 }
 
 Set-ConsoleQuickEdit -Mode $false | Out-Null
