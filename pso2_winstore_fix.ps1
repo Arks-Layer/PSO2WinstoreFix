@@ -11,7 +11,7 @@ Param(
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false,
-	[Bool]$ForceLocalInstall = $true,
+	[Bool]$ForceLocalInstall = $false,
 	[Bool]$SkipStorageCheck = $false,
 	[Bool]$SkipOneDrive = $false
 )
@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_1100" # Error codes: 35
+"Version 2020_07_02_1341" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
