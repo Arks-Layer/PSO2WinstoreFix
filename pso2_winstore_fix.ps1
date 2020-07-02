@@ -1147,7 +1147,7 @@ ElseIf ($false) #($GamingServices_All.Count -gt 0 -and $GamingServices_User.Coun
 	"Installing Gaming Services to user account..."
 	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
-ElseIf ($false) #($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
+ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
 	"Downloading Gaming Services App... (10MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.24002.0_neutral___8wekyb3d8bbwe.AppxBundle"
@@ -1192,7 +1192,7 @@ If ($false) #($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
 	"ERROR: Please make sure to install the Gaming Services from the MS Store." | PauseAndFail -ErrorLevel 26
 }
-ElseIf ($GamingServices_Any.Count -eq 0-or $ForceReinstallGS -eq $true)
+ElseIf ($GamingServices_Any.Count -eq 0 -and $ForceReinstallGS -eq $true)
 {
 	""
 	"Starting MS Store App with the XBox (Beta) Listing..."
