@@ -84,7 +84,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_02_1921" # Error codes: 35
+"Version 2020_07_03_1214" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -833,12 +833,12 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
 
-"Getting Software list..."
+"Getting Software list... (TimeOut set to 3 minutes)"
 "Please note: if you have any broken MSI installations, you may get errors"
 $MSIList = @()
 $MSIList_Nahimic = @()
 $MSIList_Bad = @()
-$MSIList += Get-CimInstance -ClassName Win32_Product -ErrorAction Continue
+$MSIList += Get-CimInstance -ClassName Win32_Product -OperationTimeoutSec 180 -Shallow -ErrorAction Continue
 If ($MSIList.Count -gt 0)
 {
 	"Exporting Installed programs for troubleshooting..."
@@ -866,7 +866,7 @@ $MSIList_Bad += $MSIList | Where-Object Vendor -NE "Nahimic" | Where-Object Name
 If ($MSIList_Bad.Count -gt 0)
 {
 	"Found Bad software:"
-	$MSIList_Bad | select -Property Vendor, Name, Caption, Description, IdentifyingNumber, PackageName
+	$MSIList_Bad | select -Property Vendor, Name, Caption, Version, Description, IdentifyingNumber, PackageName
 	#PauseOnly
 }
 
