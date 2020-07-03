@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1422" # Error codes: 35
+"Version 2020_07_03_1609" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -831,11 +831,11 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 	""
 	If ($WinVer.Build -eq 18362 -or $WinVer.Build -eq 18363) # 1903 and 1909 are the "same"
 	{
-		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512%2010%201909%20x64")
+		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512%2010%201909%20x64") | Out-Null
 	}
 	Else
 	{
-		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512")
+		[Diagnostics.Process]::Start("https://www.catalog.update.microsoft.com/Search.aspx?q=KB4567512") | Out-Null
 	}
 	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
@@ -1880,7 +1880,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 	}
-	If ($JSONObj.PSO2NARemoteVersion -eq 0 -or $ForceReHash -eq $true)
+	If ($JSONObj.PSO2NARemoteVersion -eq 0)
 	{
 		If (Test-Path -Path "client_na.json" -Verbose)
 		{
@@ -1919,6 +1919,16 @@ ElseIf ($CustomPSO2.Count -eq 1)
 {
 	"Good, only found one custom PSO2 install."
 	Get-ChildItem -Filter "*.txt" | Remove-Item -Force -Confirm:$false -ErrorAction Continue
+	If ($ForceReHash -eq $true)
+	{
+		$JSONObj.PSO2NARemoteVersion = 0
+		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+		If (Test-Path -Path "client_na.json" -Verbose)
+		{
+			Remove-Item -Path "client_na.json" -Force -Verbose
+		}
+		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+	}
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
 }
