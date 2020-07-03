@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1609" # Error codes: 35
+"Version 2020_07_03_1720" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -615,7 +615,7 @@ Function RemakeClientHashs()
 		[String]
 		$Path
 	)
-	"Double checking data files for read acess issues..."
+	Write-Host "Double checking data files for read acess issues..."
 	$core_files = @()
 	$data_license_files = @()
 	$data_win32na_files = @()
@@ -646,7 +646,8 @@ Function RemakeClientHashs()
 			$data_win32jp_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
 		}
 	}
-	Write-Verbose "Going to hash all the files, this may take a while"
+	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files
+	Write-Host "Going to hash $($all_file_count) files, this may take a while"
 	$core_hashs = @()
 	$data_license_hashs = @()
 	$data_win32na_hashs = @()
@@ -1354,7 +1355,7 @@ ElseIf ($PSO2NAFolder)
 {
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	"Deleting broken patch files..."
-	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
+	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		$FolderItem = Get-Item -Path $PSO2NABinFolder
