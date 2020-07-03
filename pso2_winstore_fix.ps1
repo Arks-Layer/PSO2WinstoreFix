@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1720" # Error codes: 35
+"Version 2020_07_03_1818" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1082,8 +1082,18 @@ $GamingSrv = @()
 $GamingSrv += Get-Service | Where-Object Name -In "GamingServices"
 $GamingSrv_STOP = @()
 $GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
+$GamingSrv_DISABLED = @()
+$GamingSrv_DISABLED += $GamingSrv | Where-Object StartType -EQ "Disabled"
+
 $GamingNetSrv = @()
 $GamingNetSrv += Get-Service | Where-Object Name -In "GamingServicesNet"
+$GamingNetSrv_DISABLED += $GamingNetSrv | Where-Object StartType -EQ "Disabled"
+
+If ($GamingNetSrv_DISABLED.Count -gt 0 -or $GamingSrv_DISABLED.Count -gt 0)
+{
+	"There a pending uninstall of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
+}
+
 $Drivers_XBOX = $Drivers | Where-Object ProviderName -eq "Xbox"
 
 If ($GamingSrv_STOP.Count -gt 0)
@@ -1111,8 +1121,10 @@ Catch
 	"There was an issue checking the Gaming Services, we will try to reinstall the app..."
 }
 
+$GamingNetSrv = @()
+$GamingNetSrv += Get-Service | Where-Object Name -In "GamingServicesNet"
 $GamingNetSrv_STOP = @()
-$GamingNetSrv_STOP += Get-Service | Where-Object Name -In "GamingServicesNet" | Where-Object Status -NE "Running"
+$GamingNetSrv_STOP += $GamingNetSrv | Where-Object Status -NE "Running"
 
 If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_Any.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
