@@ -13,7 +13,8 @@ Param(
 	[Bool]$SkipRobomove = $false,
 	[Bool]$ForceLocalInstall = $false,
 	[Bool]$SkipStorageCheck = $false,
-	[Bool]$SkipOneDrive = $false
+	[Bool]$SkipOneDrive = $false,
+	[Bool]$ForceReHash = $false
 )
 
 Function PauseAndFail {
@@ -84,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1214" # Error codes: 35
+"Version 2020_07_03_1422" # Error codes: 35
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -614,6 +615,7 @@ Function RemakeClientHashs()
 		[String]
 		$Path
 	)
+	"Double checking data files for read acess issues..."
 	$core_files = @()
 	$data_license_files = @()
 	$data_win32na_files = @()
@@ -711,6 +713,11 @@ If ($TweakerMode -eq $true)
 	$PauseOnFail = $false
 	$SkipRobomove = $true
 	$ForceLocalInstall = $true
+}
+
+If (-Not (Test-Path -Path "client_na.json" -PathType Leaf))
+{
+	$ForceReHash = $true
 }
 
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
@@ -1359,7 +1366,7 @@ ElseIf ($PSO2NAFolder)
 			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
 		}
 		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $PSO2NABinFolder -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
-		If ($EmptyFiles.Count -gt 0)
+		If ($EmptyFiles.Count -gt 0 -or $ForceReHash -eq $true)
 		{
 			$JSONObj.PSO2NARemoteVersion = 0
 			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
@@ -1873,7 +1880,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
 		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 	}
-	If ($JSONObj.PSO2NARemoteVersion -eq 0)
+	If ($JSONObj.PSO2NARemoteVersion -eq 0 -or $ForceReHash -eq $true)
 	{
 		If (Test-Path -Path "client_na.json" -Verbose)
 		{
