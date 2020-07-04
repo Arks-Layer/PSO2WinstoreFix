@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_04_0244" # Error codes: 36
+"Version 2020_07_04_0249" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1252,10 +1252,16 @@ If ($npggsvc.Count -gt 0)
 	}
 }
 
+"Looking at My Document folder"
 If ($SkipOneDrive -ne $true)
 {
 	$OneDriveEnv = @()
-	$PersonalFolder = [environment]::getfolderpath("mydocuments")
+	$PersonalFolder = [environment]::getfolderpath([Environment+SpecialFolder]::MyDocuments)
+	"User Document folder is: $($PersonalFolder)"
+	If ($PersonalFolder -eq "")
+	{
+		"Ahhh, Can not find your Document Folder" | PauseOnly
+	}
 	$OneDriveEnv += Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*"
 	If (-Not (Test-Path -LiteralPath $PersonalFolder -PathType Container))
 	{
