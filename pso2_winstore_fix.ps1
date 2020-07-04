@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1818" # Error codes: 36
+"Version 2020_07_03_1853" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1855,9 +1855,10 @@ Get-AppxVolume
 ""
 "Status of Appx volume that your custom PSO2 install is on:"
 $AppxVols = @()
+$PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
-Add-AppxVolume -Path ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name) -ErrorAction Continue
-$Appxvols += Get-AppxVolume -Path ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
+Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
+$Appxvols += Get-AppxVolume -Path $PSO2Drive
 } catch {}
 If ($AppxVols.Count -eq 0)
 {
@@ -1866,6 +1867,8 @@ If ($AppxVols.Count -eq 0)
 ElseIf ($AppxVols.IsOffline -In $true)
 {
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
+	Remove-AppxVolume -Volume $PSO2Drive
+	Add-AppxVolume -Volume $PSO2Drive
 	#PauseAndFail -ErrorLevel 29
 }
 else
