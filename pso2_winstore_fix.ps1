@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_2207" # Error codes: 36
+"Version 2020_07_03_2206" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -293,9 +293,9 @@ function RobomoveByFolder {
 	If ($file -eq "*.*" -or $file -eq "0*.*" -and $SkipRemove -eq $false)
 	{
 		"Deleting broken patch files..."
-		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq "pat" | Remove-Item -Force -ErrorAction Continue
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
 		"Deleting empty files in the source folder..."
-		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -Verbose -ErrorAction Continue
+		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 	}
 	If ($SkipRemove -eq $false)
 	{
@@ -1388,7 +1388,7 @@ ElseIf ($PSO2NAFolder)
 			{
 				Remove-Item -Path "client_na.json" -Force -Verbose
 			}
-			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na_.json"
 		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
@@ -1943,7 +1943,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 		{
 			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
-		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na_.json"
 	}
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
