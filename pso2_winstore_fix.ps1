@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_04_0221" # Error codes: 36
+"Version 2020_07_04_0244" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1490,73 +1490,115 @@ Else
 
 $MissingFiles = $false
 "Checking for appxmanifest.xml..."
-If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force -Verbose
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
-	$XMLPath = (Join-Path -Path $PSO2NAFolder -ChildPath "appxmanifest.xml")
-	[xml]$XMLContent = Get-Content -LiteralPath $XMLPath -Encoding UTF8 -Verbose
+	[xml]$XMLContent = Get-Content -LiteralPath $Testing -Encoding UTF8 -Verbose
 	If ($XMLContent.Package.Extension -ne $null)
 	{
 		"	BUT it is the MS Store copy, not Custom one"
-		Remove-Item -LiteralPath $XMLPath -Force -Verbose
+		Remove-Item -LiteralPath $Testing -Force -Verbose
 		$MissingFiles = $true
 	}
 }
 "Checking for MicrosoftGame.config..."
-If (-Not (Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NAFolder -ChildPath "MicrosoftGame.config"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force -Verbose
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
 }
 "Checking for pso2_bin/pso2.exe file..."
-If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "pso2.exe" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NABinFolder -ChildPath "pso2.exe"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ($false) #((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force -Verbose
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
 }
 "Checking for pso2_bin/Logo.png file..."
-If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "Logo.png" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NABinFolder -ChildPath "Logo.png"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
 }
 "Checking for pso2_bin/SmallLogo.png file..."
-If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NABinFolder -ChildPath "SmallLogo.png"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
 }
 "Checking for pso2_bin/SplashScreen.png file..."
-If (-Not (Join-Path -Path $PSO2NABinFolder -ChildPath "SplashScreen.png" | Test-Path -PathType Leaf))
+$Testing = Join-Path -Path $PSO2NABinFolder -ChildPath "SplashScreen.png"
+If (-Not ($Testing | Test-Path -PathType Leaf))
 {
 	$MissingFiles = $true
 	"	MISSING"
 }
-else
+ElseIf ((Get-Item -LiteralPath $Testing).Length -eq 0)
+{
+	"	EMPTY"
+	Remove-Item -LiteralPath $Testing -Force
+	$MissingFiles = $true
+}
+Else
 {
 	"	FOUND"
 }
+
 If ($MissingFiles -eq $true)
 {
 	"Downloading Starter files... (3 MB)"
