@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_04_0249" # Error codes: 36
+"Version 2020_07_04_0340" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1493,6 +1493,9 @@ Else
 {
 	"Unknown issue geting Storage data"
 }
+
+"Checking for broken link files"
+Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -File | Where-Object Mode -eq "-a---l" | Remove-Item -Force -Verbose
 
 $MissingFiles = $false
 "Checking for appxmanifest.xml..."
