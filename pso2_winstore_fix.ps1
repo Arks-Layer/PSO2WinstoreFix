@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_2206" # Error codes: 36
+"Version 2020_07_04_0221" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -304,7 +304,7 @@ function RobomoveByFolder {
 		If ($EmptyFiles.Count -gt 0)
 		{
 			$JSONObj.PSO2NARemoteVersion = 0
-			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 			If (Test-Path -Path "client_na.json" -Verbose)
 			{
@@ -575,13 +575,14 @@ Function HashOrDelete()
 		$FilePath =  Join-Path -Path $BaseDir -ChildPath $Filename
 		$MD5Hash = $null
 try {
-		$MD5Hash = Get-FileHash -LiteralPath $FilePath | Select-Object Hash, Path
+		$MD5Hash = Get-FileHash -LiteralPath $FilePath -Algorithm MD5 | Select-Object Hash, Path
 } catch {$_}
 		If ($MD5Hash -eq $null)
 		{
 			Remove-Item -LiteralPath $_.PSPath -Force -Verbose -ErrorAction Continue -WhatIf
 			Return
 		}
+		$MD5HashS = ([string]$MD5Hash.Hash).ToUpper()
 		If ($Folder -eq ".")
 		{
 			$HashName_unix = $Filename
@@ -591,7 +592,7 @@ try {
 			$HashName_dos = (Join-Path -Path $Folder -ChildPath $FileName)
 			$HashName_unix = $HashName_dos.Replace('\','/')
 		}
-		Return @{$HashName_unix = $MD5Hash.Hash}
+		Return @{$HashName_unix = $MD5HashS}
 	}
 	END
 	{
@@ -1133,7 +1134,7 @@ If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_Any.Count -gt 0 -and $Ga
 
 If ($GamingServices_Any_Error.Count -gt 0)
 {
-	$ForceReinstallGS = $true
+	#$ForceReinstallGS = $true
 }
 
 If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
@@ -1382,13 +1383,13 @@ ElseIf ($PSO2NAFolder)
 		If ($EmptyFiles.Count -gt 0 -or $ForceReHash -eq $true)
 		{
 			$JSONObj.PSO2NARemoteVersion = 0
-			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 			If (Test-Path -Path "client_na.json" -Verbose)
 			{
 				Remove-Item -Path "client_na.json" -Force -Verbose
 			}
-			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na_.json"
+			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 		}
 		""
 		"WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
@@ -1669,7 +1670,7 @@ try {
 } Catch {}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
 
 If ($OldBackups.Count -gt 0)
@@ -1698,7 +1699,7 @@ try {
 } Catch {}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
 
 If ($MWA.Count -gt 0)
@@ -1726,7 +1727,7 @@ try {
 } Catch {}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
 
 If ($OldPackages.Count -gt 0)
@@ -1893,7 +1894,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	If ($EmptyFiles.Count -gt 0)
 	{
 		$JSONObj.PSO2NARemoteVersion = 0
-		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
 	}
 	If ($JSONObj.PSO2NARemoteVersion -eq 0)
@@ -1902,7 +1903,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 		{
 			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
-		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json"
+		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 	}
 }
 Else
@@ -1938,12 +1939,12 @@ ElseIf ($CustomPSO2.Count -eq 1)
 	If ($ForceReHash -eq $true)
 	{
 		$JSONObj.PSO2NARemoteVersion = 0
-		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath
+		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 		If (Test-Path -Path "client_na.json" -Verbose)
 		{
 			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
-		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na_.json"
+		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 	}
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
