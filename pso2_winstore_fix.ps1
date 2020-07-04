@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_03_1853" # Error codes: 36
+"Version 2020_07_03_2207" # Error codes: 36
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -646,7 +646,7 @@ Function RemakeClientHashs()
 			$data_win32jp_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
 		}
 	}
-	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files
+	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files.Count
 	Write-Host "Going to hash $($all_file_count) files, this may take a while"
 	$core_hashs = @()
 	$data_license_hashs = @()
