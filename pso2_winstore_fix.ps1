@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_05_1555" # Error codes: 38
+"Version 2020_07_05_1717" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -623,11 +623,12 @@ Function RemakeClientHashs()
 	$data_win32jp_files = @()
 	$core_files = Get-ChildItem -LiteralPath $Path -File -Filter "*.dll" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.exe" -Name
-	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "otp_notice_na.rtf" -Name
-	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "edition.txt" -Name
-	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "gameversion.ver" -Name
-	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "PSO2US.ini" -Name
-	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "GameGuard.des" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.rtf" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.txt" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.ver" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.ini" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.des" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.png" -Name
 	$data_folder = Join-Path -Path $Path -ChildPath "data"
 	If (Test-Path -LiteralPath $data_folder -PathType Container)
 	{
@@ -1102,7 +1103,7 @@ $GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -Package
 $GamingServices_All += $GamingServices_Any | PackageVersion -Version $GamingServices_version
 
 $GamingServices_Any_Error = @()
-$GamingServices_Any_Error += $GamingServices_Any.PackageUserInformation | Where-Object InstallState -ne "Installed"
+$GamingServices_Any_Error += $GamingServices_Any.PackageUserInformation | Where-Object InstallState -NotIn "Installed","Staged"
 
 $GamingSrv = @()
 $GamingSrv += Get-Service | Where-Object Name -In "GamingServices"
@@ -1847,9 +1848,9 @@ $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Package
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $DirectXRuntime_version
 
 $DirectXRuntime_User_Error = @()
-$DirectXRuntime_User_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -ne "Installed"
+$DirectXRuntime_User_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
 $DirectXRuntime_All_Error = @()
-$DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -ne "Installed"
+$DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
 
 if ($DirectXRuntime_All.Count -gt 0 -and ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_User_Error.Count -gt 0) -and $DirectXRuntime_All_Error.Count -eq 0)
 {
@@ -1874,9 +1875,9 @@ $VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Packa
 $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $VCLibs_Version
 
 $VCLibs_User_Error = @()
-$VCLibs_User_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -ne "Installed" 
+$VCLibs_User_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
 $VCLibs_All_Error = @()
-$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -ne "Installed" 
+$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged" 
 
 If ($VCLibs_All.Count -gt 0 -And ($VCLibs_User.Count -eq 0 -or $VCLibs_User_Error.Count -gt 0) -and $VCLibs_All_Error.Count -eq 0)
 {
@@ -1952,8 +1953,10 @@ Get-AppxVolume
 ""
 "Status of Appx volume that your custom PSO2 install is on:"
 $AppxVols = @()
+$PSO2Drive_Apps = @()
 $PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
+$PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue | Where-Object Name -NE "100B7A24.oxyna"
 Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
 $Appxvols += Get-AppxVolume -Path $PSO2Drive
 } catch {}
@@ -1964,8 +1967,15 @@ If ($AppxVols.Count -eq 0)
 ElseIf ($AppxVols.IsOffline -In $true)
 {
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
-	Remove-AppxVolume -Volume $PSO2Drive
-	Add-AppxVolume -Volume $PSO2Drive
+	If ($PSO2Drive_App.Count -eq 0)
+	{
+		Remove-AppxVolume -Volume $PSO2Drive
+		Add-AppxVolume -Path $PSO2Drive
+	}
+	Else
+	{
+    	Mount-AppxVolume -Volume $PSO2Drive
+    }
 	#PauseAndFail -ErrorLevel 29
 }
 else
