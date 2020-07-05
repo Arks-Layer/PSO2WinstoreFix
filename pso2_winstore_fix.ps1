@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_04_2233" # Error codes: 37
+"Version 2020_07_05_1496" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -698,6 +698,31 @@ Function RemakeClientHashs()
 	Return $r
 }
 
+Function Check-Path()
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[String]
+		$Path,
+		[Parameter(Mandatory=$true)]
+		[String[]]
+		$BadFolders
+	)
+	If ($Path -in $BadFolders)
+	{
+		Return $true
+	}
+	$Parent = $Path | Split-Path -Parent
+	If ($Parent -eq $Path)
+	{
+		Return $false
+	}
+	Return Check-Path -Path $Parent -BadFolders $BadFolders
+}
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
@@ -1256,7 +1281,7 @@ If ($npggsvc.Count -gt 0)
 If ($SkipOneDrive -ne $true)
 {
 	$OneDriveEnv = @()
-	$PersonalFolder = [environment]::getfolderpath([Environment+SpecialFolder]::MyDocuments)
+	$PersonalFolder = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
 	"User Document folder is: $($PersonalFolder)"
 	If ($PersonalFolder -eq "")
 	{
@@ -1422,8 +1447,24 @@ Else
 	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions?" | PauseAndFail -ErrorLevel 9
 }
 
+"Checking if PSO2 is installed in a blackhole folder"
+$BadFolders = @()
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::Favorites)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
+$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+$BadFolders += (Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*").Value | Sort-Object -Unique
+If (Check-Path -Path $PSO2NAFolder -BadFolders $BadFolders)
+{
+	"Sorry, look like PSO2NA was installed to a blackhole folder" | PauseAndFail -ErrorLevel 38
+}
+
 "Get Storage Service Ready"
-Restart-Service -Name "StorSvc"
+Get-Service -Name "StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Report of Drive status"
 $Volumes = @()
