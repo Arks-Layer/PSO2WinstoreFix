@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_05_1717" # Error codes: 38
+"Version 2020_07_05_1916" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1561,7 +1561,7 @@ Else
 {
 	"	FOUND"
 	[xml]$XMLContent = Get-Content -LiteralPath $Testing -Encoding UTF8 -Verbose
-	If ($XMLContent.Package.Extension -ne $null)
+	If ($XMLContent.Package.Extension -ne $null -or $XMLContent.Package.Applications.Application.Executable -ne "pso2_bin/pso2.exe")
 	{
 		"	BUT it is the MS Store copy, not Custom one"
 		Remove-Item -LiteralPath $Testing -Force -Verbose
@@ -2010,6 +2010,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
 		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
+		$ForceReHash = $false
 	}
 }
 Else
