@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_04_0340" # Error codes: 36
+"Version 2020_07_04_2233" # Error codes: 37
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1369,6 +1369,10 @@ If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 {
 	""
 	"ERROR: The $($PSO2NAFolder) folder does not exist. Please check your PSO2 Tweaker settings." | PauseAndFail -ErrorLevel 17
+}
+ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
+{
+	"Sorry, but it seems you installed PSO2NA at the top of a drive, please move the pso2_bin folder into an another folder" | PauseANdFail -ErrorLevel 37
 }
 ElseIf ($PSO2NAFolder)
 {
