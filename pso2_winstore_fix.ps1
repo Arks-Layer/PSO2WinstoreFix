@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_05_1916" # Error codes: 38
+"Version 2020_07_05_07_0247" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1002,6 +1002,8 @@ Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Servi
 Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object ProcessName -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
+$AddonVolumes = @()
+$AddonVolumes += Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $false
 
 "Checking for NET Framework 2.2 (2.2.27912.0+)"
 $NETFramework = @()
@@ -1278,34 +1280,35 @@ If ($npggsvc.Count -gt 0)
 	}
 }
 
+$OneDrives = @()
+$OneDrives += (Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*").Value | Sort-Object -Unique
+
 "Looking at My Document folder"
 If ($SkipOneDrive -ne $true)
 {
-	$OneDriveEnv = @()
 	$PersonalFolder = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
 	"User Document folder is: $($PersonalFolder)"
 	If ($PersonalFolder -eq "")
 	{
 		"Ahhh, Can not find your Document Folder" | PauseOnly
 	}
-	$OneDriveEnv += Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*"
 	If (-Not (Test-Path -LiteralPath $PersonalFolder -PathType Container))
 	{
 		"ERROR: The Documents folder is missing: $($PersonalFolder)" | PauseAndFail -ErrorLevel 32
 	}
 	$OneDriveFolder = $null
-	If ($OneDriveEnv.Count -gt 0)
+	If ($OneDrives.Count -gt 0)
 	{
-		$OneDriveEnv | ForEach-Object {
-			If (-Not (Test-Path -LiteralPath $_.Value -PathType Container))
+		$OneDrives | ForEach-Object {
+			If (-Not (Test-Path -LiteralPath $_ -PathType Container))
 			{
 				Return
 			}
-			Elseif (-Not (($PersonalFolder | Get-Item).Parent.FullName -eq $_.Value))
+			Elseif (-Not (Check-Path -Path $PersonalFolder -BadFolders $_))
 			{
 				Return
 			}
-			$OneDriveFolder = $_.Value
+			$OneDriveFolder = $_
 		}
 	}
 	$SegaFolder = Join-Path $PersonalFolder -ChildPath "SEGA"
@@ -1458,7 +1461,16 @@ $BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::
 $BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
 $BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
 $BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
-$BadFolders += (Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*").Value | Sort-Object -Unique
+If ($OneDrives.Count -gt 0)
+{
+	$BadFolders += $OneDrives
+}
+If ( $AddonVolumes.Count -gt 0)
+{
+	$BadFolders += Join-Path -Path ($AddonVolumes.PackageStorePath|Split-Path -Parent) -ChildPath "Program Files"
+}
+"The following folders are noted as blackholes:"
+$BadFolders
 If (Check-Path -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
 	"Sorry, look like PSO2NA was installed to a blackhole folder" | PauseAndFail -ErrorLevel 38
@@ -1926,9 +1938,26 @@ $PSO2Packages_Bad += $PSO2Packages | Where-Object Status -ne "Ok"
 #$PSO2Packages_Bad += $PSO2Packages | PackageVersion -Version "1.0.7.0"
 
 $XBOXURI = Test-Path -LiteralPath "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\PackageRepository\Extensions\windows.protocol\ms-xbl-78a72674" -PathType Container
-If ($XBOXURI -eq $false -or $PSO2Packages_User.Count -eq 0)
+"Checking if XBOX protocol ms-xbl-78a72674 is registed"
+If ($XBOXURI -eq $false)
 {
+	"	BAD"
 	$ForceReinstall = $true
+}
+Else
+{
+	"	GOOD"
+}
+
+"Checking if an PSO2NA package is already installed on the system"
+If ($PSO2Packages_User.Count -eq 0)
+{
+	"	YES"
+	$ForceReinstall = $true
+}
+Else
+{
+	"	NO"
 }
 
 If ($ForceReinstall)
