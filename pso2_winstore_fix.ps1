@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_07_0327" # Error codes: 38
+"Version 2020_07_07_1259" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -98,7 +98,7 @@ Add-Type -AssemblyName PresentationCore,PresentationFramework
 "Killing PSO2 processes"
 try {
 Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard" | Stop-Process -Force -ErrorAction Continue -Verbose
-} catch {}
+} catch {$_}
 
 
 #All the fun helper functinons
@@ -120,7 +120,7 @@ try {
 	$global:responsebody
 	Stop-Transcript
 	$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-} catch {}
+} catch {$_}
 	#exit 254
 }
 
@@ -454,7 +454,7 @@ Function FindMutable_Appx
 	$PackageFolders = @()
 try {
 	$OnlineVolules += Get-AppxVolume -Online -Verbose
-} catch {}
+} catch {$_}
 	If ($OnlineVolules.Count -gt 0)
 	{
 		$MutableVolumes += $OnlineVolules | ForEach-Object {
@@ -821,7 +821,7 @@ If ($IPv6DR.Count -gt 0)
 	"Testing if we can get an IPv6 only data..."
 	try {
 	$IPv6Test = Invoke-RestMethod -Uri "http://ipv6.alam.srb2.org/PSO2/BASICDev_proxy/config.json" -UserAgent "Arks-Layer pso2_winstore_fix" -TimeoutSec 10 -ErrorAction Stop -Verbose
-	} catch {}
+	} catch {$_}
 	If ($IPv6Test -eq $null)
 	{
 		"Failed IPv6 test, disabling IPv6"
@@ -875,7 +875,7 @@ $MSIList_Nahimic = @()
 $MSIList_Bad = @()
 try {
 $MSIList += Get-CimInstance -ClassName Win32_Product -OperationTimeoutSec 300 -Shallow -ErrorAction Continue
-} catch {}
+} catch {$_}
 If ($MSIList.Count -gt 0)
 {
 	"Exporting Installed programs for troubleshooting..."
@@ -1005,7 +1005,7 @@ Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Princ
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 $AddonVolumes = @()
-$AddonVolumes += Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $false
+$AddonVolumes += Get-AppxVolume -Online | Where-Object -Property IsSystemVolume -eq $false
 
 "Checking for NET Framework 2.2 (2.2.27912.0+)"
 $NETFramework = @()
@@ -1072,7 +1072,7 @@ ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and 
 	Try {
 		$Download | Add-AppxPackage -Volume $SystemVolume -Verbose -ForceApplicationShutdown -ForceUpdateFromAnyVersion
 	}
-	Catch {}
+	Catch {$_}
 }
 
 $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
@@ -1222,7 +1222,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 		$BadInstall = $false
 		$ForceReinstallGS = $true
 	}
-	Catch {}
+	Catch {$_}
 	$GamingServices_Any = @()
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
@@ -1268,7 +1268,7 @@ If ($npggsvc.Count -gt 0)
 		$npggsvc | Where-Object Statis -EQ "Running" | Stop-Service -ErrorAction Continue -PassThru | Set-Service -StartupType Manual
 		$BrokenGG = $false
 	}
-	Catch {}
+	Catch {$_}
 	$npggsvcK = "HKLM:SYSTEM\CurrentControlSet\Services\npggsvc"
 	If (-Not (Test-Path -LiteralPath $npggsvcK))
 	{
@@ -1360,7 +1360,7 @@ If ($JSONObj)
 	try {
 		$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
 	}
-	catch {}
+	catch {$_}
 }
 Else
 {
@@ -1485,7 +1485,7 @@ Get-Service -Name "StorSvc" | Where-Object Statis -NE "Running" | Start-Service 
 $Volumes = @()
 try{
 $Volumes += Get-Volume -ErrorAction Continue
-} catch {}
+} catch {$_}
 $Volumes | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
 "End of Report"
 "Checking if Volume is formated as NTFS..."
@@ -1770,15 +1770,15 @@ If ($OldPackages.Count -gt 0)
 try {
 		"Deleting files in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting subfolders in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting $($OldBin) Folder..."
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
@@ -1799,15 +1799,15 @@ If ($OldBackups.Count -gt 0)
 try {
 		"Deleting files in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting subfolders in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting $($OldBin) Folder..."
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
@@ -1827,15 +1827,15 @@ If ($MWA.Count -gt 0)
 try {
 		"Deleting files in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting subfolders in $($OldBin) Folder..."
 		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 try {
 		"Deleting $($OldBin) Folder..."
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {}
+} Catch {$_}
 	}
 	$JSONObj.PSO2NARemoteVersion = 0
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
@@ -1988,9 +1988,11 @@ $PSO2Drive_Apps = @()
 $PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
 $PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue | Where-Object Name -NE "100B7A24.oxyna"
+} catch {$_}
+try {
 Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
-$Appxvols += Get-AppxVolume -Path $PSO2Drive
-} catch {}
+$AppxVols += Get-AppxVolume | Where-Object PackageStorePath -Like "$($PSO2Drive)*"
+} catch {$_}
 If ($AppxVols.Count -eq 0)
 {
 	"	TRAP"
@@ -2000,7 +2002,7 @@ ElseIf ($AppxVols.IsOffline -In $true)
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
 	If ($PSO2Drive_App.Count -eq 0)
 	{
-		Remove-AppxVolume -Volume $PSO2Drive
+		Remove-AppxVolume -Volume $AppxVols.Name
 		Add-AppxVolume -Path $PSO2Drive
 	}
 	Else
