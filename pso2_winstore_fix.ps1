@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_05_07_0247" # Error codes: 38
+"Version 2020_07_07_0327" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -868,12 +868,14 @@ If ($WinPatchs.HotFixID -contains "KB4560960" -and (-Not ($WinPatchs.HotFixID -c
 	"KB4560960 patch is installed, it been known to crash PSO2, please install KB4567512 update" | PauseOnly
 }
 
-"Getting Software list... (TimeOut set to 3 minutes)"
+"Getting Software list... (TimeOut set to 5 minutes)"
 "Please note: if you have any broken MSI installations, you may get errors"
 $MSIList = @()
 $MSIList_Nahimic = @()
 $MSIList_Bad = @()
-$MSIList += Get-CimInstance -ClassName Win32_Product -OperationTimeoutSec 180 -Shallow -ErrorAction Continue
+try {
+$MSIList += Get-CimInstance -ClassName Win32_Product -OperationTimeoutSec 300 -Shallow -ErrorAction Continue
+} catch {}
 If ($MSIList.Count -gt 0)
 {
 	"Exporting Installed programs for troubleshooting..."
