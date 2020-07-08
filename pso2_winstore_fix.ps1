@@ -85,7 +85,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_07_1259" # Error codes: 38
+"Version 2020_07_07_1938" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1845,7 +1845,7 @@ If ($OldPackages.Count -gt 0)
 {
 	"If this takes more then 30 minutes, you may have to reboot."
 	"Unregistering the old PSO2 from the Windows Store... (This may take a while, don't panic!)"
-	$OldPackages | Remove-AppxPackage -AllUsers -Verbose
+	$OldPackages | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
 }
 Else
 {
@@ -1932,7 +1932,7 @@ $PSO2Packages_User = @()
 $PSO2Packages_Good = @()
 $PSO2Packages_Bad = @()
 $EmptyFiles = Get-ChildItem -LiteralPath $PSO2NABinFolder | Where-Object Name -ne "patchlist.txt" | Where-Object Name -NotLike "*.pat" | Where-Object Name -ne "PSO2NA_PSLOG.log" | Where-Object Name -NotLike "pso2.exe" | Where-Object Length -eq 0
-$PSO2Packages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUser | Where-Object -Property SignatureKind -EQ "None"
+$PSO2Packages += CC | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_User += Get-AppxPackage -Name "100B7A24.oxyna" | Where-Object -Property SignatureKind -EQ "None"
 $PSO2Packages_Good += $PSO2Packages | Where-Object InstallLocation -eq $PSO2NAFolder | Where-Object Status -EQ "Ok"
 $PSO2Packages_Bad += $PSO2Packages | Where-Object InstallLocation -ne $PSO2NAFolder
@@ -1987,7 +1987,7 @@ $AppxVols = @()
 $PSO2Drive_Apps = @()
 $PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
-$PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue | Where-Object Name -NE "100B7A24.oxyna"
+$PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue
 } catch {$_}
 try {
 Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
@@ -2002,12 +2002,12 @@ ElseIf ($AppxVols.IsOffline -In $true)
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
 	If ($PSO2Drive_App.Count -eq 0)
 	{
-		Remove-AppxVolume -Volume $AppxVols.Name
-		Add-AppxVolume -Path $PSO2Drive
+		Remove-AppxVolume -Volume $AppxVols.Name -ErrorAction Continue
+		Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
 	}
 	Else
 	{
-    	Mount-AppxVolume -Volume $PSO2Drive
+    	Mount-AppxVolume -Volume $PSO2Drive -ErrorAction Continue
     }
 	#PauseAndFail -ErrorLevel 29
 }
