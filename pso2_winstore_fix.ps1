@@ -23,29 +23,35 @@ Function PauseAndFail {
 	(
 		[Parameter(Mandatory=$true)]
 		[Int]
-		$ErrorLevel = 255,
+		$ErrorLevel,
 		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
 		[String]
-		$ErrorMessage = "Click OK to fail hard."
+		$ErrorMessage
 	)
-	$ErrorMessage
-	Stop-Transcript
-	Set-ConsoleQuickEdit -Mode $true
-	If ($PauseOnFail = $false)
+	PROCESS
 	{
-		exit $ErrorLevel
+		$ErrorMessage
 	}
-	ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
+	END
 	{
-		[System.Windows.MessageBox]::Show($ErrorMessage)
-		exit $ErrorLevel
-	}
-	Else
-	{
-		""
-		"Press any key to exit."
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-		exit $ErrorLevel
+		Stop-Transcript
+		Set-ConsoleQuickEdit -Mode $true
+		If ($PauseOnFail -eq $false)
+		{
+			exit $ErrorLevel
+		}
+		ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
+		{
+			[System.Windows.MessageBox]::Show($ErrorMessage)
+			exit $ErrorLevel
+		}
+		Else
+		{
+			Write-Information ""
+			Write-Information "Press any key to exit."
+			$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+			exit $ErrorLevel
+		}
 	}
 }
 
@@ -63,10 +69,12 @@ Try
 {
 	Do
 	{
-		Stop-Transcript
+		Stop-Transcript -ErrorAction Stop
 	} While ($true)
 }
-Catch {}
+Catch {
+	Write-Information "Testing if we can write t our own log file"
+}
 #Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
 If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
@@ -85,7 +93,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_08_0049" # Error codes: 38
+"Version 2020_07_08_1937" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -112,15 +120,21 @@ Function Failure
 		[ValidateNotNullOrEmpty()]
 		$Error
 	)
+	PROCESS
+	{
 try {
-	$global:result = $Error.Exception.Response.GetResponseStream()
-	$global:reader = New-Object System.IO.StreamReader($global:result)
-	$global:responseBody = $global:reader.ReadToEnd();
-	"Status: A system exception was caught."
-	$global:responsebody
-	Stop-Transcript
-	$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		$global:result = $Error.Exception.Response.GetResponseStream()
+		$global:reader = New-Object System.IO.StreamReader($global:result)
+		$global:responseBody = $global:reader.ReadToEnd();
+		Write-Information "Status: A system exception was caught."
+		Write-Information $global:responsebody
 } catch {$_}
+	}
+	END
+	{
+		Stop-Transcript
+		$null = $global:Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	}
 	#exit 254
 }
 
@@ -130,7 +144,7 @@ Function DownloadMe
 	[CmdletBinding()]
 	Param
 	(
-		[Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[Parameter(Mandatory=$true)]
 		[ValidateNotNullOrEmpty()]
 		[String]
 		$URI,
@@ -141,7 +155,7 @@ Function DownloadMe
 		[Parameter(Mandatory=$true)]
 		[ValidateNotNullOrEmpty()]
 		[Int]
-		$ErrorLevel = 255,
+		$ErrorLevel,
 		[bool]
 		$Overwrite = $false,
 		[String]
@@ -168,23 +182,23 @@ Function DownloadMe
 		If (Test-Path -LiteralPath $OutFile -PathType Leaf)
 		{
 			$FileHash = Get-FileHash -LiteralPath $OutFile -Algorithm SHA512 -Verbose
-			If ($SHA512 -ne $null -and $FileHash.Hash -ne $SHA512)
+			If ($null -ne $SHA512 -and $FileHash.Hash -ne $SHA512)
 			{
-				""
-				"Error: Failed to download file! The File had been does not match the checksum"
-				""
-				$URI
-				""
+				Write-Information ""
+				Write-Information "Error: Failed to download file! The File had been does not match the checksum"
+				Write-Information ""
+				Write-Information $URI
+				Write-Information ""
 				"Download Failed" | PauseAndFail -ErrorLevel $ErrorLevel
 			}
 		}
 		Else
 		{
-			""
-			"Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
-			""
-			$URI
-			""
+			Write-Information ""
+			Write-Information "Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
+			Write-Information ""
+			Write-Information $URI
+			Write-Information ""
 			"Download Failed" | PauseAndFail -ErrorLevel $ErrorLevel
 		}
 		Return Resolve-Path -LiteralPath $OutFile
@@ -274,7 +288,7 @@ function RobomoveByFolder {
 	}
 	If (-Not (Test-Path -LiteralPath $source -PathType Container))
 	{
-		"ERROR: $($source) is not a folder"
+		Write-Information "ERROR: $($source) is not a folder"
 		return
 	}
 	If (-Not (Test-Path -LiteralPath $destination -PathType Container))
@@ -292,14 +306,14 @@ function RobomoveByFolder {
 	$logpath = Resolve-Path -LiteralPath $logfile
 	If ($file -eq "*.*" -or $file -eq "0*.*" -and $SkipRemove -eq $false)
 	{
-		"Deleting broken patch files..."
+		Write-Information "Deleting broken patch files..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
-		"Deleting empty files in the source folder..."
+		Write-Information "Deleting empty files in the source folder..."
 		Get-ChildItem -LiteralPath $source -Force -File -ErrorAction Continue | Where-Object Length -eq 0 | Remove-Item -Force -ErrorAction Continue
 	}
 	If ($SkipRemove -eq $false)
 	{
-		"Deleting empty files in the dest folder..."
+		Write-Information "Deleting empty files in the dest folder..."
 		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $destination -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
 		If ($EmptyFiles.Count -gt 0)
 		{
@@ -312,7 +326,7 @@ function RobomoveByFolder {
 			}
 		}
 	}
-	"Starting robocopy job..."
+	Write-Information "Starting robocopy job..."
 	$Cmdlist = "/C","Robocopy.exe", ('"{0}"' -f $source),('"{0}"' -f $destination),('"{0}"' -f $file),"/XF","*.pat","/TEE","/DCOPY:DA","/COPY:DAT","/MOV","/ZB","/ETA","/XO","/R:0","/W:1",('/LOG+:"{0}"' -f $logpath.Path)
 	If ($Details -eq $true)
 	{
@@ -321,7 +335,7 @@ function RobomoveByFolder {
 	Start-Process -Wait -FilePath $env:ComSpec -ArgumentList $Cmdlist -WindowStyle Minimized
 	If ($SkipRemove -eq $false)
 	{
-		"Deleting source files..."
+		Write-Information "Deleting source files..."
 		Get-ChildItem -LiteralPath $source -Filter $file -Depth 0 -Force -File -ErrorAction Continue | Remove-Item -Force -ErrorAction Continue
 	}
 	$Subs = @()
@@ -345,7 +359,7 @@ function RobomoveByFolder {
 			$Details = $false
 			If ($NewSub -like "win32*")
 			{
-				(0..0xf|% ToString X1) | ForEach-Object {
+				(0..0xf| ForEach-Object { ToString X1 }) | ForEach-Object {
 					""
 					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
@@ -386,13 +400,13 @@ function Takeownship {
 	$takeownEXE = "$($Env:SystemRoot)\System32\takeown.exe"
 	If (Test-Path -LiteralPath $takeownEXE)
 	{
-		"Reseting ACL of $($path)"
+		Write-Information "Reseting ACL of $($path)"
 		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Normal
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
 	{
-		"WARNING: Takeown.exe is missing from your system32 folder!"
+		Write-Information "WARNING: Takeown.exe is missing from your system32 folder!"
 	}
 }
 
@@ -404,16 +418,22 @@ Function PauseOnly {
 		[String]
 		$PauseMessage = "Click OK to keep going."
 	)
-	$PauseMessage
-	If ((Test-Path variable:global:psISE) -eq $true -or $true)
+	PROCESS
 	{
-		[System.Windows.MessageBox]::Show($PauseMessage)
+		$PauseMessage
 	}
-	Else
+	END
 	{
-		""
-		"Press any key to continue."
-		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		If ((Test-Path variable:global:psISE) -eq $true -or $true)
+		{
+			[System.Windows.MessageBox]::Show($PauseMessage)
+		}
+		Else
+		{
+			Write-Information ""
+			Write-Information "Press any key to continue."
+			$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		}
 	}
 }
 
@@ -421,10 +441,10 @@ Function Window10Version
 {
 	Param
 	(
-		
+
 		[Parameter(Mandatory=$true)]
 		[Int]
-		$Build = 0
+		$Build
 	)
 	Switch ($Build)
 	{
@@ -513,7 +533,7 @@ Function Get-ConsoleQuickEdit
 	}
 	$RegData = $null
 	$RegData = Get-ItemProperty -LiteralPath $RegistryKeyPath -Name "QuickEdit" -ErrorAction SilentlyContinue
-	If ($RegData -ne $Null)
+	If ($null -ne $RegData)
 	{
 		Return $RegData.QuickEdit
 	}
@@ -542,16 +562,16 @@ Function HashOrDelete()
 	(
 		[Parameter(Mandatory=$true)]
 		[String]
-		$Path = $null,
+		$Path,
 		[Parameter(Mandatory=$true)]
 		[String]
-		$Folder = $null,
+		$Folder,
 		[Parameter(Mandatory=$true,ValueFromPipeline)]
 		[String]
-		$Filename = $null,
+		$Filename,
         [Parameter(Mandatory=$true)]
 		[Int32]
-		$Hash_Count = 0
+		$Hash_Count
 	)
 	BEGIN
 	{
@@ -577,7 +597,7 @@ Function HashOrDelete()
 try {
 		$MD5Hash = Get-FileHash -LiteralPath $FilePath -Algorithm MD5 | Select-Object Hash, Path
 } catch {$_}
-		If ($MD5Hash -eq $null)
+		If ($null -eq $MD5Hash)
 		{
 			Remove-Item -LiteralPath $_.PSPath -Force -Verbose -ErrorAction Continue -WhatIf
 			Return
@@ -616,7 +636,7 @@ Function RemakeClientHashs()
 		[String]
 		$Path
 	)
-	Write-Host "Double checking data files for read acess issues..."
+	Write-Information "Double checking data files for read acess issues..."
 	$core_files = @()
 	$data_license_files = @()
 	$data_win32na_files = @()
@@ -649,7 +669,7 @@ Function RemakeClientHashs()
 		}
 	}
 	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files.Count
-	Write-Host "Going to hash $($all_file_count) files, this may take a while"
+	Write-Information "Going to hash $($all_file_count) files, this may take a while"
 	$core_hashs = @()
 	$data_license_hashs = @()
 	$data_win32na_hashs = @()
@@ -692,14 +712,14 @@ Function RemakeClientHashs()
 		$i += $data_win32jp_hashs
 	}
 	$r = @{}
-	Foreach ($p in $i)
+	$i | ForEach-Object
 	{
-		$r.Add($p.Keys[0] -join "", $p.Values[0] -join "")	
+		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
 	}
 	Return $r
 }
 
-Function Check-Path()
+Function CheckPath()
 {
 	Param
 	(
@@ -719,7 +739,7 @@ Function Check-Path()
 	{
 		Return $false
 	}
-	Return Check-Path -Path $Parent -BadFolders $BadFolders
+	Return CheckPath -Path $Parent -BadFolders $BadFolders
 }
 
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -750,7 +770,7 @@ If (-Not (Test-Path -Path "client_na.json" -PathType Leaf))
 
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
 
-Write-Host -NoNewline "Checking Windows version..."
+Write-Information -NoNewline -MessageData "Checking Windows version..."
 $WinVer = [System.Environment]::OSVersion.Version
 if ($WinVer.Major -lt 10)
 {
@@ -772,13 +792,13 @@ Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 }
 "[OK]"
 "Report Windows Verion"
-$WinVer | fl
+$WinVer | Format-List
 ""
 ""
 ""
 ""
 
-Write-Host -NoNewline "Checking for Administrator Role..."
+Write-Information -NoNewline -MessageData "Checking for Administrator Role..."
 # Get the ID and security principal of the current user account
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
 $myWindowsPrincipal=New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
@@ -800,7 +820,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 
 "Look for PSO2 log entries"
-Get-WinEvent -LogName Application -ErrorAction Continue | Where-Object Message -like "*pso2*" | fl
+Get-WinEvent -LogName Application -ErrorAction Continue | Where-Object Message -like "*pso2*" | Format-List
 ""
 
 "Testing for broken IPv6 network setup"
@@ -812,9 +832,9 @@ If ($IPv6DR.Count -gt 0)
 	"Network Adapter with IPv6:"
 	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetAdapter
 	"IPv6 Address Settings:"
-	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select IPv6Address, PrefixLength, AddressState, InterfaceAlias, InterfaceIndex, PrefixOrigin, SkipAsSource, Store, SuffixOrigin, Type
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select-Object IPv6Address, PrefixLength, AddressState, InterfaceAlias, InterfaceIndex, PrefixOrigin, SkipAsSource, Store, SuffixOrigin, Type
 	"Ipv6 DNS Settings:"
-	$IPv6DR | Sort-Object ifIndex -Unique | Get-DnsClientServerAddress -AddressFamily IPv6 | Select InterfaceAlias, InterfaceIndex, ServerAddresses
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-DnsClientServerAddress -AddressFamily IPv6 | Select-Object InterfaceAlias, InterfaceIndex, ServerAddresses
 	"IPv6 Routes:"
 	$IPv6DR
 	$IPv6Test = $null
@@ -822,7 +842,7 @@ If ($IPv6DR.Count -gt 0)
 	try {
 	$IPv6Test = Invoke-RestMethod -Uri "http://ipv6.alam.srb2.org/PSO2/BASICDev_proxy/config.json" -UserAgent "Arks-Layer pso2_winstore_fix" -TimeoutSec 10 -ErrorAction Stop -Verbose
 	} catch {$_}
-	If ($IPv6Test -eq $null)
+	If ($null -eq $IPv6Test)
 	{
 		"Failed IPv6 test, disabling IPv6"
 		$IPv6DR | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -Verbose
@@ -893,7 +913,7 @@ If ($MSIList_Nahimic.Count -gt 0)
 {
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
 	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
-	$MSIList_Nahimic | select -Property Name, Caption, Description, IdentifyingNumber, PackageName
+	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR += $MSIList_Nahimic | ForEach-Object {
 		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb"
 	}
@@ -903,7 +923,7 @@ $MSIList_Bad += $MSIList | Where-Object Vendor -NE "Nahimic" | Where-Object Name
 If ($MSIList_Bad.Count -gt 0)
 {
 	"Found Bad software:"
-	$MSIList_Bad | select -Property Vendor, Name, Caption, Version, Description, IdentifyingNumber, PackageName
+	$MSIList_Bad | Select-Object -Property Vendor, Name, Caption, Version, Description, IdentifyingNumber, PackageName
 	#PauseOnly
 }
 
@@ -1018,25 +1038,25 @@ If ($NETFramework.Count -eq 0)
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
 	$FileD = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
 	$SHA512 = "2CA0D278729CDCE07899FF3791906F7B08BC1ED540B4A72CD72B928CF4F9BC2F58739270DC1978A82089F187898F9E333BBE07FF436E91733AB25C6898C9251C"
-	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
+	$NetDownload += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
 
 	"Downloading NET 2.2 x64 Runtime Framework... (239 KB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
 	$FileD = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
 	$SHA512 = "55647C44524ACFC25C1AA866D4ED8A73F35EFE6320B458303D5F72A57517760A3B50C03D6022628CBEC95E05E6F4520D89408F989E9C7A1E66E6BFF9B200595C"
-	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
+	$NetDownload += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
 
 	"Downloading NET 2.2 x86 Support Framework... (5 MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x86__8wekyb3d8bbwe.appx"
 	$FileD = "Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x86__8wekyb3d8bbwe.appx"
 	$SHA512 = "D52BEC2FED3342E58587CF2D1ECA5EB3F68BC6C53D0D7AA8D544DF70F1670B231BFFAA826C6170D311C4241C2DD5103C8AC79611CBCAEAC36A91952EB2B49ADE"
-	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
+	$NetDownload += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
 
 	"Downloading NET 2.2 x64 Support Framework... (7 MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x64__8wekyb3d8bbwe.appx"
 	$FileD = "Microsoft.NET.Native.Framework.2.2_2.2.27912.0_x64__8wekyb3d8bbwe.appx"
 	$SHA512 = "83C85A05439B4608842DCDF828CCC7B5C6328AED1FC869247321D30E85D1AE1EA141B0D2A5154ECA4BE94E69DE4AB6659782C1C2333266F43A8B3EDE326EEE3E"
-	$NetDownload += $URI | DownloadMe -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
+	$NetDownload += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 35 -SHA512 $SHA512
 
 	"Installing NET 2.2 requirements... If you see an error about it not being installed becuase of a higher version, that's OK!"
 	$NetDownload | Add-AppxPackage -Stage -Volume $SystemVolume -Verbose -ErrorAction Continue
@@ -1059,14 +1079,14 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
 	"XBOX Identify Provider not installed to the user account, forcing install..."
-	$XBOXIP_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$XBOXIP_All | Where-Object InstallLocation -ne $null | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
 	"Downloading XBOX Identify Provider App... (13MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.XboxIdentityProvider_12.64.28001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.XboxIdentityProvider_12.64.28001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
-	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 30 -SHA512 "FF1B99DB8EB30BD1CDF88EEAE310625726E1553B08D95F4001755711C7E32F6254A75C149458DFB8319F32A570B22CF5BD4C1F6D284859BB1FCCCF9132885A0F"
+	$Download = DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 30 -SHA512 "FF1B99DB8EB30BD1CDF88EEAE310625726E1553B08D95F4001755711C7E32F6254A75C149458DFB8319F32A570B22CF5BD4C1F6D284859BB1FCCCF9132885A0F"
 
 	"Installing XBOX Identify Provider app..."
 	Try {
@@ -1077,7 +1097,7 @@ ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and 
 
 $XBOXIP = Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -Verbose
 
-If ($XBOXIP -ne $null)
+If ($null -ne $XBOXIP)
 {
 	"Looking for the XBOX Identify Provider folder to wipe..."
 	$PackageF = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Packages" -Verbose
@@ -1196,7 +1216,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 ElseIf ($GamingServices_Any.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
-	$GamingServices_All | Where-Object InstallLocation -ne $null | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
+	$GamingServices_All | Where-Object InstallLocation -ne $null | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
 ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
@@ -1204,7 +1224,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/appx/Microsoft.GamingServices_2.42.5001.0_neutral___8wekyb3d8bbwe.AppxBundle"
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$SHA512 = "F6BE8E57F1B50FD42FA827A842FDFC036039A78A5B773E15D50E7BCDC9074D819485424544B8E2958AEAEA7D635AD47399A31D2F6F91C42CE28991A242294FE3"
-	$Download = $URI | DownloadMe -OutFile $FileD -ErrorLevel 18 -SHA512 $SHA512
+	$Download = DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 18 -SHA512 $SHA512
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object {
@@ -1274,7 +1294,7 @@ If ($npggsvc.Count -gt 0)
 	{
 		$BrokenGG = $true
 	}
-	
+
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
@@ -1298,7 +1318,7 @@ If ($SkipOneDrive -ne $true)
 	{
 		"ERROR: The Documents folder is missing: $($PersonalFolder)" | PauseAndFail -ErrorLevel 32
 	}
-	$OneDriveFolder = $null
+	$OneDriveFolder = $false
 	If ($OneDrives.Count -gt 0)
 	{
 		$OneDrives | ForEach-Object {
@@ -1306,11 +1326,11 @@ If ($SkipOneDrive -ne $true)
 			{
 				Return
 			}
-			Elseif (-Not (Check-Path -Path $PersonalFolder -BadFolders $_))
+			Elseif (-Not (CheckPath -Path $PersonalFolder -BadFolders $_))
 			{
 				Return
 			}
-			$OneDriveFolder = $_
+			$OneDriveFolder = $true
 		}
 	}
 	$SegaFolder = Join-Path $PersonalFolder -ChildPath "SEGA"
@@ -1320,7 +1340,7 @@ If ($SkipOneDrive -ne $true)
 	}
 	"Removing READONLY attrib bit from SEGA folder..."
 	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
-	If ($OneDriveFolder -ne $null)
+	If ($OneDriveFolder -eq $true)
 	{
 		"Found OneDrive usage, pinning SEGA folder to always on local computer.."
 		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
@@ -1377,7 +1397,7 @@ ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 	""
 	"ERROR: The $($PSO2NABinFolder) folder have [ or ], PowerShell have issues with folder name." | PauseAndFail -ErrorLevel 28
 }
-ElseIf ($PSO2NABinFolder -eq $null)
+ElseIf ($null -eq $PSO2NABinFolder)
 {
 	""
 	"ERROR: Tweaker NA Setup is not done, please tell me where to install PSO2NA." | PauseAndFail -ErrorLevel 20
@@ -1415,7 +1435,7 @@ ElseIf ($PSO2NAFolder)
 		$FolderItem = Get-Item -Path $PSO2NABinFolder
 		""
 		"ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
-		$FolderItem | fl *
+		$FolderItem | Format-List *
 		If ($FolderItem.LinkType -eq "Junction" -and $FolderItem.Target.Count -eq 0)
 		{
 			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
@@ -1473,7 +1493,7 @@ If ( $AddonVolumes.Count -gt 0)
 }
 "The following folders are noted as blackholes:"
 $BadFolders
-If (Check-Path -Path $PSO2NAFolder -BadFolders $BadFolders)
+If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
 	"Sorry, look like PSO2NA was installed to a blackhole folder" | PauseAndFail -ErrorLevel 38
 }
@@ -1486,7 +1506,7 @@ $Volumes = @()
 try{
 $Volumes += Get-Volume -ErrorAction Continue
 } catch {$_}
-$Volumes | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
+$Volumes | Where-Object DriveLetter -NE $null | Where-Object DriveType -NE "CD-ROM" | Select-Object -Property DriveLetter, DriveType, FileSystem, FileSystemLabel, HealthStatus, OperationalStatus, Path
 "End of Report"
 "Checking if Volume is formated as NTFS..."
 $PSO2Vol = @()
@@ -1501,6 +1521,7 @@ Try
 }
 Catch
 {
+	$_
 	#PauseAndFail -ErrorLevel 19
 }
 
@@ -1575,7 +1596,7 @@ Else
 {
 	"	FOUND"
 	[xml]$XMLContent = Get-Content -LiteralPath $Testing -Encoding UTF8 -Verbose
-	If ($XMLContent.Package.Extension -ne $null -or $XMLContent.Package.Applications.Application.Executable -ne "pso2_bin/pso2.exe")
+	If ($null -ne $XMLContent.Package.Extension -or $XMLContent.Package.Applications.Application.Executable -ne "pso2_bin/pso2.exe")
 	{
 		"	BUT it is the MS Store copy, not Custom one"
 		Remove-Item -LiteralPath $Testing -Force -Verbose
@@ -1673,7 +1694,7 @@ If ($MissingFiles -eq $true)
 	"Downloading Starter files... (3 MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/raw/master/pso2_bin_na_starter.zip"
 	$FileD = "pso2_bin_na_starter.zip"
-	$MISSING = $URI | DownloadMe -OutFile $FileD -ErrorLevel 11 -SHA512 "50D8E90B66751EE4C238521E372D93A80D4767CBE007B74379D3BBD14FE94780C4D2D86A67D6C7E03F889FB777A0290DF08B5DA916CDCC50B294F0E4AA8160A5"
+	$MISSING = DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 11 -SHA512 "50D8E90B66751EE4C238521E372D93A80D4767CBE007B74379D3BBD14FE94780C4D2D86A67D6C7E03F889FB777A0290DF08B5DA916CDCC50B294F0E4AA8160A5"
 	$TMPFolder = New-Item -Path "UNPACK" -ItemType Directory -Verbose -Force
 	$TMPBinFolder = New-Item -Path "UNPACK\pso2_bin" -ItemType Directory -Verbose -Force
 	Expand-Archive -LiteralPath $MISSING -DestinationPath $TMPFolder -Force
@@ -1694,15 +1715,15 @@ If ($MissingFiles -eq $true)
 	Remove-Item -LiteralPath $TMPFolder -Recurse -Force -Confirm:$false
 }
 
-Write-Host -NoNewline "Checking for Developer Mode..."
+Write-Information -NoNewline -MessageData "Checking for Developer Mode..."
 $DevMode = $false
 $RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
 if (Test-Path -LiteralPath $RegistryKeyPath)
 {
 	$AppModelUnlock = Get-ItemProperty -LiteralPath $RegistryKeyPath
-	if ($AppModelUnlock -ne $null -and ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) -ne $null)
+	if ($null -ne $AppModelUnlock -and $null -ne ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) )
 	{
-		$RegData = $AppModelUnlock | Select -ExpandProperty AllowDevelopmentWithoutDevLicense
+		$RegData = $AppModelUnlock | Select-Object -ExpandProperty AllowDevelopmentWithoutDevLicense
 		If ($RegData -eq 1)
 		{
 			$DevMode = $true
@@ -1712,7 +1733,7 @@ if (Test-Path -LiteralPath $RegistryKeyPath)
 If ($DevMode -EQ $false)
 {
 	""
-	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
+	Write-Information -MessageData "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
 	"Developer mode is disabled" | PauseAndFail -ErrorLevel 4
 }
 "[OK]"
@@ -1787,7 +1808,7 @@ try {
 If ($OldBackups.Count -gt 0)
 {
 	"Found some MutableBackup folders!"
-	$OldBackups | fl
+	$OldBackups | Format-List
 	$OldBackups | ForEach-Object -Process {
 		$OldBin = $_
 		Takeownship -path $OldBin
@@ -1869,7 +1890,7 @@ $DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-
 if ($DirectXRuntime_All.Count -gt 0 -and ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_User_Error.Count -gt 0) -and $DirectXRuntime_All_Error.Count -eq 0)
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
-	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 	$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $DirectXRuntime_version
 }
 
@@ -1878,7 +1899,7 @@ If ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_All_Error.Count -gt 0)
 	"Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
 	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
-	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 12 -SHA512 "7D6980446CCAB7F08C498CE28DFA3707876768CB0D54E6912D8689F8D92E639A54FDCD0F0730D3FCF9ED9E970F34DFA97816C85C779B63D003AB54324BCCB5FB"
+	$NewPackages += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 12 -SHA512 "7D6980446CCAB7F08C498CE28DFA3707876768CB0D54E6912D8689F8D92E639A54FDCD0F0730D3FCF9ED9E970F34DFA97816C85C779B63D003AB54324BCCB5FB"
 }
 
 
@@ -1891,12 +1912,12 @@ $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Pack
 $VCLibs_User_Error = @()
 $VCLibs_User_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
 $VCLibs_All_Error = @()
-$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged" 
+$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
 
 If ($VCLibs_All.Count -gt 0 -And ($VCLibs_User.Count -eq 0 -or $VCLibs_User_Error.Count -gt 0) -and $VCLibs_All_Error.Count -eq 0)
 {
 	"System already has a good copy of VCLibs, trying to install the user profile"
-	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 	$VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $VCLibs_Version
 }
 
@@ -1905,7 +1926,7 @@ if ($VCLibs_User.Count -eq 0 -or $VCLibs_All_Error.Count -gt 0)
 	"Downloading VCLibs requirement... (7MB)"
 	$URI = "https://github.com/Arks-Layer/PSO2WinstoreFix/blob/master/appx/Microsoft.VCLibs.x64.14.00.Desktop.appx?raw=true"
 	$FileD = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
-	$NewPackages += $URI | DownloadMe -OutFile $FileD -ErrorLevel 13 -SHA512 "AF30593D82995AEF99DB86BF274407DC33D4EB51F3A79E7B636EA1C905F127E34310416EFB43BB9AC958992D175EB76806B27597E0B1AFE24D51D5D84C9ACF3A"
+	$NewPackages += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 13 -SHA512 "AF30593D82995AEF99DB86BF274407DC33D4EB51F3A79E7B636EA1C905F127E34310416EFB43BB9AC958992D175EB76806B27597E0B1AFE24D51D5D84C9ACF3A"
 }
 
 If ($NewPackages.Count -gt 0)
@@ -2002,12 +2023,18 @@ ElseIf ($AppxVols.IsOffline -In $true)
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
 	If ($PSO2Drive_App.Count -eq 0)
 	{
+try {
 		Remove-AppxVolume -Volume $AppxVols.Name -ErrorAction Continue
+} catch {$_}
+try {
 		Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
+} catch {$_}
 	}
 	Else
 	{
+try {
     	Mount-AppxVolume -Volume $PSO2Drive -ErrorAction Continue
+} catch {$_}
     }
 	#PauseAndFail -ErrorLevel 29
 }
@@ -2070,7 +2097,7 @@ Get-AppxPackage -Name "100B7A24.oxyna"
 ""
 If ($CustomPSO2.Count -eq 0)
 {
-	 Write-Host "Cannot find a custom PSO2 installation!" -ForegroundColor Red
+	 Write-Information "Cannot find a custom PSO2 installation!" -ForegroundColor Red
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
@@ -2096,5 +2123,5 @@ Else
 ""
 Stop-Transcript -ErrorAction Continue
 Set-ConsoleQuickEdit -Mode $true
-Write-Host -NoNewLine 'Script complete! You can now close this window by pressing any key.';
+Write-Information -NoNewLine -MessageData 'Script complete! You can now close this window by pressing any key.'
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
