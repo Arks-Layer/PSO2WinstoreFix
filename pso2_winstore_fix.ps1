@@ -7,6 +7,8 @@
 #	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
 
+$VersionScript = "Version 2020_07_09_1808" # Error codes: 38
+
 <#
 .SYNOPSIS
 
@@ -94,7 +96,7 @@ Function PauseAndFail {
 	END
 	{
 		Stop-Transcript
-		Set-ConsoleQuickEdit -Mode $true
+		SetConsoleQuickEdit -Mode $true
 		If ($PauseOnFail -eq $false)
 		{
 			exit $ErrorLevel
@@ -251,7 +253,7 @@ Function FindMutableBackup {
 		$AppxVols = @()
 		$AppxVols += Get-AppxVolume -Online -Verbose
 		$Mutable = @()
-		$Mutable += $AppxVols | ForEach-Object {
+		$Mutable += $AppxVols | ForEach-Object -Process {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
 			If (Test-Path -LiteralPath $Test -PathType Container)
 			{
@@ -259,7 +261,7 @@ Function FindMutableBackup {
 			}
 		}
 		$Backups = @()
-		$Backups += $Mutable | ForEach-Object {
+		$Backups += $Mutable | ForEach-Object -Process {
 			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
 		}
 		If ($Backups.Count -gt 0)
@@ -347,7 +349,7 @@ function RobomoveByFolder {
 	$Subs += Get-ChildItem -Directory -Depth 0 -LiteralPath $source -ErrorAction Continue | Where-Object Name -ne "script" | Where-Object Name -Ne "backup"
 	If ($Subs.Count -gt 0)
 	{
-		$Subs | ForEach-Object {
+		$Subs | ForEach-Object -Process {
 			$NewSub = $_.Name
 			$FilesCount = @()
 			$DirsCount = @()
@@ -364,7 +366,7 @@ function RobomoveByFolder {
 			$Details = $false
 			If ($NewSub -like "win32*")
 			{
-				(0..0xf | ForEach-Object { $_.ToString("X1") }) | ForEach-Object {
+				(0..0xf | ForEach-Object -Process { $_.ToString("X1") }) | ForEach-Object -Process {
 					""
 					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
@@ -482,7 +484,7 @@ try {
 } catch {$_}
 	If ($OnlineVolules.Count -gt 0)
 	{
-		$MutableVolumes += $OnlineVolules | ForEach-Object {
+		$MutableVolumes += $OnlineVolules | ForEach-Object -Process {
 			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps"
 			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container)
 			{
@@ -492,7 +494,7 @@ try {
 	}
 	If ($MutableVolumes.Count -gt 0)
 	{
-		$PackageFolders += $MutableVolumes | ForEach-Object {
+		$PackageFolders += $MutableVolumes | ForEach-Object -Process {
 			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps\$($Folder)"
 			If (Test-Path -LiteralPath $MutableFolder -PathType Container)
 			{
@@ -510,7 +512,7 @@ try {
 	}
 }
 
-Function Set-ConsoleQuickEdit
+Function SetConsoleQuickEdit
 {
 	Param
 	(
@@ -524,12 +526,12 @@ Function Set-ConsoleQuickEdit
 		Return
 	}
 	$OldMode = $null
-	$OldMode = Get-ConsoleQuickEdit
+	$OldMode = GetConsoleQuickEdit
 	Set-ItemProperty -LiteralPath $RegistryKeyPath -Name "QuickEdit" -Value $Mode -Type DWord -ErrorAction SilentlyContinue
 	Return $oldMode
 }
 
-Function Get-ConsoleQuickEdit
+Function GetConsoleQuickEdit
 {
 	$RegistryKeyPath = "HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe"
 	If (-Not (Test-Path -LiteralPath $RegistryKeyPath -PathType Container))
@@ -717,8 +719,7 @@ Function RemakeClientHashs()
 		$i += $data_win32jp_hashs
 	}
 	$r = @{}
-	$i | ForEach-Object
-	{
+	$i | ForEach-Object -Process {
 		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
 	}
 	Return $r
@@ -789,7 +790,7 @@ $_
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_09_1755" # Error codes: 38
+$VersionScript
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -809,7 +810,7 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
 }
 
-Set-ConsoleQuickEdit -Mode $false | Out-Null
+SetConsoleQuickEdit -Mode $false | Out-Null
 
 If ($MyInvocation.MyCommand.Name -eq "pso2_winstore_fix_freshinstall.ps1")
 {
@@ -974,7 +975,7 @@ If ($MSIList_Nahimic.Count -gt 0)
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
 	"Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
 	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
-	$MSIR += $MSIList_Nahimic | ForEach-Object {
+	$MSIR += $MSIList_Nahimic | ForEach-Object -Process {
 		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb"
 	}
 }
@@ -1019,7 +1020,7 @@ $Drivers_AVOL = @()
 $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
 If ($Drivers_AVOL.Count -gt 0)
 {
-	$Drivers_AVOL | ForEach-Object {
+	$Drivers_AVOL | ForEach-Object -Process {
 		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 	}
 }
@@ -1030,7 +1031,7 @@ If ($Drivers_NV3d.Count -gt 0)
 	"NVIDIA 3D Display Driver found"
 	$BadVersion = [Version]"26.21.14.4587"
 	$GoodVersion = $true
-	$Drivers_AVOL | ForEach-Object {
+	$Drivers_AVOL | ForEach-Object -Process {
 		If ($_.Version -le $BadVersion)
 		{
 			$GoodVersion = $false
@@ -1139,7 +1140,7 @@ $XBOXIP_All += Get-AppxPackage -Name "Microsoft.XboxIdentityProvider" -PackageTy
 If ($XBOXIP_All.Count -gt 0 -and $XBOXIP_User.Count -eq 0)
 {
 	"XBOX Identify Provider not installed to the user account, forcing install..."
-	$XBOXIP_All | Where-Object InstallLocation -ne $null | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$XBOXIP_All | Where-Object InstallLocation -ne $null | ForEach-Object -Process {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 }
 ElseIf ($XBOXIP_All.Count -eq 0 -and ($NETFramework.Count -gt 0 -or $true) -and $ForceLocalInstall -eq $true)
 {
@@ -1212,7 +1213,7 @@ If ($GamingSrv_STOP.Count -gt 0)
 	"GamingServices is not running, going to remove the XBOX drivers"
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
-		$Drivers_XBOX | ForEach-Object {
+		$Drivers_XBOX | ForEach-Object -Process {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
 	}
@@ -1261,7 +1262,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	Get-Service -Name "GamingServices","GamingServicesNet" -ErrorAction Continue | Stop-Service -ErrorAction Continue
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
-		$Drivers_XBOX | ForEach-Object {
+		$Drivers_XBOX | ForEach-Object -Process {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
 	}
@@ -1276,7 +1277,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 ElseIf ($GamingServices_Any.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
 	"Installing Gaming Services to user account..."
-	$GamingServices_All | Where-Object InstallLocation -ne $null | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
+	$GamingServices_All | Where-Object InstallLocation -ne $null | ForEach-Object -Process {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose -ForceApplicationShutdown}
 }
 ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 {
@@ -1287,7 +1288,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	$Download = DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 18 -SHA512 $SHA512
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
-		$Drivers_XBOX | ForEach-Object {
+		$Drivers_XBOX | ForEach-Object -Process {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
 	}
@@ -1381,7 +1382,7 @@ If ($SkipOneDrive -ne $true)
 	$OneDriveFolder = $false
 	If ($OneDrives.Count -gt 0)
 	{
-		$OneDrives | ForEach-Object {
+		$OneDrives | ForEach-Object -Process {
 			If (-Not (Test-Path -LiteralPath $_ -PathType Container))
 			{
 				Return
@@ -1758,14 +1759,14 @@ If ($MissingFiles -eq $true)
 	$TMPFolder = New-Item -Path "UNPACK" -ItemType Directory -Verbose -Force
 	$TMPBinFolder = New-Item -Path "UNPACK\pso2_bin" -ItemType Directory -Verbose -Force
 	Expand-Archive -LiteralPath $MISSING -DestinationPath $TMPFolder -Force
-	Get-ChildItem -LiteralPath $TMPFolder -File | ForEach-Object {
+	Get-ChildItem -LiteralPath $TMPFolder -File | ForEach-Object -Process {
 		$OldFile = Join-Path -Path $PSO2NAFolder -ChildPath $_.Name
 		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
 		{
 			Copy-Item -LiteralPath $_.FullName -Destination $OldFile
 		}
 	}
-	Get-ChildItem -LiteralPath $TMPBinFolder -File | ForEach-Object {
+	Get-ChildItem -LiteralPath $TMPBinFolder -File | ForEach-Object -Process {
 		$OldFile = Join-Path -Path $PSO2NABinFolder -ChildPath $_.Name
 		If (-Not (Test-Path -LiteralPath $OldFile -PathType Leaf))
 		{
@@ -1950,7 +1951,7 @@ $DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-
 if ($DirectXRuntime_All.Count -gt 0 -and ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_User_Error.Count -gt 0) -and $DirectXRuntime_All_Error.Count -eq 0)
 {
 	"System already has a good copy of DirectX, trying to install the user profile..."
-	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$DirectXRuntime_All | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object -Process {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 	$DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $DirectXRuntime_version
 }
 
@@ -1977,7 +1978,7 @@ $VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterSc
 If ($VCLibs_All.Count -gt 0 -And ($VCLibs_User.Count -eq 0 -or $VCLibs_User_Error.Count -gt 0) -and $VCLibs_All_Error.Count -eq 0)
 {
 	"System already has a good copy of VCLibs, trying to install the user profile"
-	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
+	$VCLibsAll | Where-Object InstallLocation -ne $null | Sort-Object -Unique InstallLocation | ForEach-Object -Process {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -Verbose}
 	$VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $VCLibs_Version
 }
 
@@ -2182,6 +2183,6 @@ Else
 }
 ""
 Stop-Transcript -ErrorAction Continue
-Set-ConsoleQuickEdit -Mode $true
+SetConsoleQuickEdit -Mode $true
 Write-Host -NoNewline 'Script complete! You can now close this window by pressing any key.'
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
