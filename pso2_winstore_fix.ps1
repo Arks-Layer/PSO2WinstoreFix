@@ -31,6 +31,10 @@ Function PauseAndFail {
 	PROCESS
 	{
 		$ErrorMessage
+		If ($PauseOnFail -eq $true)
+		{
+			[System.Windows.MessageBox]::Show($ErrorMessage)
+		}
 	}
 	END
 	{
@@ -42,7 +46,7 @@ Function PauseAndFail {
 		}
 		ElseIf ((Test-Path variable:global:psISE) -eq $true -or $true)
 		{
-			[System.Windows.MessageBox]::Show($ErrorMessage)
+			#[System.Windows.MessageBox]::Show($ErrorMessage)
 			exit $ErrorLevel
 		}
 		Else
@@ -90,10 +94,12 @@ Else
 try {
 Start-Transcript -LiteralPath $ScriptLog
 } catch {
-".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
+$_
+"I am betting that the folder is read-only OR....",
+".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_08_2110" # Error codes: 38
+"Version 2020_07_08_2157" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
