@@ -624,11 +624,11 @@ try {
 		Write-Progress -Activity "Making MD5 hashs for files in the $($FolderName) folder" -Status "Done" -Id 0 -Completed
 		If ($Folder -eq ".")
 		{
-			Write-Verbose "Done processing files in Core Folder"
+			Write-Verbose "Done processing $($Hash_Counter) files in Core Folder"
 		}
 		Else
 		{
-			Write-Verbose "Done processing files in the $($Folder) Folder"
+			Write-Verbose "Done processing $($Hash_Counter) files in the $($Folder) Folder"
 		}
 	}
 }
@@ -789,7 +789,7 @@ $_
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_08_2157" # Error codes: 38
+"Version 2020_07_09_1704" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
