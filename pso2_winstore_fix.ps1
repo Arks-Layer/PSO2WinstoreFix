@@ -6,6 +6,61 @@
 #
 #	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
+
+<#
+.SYNOPSIS
+
+Register custom PSO2NA installation into APPX to allow XBOX login
+
+.DESCRIPTION
+
+This script tries to fix anything what would break XBOX and APPX registation
+
+.PARAMETER ForceReinstall
+Allow one to force to register the APPX package
+
+.PARAMETER TweakerMode
+Allow PSO2 Tweaker to run the script without any user interaction
+
+.PARAMETER PauseOnFail
+Pause the script if it get to a handled fail path
+
+.PARAMETER SkipRobomove
+Skip over moving the PSO2NA data files from MS Store folders
+
+.PARAMETER ForceLocalInstall
+FOrce to use APPX files from an outside source, not the MS Store
+
+.PARAMETER SkipStorageCheck
+Skip checking the volumes, in case of a broken disk management system
+
+.PAREMETER SkipOneDrive
+Skip checking OneDrive folders
+
+.PARAMETER ForceReHash
+Force remaking PSO2 Tweaker's client_na.json
+
+.INPUTS
+
+None. You cannot pipe objects to pso2_winstore_fix.ps1.
+
+.OUTPUTS
+
+None. pso2_winstore_fix.ps1 does not generate any output for systems, only humans
+
+.EXAMPLE
+
+PS> .\pso2_winstore_fix.ps1
+
+.EXAMPLE
+
+PS> .\pso2_winstore_fix.ps1 -SkipStorageCheck $true
+
+.EXAMPLE
+
+PS> .\pso2_winstore_fix.ps1 -TweakerMode $true -ForceReHash $true
+#>
+
 Param(
 	[Bool]$ForceReinstall = $false,
 	[Bool]$TweakerMode = $false,
@@ -58,62 +113,6 @@ Function PauseAndFail {
 		}
 	}
 }
-
-#f there an unhandled error, just stop
-If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
-{
-	$ErrorActionPreference = "Continue"
-}
-Else
-{
-	$ErrorActionPreference = "Stop"
-}
-#Kill all logging
-Try
-{
-	Do
-	{
-		Stop-Transcript -ErrorAction Stop
-	} While ($true)
-}
-Catch {
-	Write-Information "Testing if we can write t our own log file"
-}
-#Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
-If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
-{
-	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
-	Set-Location -LiteralPath $PSScriptRoot
-}
-Else
-{
-	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
-}
-
-#Start logging
-try {
-Start-Transcript -LiteralPath $ScriptLog
-} catch {
-$_
-"I am betting that the folder is read-only OR....",
-".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
-}
-#Version number
-"Version 2020_07_08_2157" # Error codes: 38
-Import-Module Appx
-Import-Module CimCmdlets
-Import-Module Microsoft.PowerShell.Archive
-Import-Module Microsoft.PowerShell.Host
-Import-Module Microsoft.PowerShell.Management
-Import-Module Microsoft.PowerShell.Utility
-Import-Module Storage
-Add-Type -AssemblyName PresentationCore,PresentationFramework
-
-"Killing PSO2 processes"
-try {
-Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard" | Stop-Process -Force -ErrorAction Continue -Verbose
-} catch {$_}
-
 
 #All the fun helper functinons
 #Crash hander
@@ -749,6 +748,61 @@ Function CheckPath()
 }
 
 #----------------------------------------------------------------------------------------------------------------------------------
+
+#if there an unhandled error, just stop
+If ($host.name -ne 'Windows Powershell ISE Host' -and $false)
+{
+	$ErrorActionPreference = "Continue"
+}
+Else
+{
+	$ErrorActionPreference = "Stop"
+}
+#Kill all logging
+Try
+{
+	Do
+	{
+		Stop-Transcript -ErrorAction Stop
+	} While ($true)
+}
+Catch {
+	Write-Information "Testing if we can write t our own log file"
+}
+#Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
+If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
+{
+	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
+	Set-Location -LiteralPath $PSScriptRoot
+}
+Else
+{
+	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
+}
+
+#Start logging
+try {
+Start-Transcript -LiteralPath $ScriptLog
+} catch {
+$_
+"I am betting that the folder is read-only OR....",
+".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
+}
+#Version number
+"Version 2020_07_08_2157" # Error codes: 38
+Import-Module Appx
+Import-Module CimCmdlets
+Import-Module Microsoft.PowerShell.Archive
+Import-Module Microsoft.PowerShell.Host
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Storage
+Add-Type -AssemblyName PresentationCore,PresentationFramework
+
+"Killing PSO2 processes"
+try {
+Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard" | Stop-Process -Force -ErrorAction Continue -Verbose
+} catch {$_}
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
