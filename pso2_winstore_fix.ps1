@@ -93,7 +93,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_08_1937" # Error codes: 38
+"Version 2020_07_08_2054" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -770,7 +770,7 @@ If (-Not (Test-Path -Path "client_na.json" -PathType Leaf))
 
 #Start-Service -Name "Winmgmt" -ErrorAction Stop
 
-Write-Information -NoNewline -MessageData "Checking Windows version..."
+Write-Host -NoNewline "Checking Windows version..."
 $WinVer = [System.Environment]::OSVersion.Version
 if ($WinVer.Major -lt 10)
 {
@@ -798,7 +798,7 @@ $WinVer | Format-List
 ""
 ""
 
-Write-Information -NoNewline -MessageData "Checking for Administrator Role..."
+Write-Host -NoNewline "Checking for Administrator Role..."
 # Get the ID and security principal of the current user account
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
 $myWindowsPrincipal=New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
@@ -1715,7 +1715,7 @@ If ($MissingFiles -eq $true)
 	Remove-Item -LiteralPath $TMPFolder -Recurse -Force -Confirm:$false
 }
 
-Write-Information -NoNewline -MessageData "Checking for Developer Mode..."
+Write-Host -NoNewline "Checking for Developer Mode..."
 $DevMode = $false
 $RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
 if (Test-Path -LiteralPath $RegistryKeyPath)
@@ -2123,5 +2123,5 @@ Else
 ""
 Stop-Transcript -ErrorAction Continue
 Set-ConsoleQuickEdit -Mode $true
-Write-Information -NoNewLine -MessageData 'Script complete! You can now close this window by pressing any key.'
+Write-Host -NoNewline 'Script complete! You can now close this window by pressing any key.'
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
