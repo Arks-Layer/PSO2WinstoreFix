@@ -93,7 +93,7 @@ Start-Transcript -LiteralPath $ScriptLog
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App\Virus & threat protection\Randsomware protection\Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_08_2054" # Error codes: 38
+"Version 2020_07_08_2110" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -359,7 +359,7 @@ function RobomoveByFolder {
 			$Details = $false
 			If ($NewSub -like "win32*")
 			{
-				(0..0xf| ForEach-Object { ToString X1 }) | ForEach-Object {
+				(0..0xf | ForEach-Object { $_.ToString("X1") }) | ForEach-Object {
 					""
 					"WARNING: a folder that MAY have a large number of files detected, only moving files starting with $($_) of (0123456789ABCDEF)"
 					""
