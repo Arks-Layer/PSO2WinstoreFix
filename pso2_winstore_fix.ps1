@@ -789,7 +789,7 @@ $_
 ".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
-"Version 2020_07_09_1704" # Error codes: 38
+"Version 2020_07_09_1755" # Error codes: 38
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
@@ -1793,7 +1793,7 @@ if (Test-Path -LiteralPath $RegistryKeyPath)
 If ($DevMode -EQ $false)
 {
 	""
-	Write-Information -MessageData "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
+	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
 	"Developer mode is disabled" | PauseAndFail -ErrorLevel 4
 }
 "[OK]"
@@ -2157,7 +2157,7 @@ Get-AppxPackage -Name "100B7A24.oxyna"
 ""
 If ($CustomPSO2.Count -eq 0)
 {
-	 Write-Information "Cannot find a custom PSO2 installation!" -ForegroundColor Red
+	 Write-Host -Object "Cannot find a custom PSO2 installation!" -ForegroundColor Red
 }
 ElseIf ($CustomPSO2.Count -eq 1)
 {
