@@ -7,7 +7,7 @@
 #	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
 
-$VersionScript = "Version 2020_07_09_1808" # Error codes: 38
+$VersionScript = "Version 2020_07_09_2315" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -733,6 +733,7 @@ Function CheckPath()
 		[String]
 		$Path,
 		[Parameter(Mandatory=$true)]
+		[AllowNull()]
 		[String[]]
 		$BadFolders
 	)
