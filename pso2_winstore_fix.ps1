@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_10_0007" # Error codes: 38
+$VersionScript = "Version 2020_07_10_0148" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -602,14 +602,14 @@ Function HashOrDelete()
 		$FilePath =  Join-Path -Path $BaseDir -ChildPath $Filename
 		$MD5Hash = $null
 try {
-		$MD5Hash = Get-FileHash -LiteralPath $FilePath -Algorithm MD5 | Select-Object Hash, Path
+		$MD5Hash = (Get-FileHash -LiteralPath $FilePath -Algorithm MD5 -Verbose).Hash
 } catch {$_}
 		If ($null -eq $MD5Hash)
 		{
 			Remove-Item -LiteralPath $_.PSPath -Force -Verbose -ErrorAction Continue -WhatIf
 			Return
 		}
-		$MD5HashS = ([string]$MD5Hash.Hash).ToUpper()
+		$MD5HashS = ([string]$MD5Hash).ToUpper()
 		If ($Folder -eq ".")
 		{
 			$HashName_unix = $Filename
@@ -677,7 +677,7 @@ Function RemakeClientHashs()
 			$data_win32jp_script_folder = Join-Path -Path $data_win32jp_folder -ChildPath "script"
 			If (Test-Path -LiteralPath $data_win32jp_script_folder -PathType Container)
 			{
-				$data_win32jp_script_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
+				$data_win32jp_script_files += Get-ChildItem -LiteralPath $data_win32jp_script_folder -File -Name
 			}
 		}
 	}
@@ -696,7 +696,7 @@ Function RemakeClientHashs()
 	If ($data_win32jp_script_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_win32jp_script_files.Count) script files..."
-		$data_win32jp_script_hashs += $data_win32jp_script_files | HashOrDelete -Path $Path -Folder "data/win32/script" -Hash_Count $data_license_files.Count
+		$data_win32jp_script_hashs += $data_win32jp_script_files | HashOrDelete -Path $Path -Folder "data/win32/script" -Hash_Count $data_win32jp_script_files.Count
 	}
 	If ($data_license_files.Count -gt 0)
 	{
@@ -735,7 +735,7 @@ Function RemakeClientHashs()
 		$i += $data_win32jp_hashs
 	}
 	$r = @{}
-	$i | ForEach-Object -Process {
+	$i | Where-Object -FilterScript {$null -ne $_} | ForEach-Object -Process {
 		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
 	}
 	Return $r
@@ -1031,7 +1031,7 @@ $PNPDevices_AVOL += $PNPDevices | Where-Object Manufacturer -eq "A-Volute"
 If ($PNPDevices_AVOL.Count -gt 0)
 {
 	"WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing"
-	Get-Service | Where-Object Name -eq "NahimicService" | Stop-Service -ErrorAction Continue
+	Get-Service -ErrorAction SilentlyContinue -Name "NahimicService" | Stop-Service -ErrorAction Continue
 }
 $Drivers_AVOL = @()
 $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
@@ -1208,14 +1208,14 @@ $GamingServices_Any_Error = @()
 $GamingServices_Any_Error += $GamingServices_Any.PackageUserInformation | Where-Object InstallState -NotIn "Installed","Staged"
 
 $GamingSrv = @()
-$GamingSrv += Get-Service | Where-Object Name -In "GamingServices"
+$GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
 $GamingSrv_STOP = @()
 $GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
 $GamingSrv_DISABLED = @()
 $GamingSrv_DISABLED += $GamingSrv | Where-Object StartType -EQ "Disabled"
 
 $GamingNetSrv = @()
-$GamingNetSrv += Get-Service | Where-Object Name -In "GamingServicesNet"
+$GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
 $GamingNetSrv_DISABLED += $GamingNetSrv | Where-Object StartType -EQ "Disabled"
 
 If ($GamingNetSrv_DISABLED.Count -gt 0 -or $GamingSrv_DISABLED.Count -gt 0)
@@ -1251,7 +1251,7 @@ Catch
 }
 
 $GamingNetSrv = @()
-$GamingNetSrv += Get-Service | Where-Object Name -In "GamingServicesNet"
+$GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += $GamingNetSrv | Where-Object Status -NE "Running"
 
@@ -1355,7 +1355,7 @@ Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publis
 
 "Finding GameGuard Service..."
 $npggsvc = @()
-$npggsvc += Get-Service | Where-Object Name -eq "npggsvc"
+$npggsvc += Get-Service -ErrorAction SilentlyContinue -Name "npggsvc"
 If ($npggsvc.Count -gt 0)
 {
 	"Found GameGuard Service..."
