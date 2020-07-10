@@ -7,7 +7,18 @@
 #	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
 
-$VersionScript = "Version 2020_07_09_2315" # Error codes: 38
+Param(
+	[Bool]$ForceReinstall = $false,
+	[Bool]$TweakerMode = $false,
+	[Bool]$PauseOnFail = $true,
+	[Bool]$SkipRobomove = $false,
+	[Bool]$ForceLocalInstall = $false,
+	[Bool]$SkipStorageCheck = $false,
+	[Bool]$SkipOneDrive = $false,
+	[Bool]$ForceReHash = $false
+)
+
+$VersionScript = "Version 2020_07_10_0007" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -62,17 +73,6 @@ PS> .\pso2_winstore_fix.ps1 -SkipStorageCheck $true
 
 PS> .\pso2_winstore_fix.ps1 -TweakerMode $true -ForceReHash $true
 #>
-
-Param(
-	[Bool]$ForceReinstall = $false,
-	[Bool]$TweakerMode = $false,
-	[Bool]$PauseOnFail = $true,
-	[Bool]$SkipRobomove = $false,
-	[Bool]$ForceLocalInstall = $false,
-	[Bool]$SkipStorageCheck = $false,
-	[Bool]$SkipOneDrive = $false,
-	[Bool]$ForceReHash = $false
-)
 
 Function PauseAndFail {
 	[CmdletBinding()]
@@ -648,6 +648,7 @@ Function RemakeClientHashs()
 	$data_license_files = @()
 	$data_win32na_files = @()
 	$data_win32jp_files = @()
+	$data_win32jp_script_files = @()
 	$core_files = Get-ChildItem -LiteralPath $Path -File -Filter "*.dll" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.exe" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.rtf" -Name
@@ -673,38 +674,53 @@ Function RemakeClientHashs()
 		If (Test-Path -LiteralPath $data_win32jp_folder -PathType Container)
 		{
 			$data_win32jp_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
+			$data_win32jp_script_folder = Join-Path -Path $data_win32jp_folder -ChildPath "script"
+			If (Test-Path -LiteralPath $data_win32jp_script_folder -PathType Container)
+			{
+				$data_win32jp_script_files += Get-ChildItem -LiteralPath $data_win32jp_folder -File -Name
+			}
 		}
 	}
 	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files.Count
 	Write-Information "Going to hash $($all_file_count) files, this may take a while"
 	$core_hashs = @()
+	$data_win32jp_script_hashs = @()
 	$data_license_hashs = @()
 	$data_win32na_hashs = @()
 	$data_win32jp_hashs = @()
 	If ($core_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($core_files.Count) core files..."
-        $core_hashs += $core_files | HashOrDelete -Path $Path -Folder "." -Hash_Count $core_files.Count
+		$core_hashs += $core_files | HashOrDelete -Path $Path -Folder "." -Hash_Count $core_files.Count
+	}
+	If ($data_win32jp_script_files.Count -gt 0)
+	{
+		Write-Verbose "Found $($data_win32jp_script_files.Count) script files..."
+		$data_win32jp_script_hashs += $data_win32jp_script_files | HashOrDelete -Path $Path -Folder "data/win32/script" -Hash_Count $data_license_files.Count
 	}
 	If ($data_license_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_license_files.Count) license files..."
-        $data_license_hashs += $data_license_files | HashOrDelete -Path $Path -Folder "data/license" -Hash_Count $data_license_files.Count
+		$data_license_hashs += $data_license_files | HashOrDelete -Path $Path -Folder "data/license" -Hash_Count $data_license_files.Count
 	}
 	If ($data_win32na_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_win32na_files.Count) NA data files.."
-        $data_win32na_hashs += $data_win32na_files | HashOrDelete -Path $Path -Folder "data/win32_na" -Hash_Count $data_win32na_files.Count
+		$data_win32na_hashs += $data_win32na_files | HashOrDelete -Path $Path -Folder "data/win32_na" -Hash_Count $data_win32na_files.Count
 	}
 	If ($data_win32jp_files.Count -gt 0)
 	{
 		Write-Verbose "Found $($data_win32jp_files.Count) JP data files.."
-        $data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32" -Hash_Count $data_win32jp_files.Count
+		$data_win32jp_hashs += $data_win32jp_files | HashOrDelete -Path $Path -Folder "data/win32" -Hash_Count $data_win32jp_files.Count
 	}
 	$i = @()
 	If($core_hashs.Count -gt 0)
 	{
 		$i += $core_hashs
+	}
+	If($data_win32jp_script_hashs.Count -gt 0)
+	{
+		$i += $data_win32jp_script_hashs
 	}
 	If($data_license_hashs.Count -gt 0)
 	{
