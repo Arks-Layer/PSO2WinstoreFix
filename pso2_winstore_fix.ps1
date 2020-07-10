@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_10_0148" # Error codes: 38
+$VersionScript = "Version 2020_07_10_0209" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -817,11 +817,6 @@ Import-Module Microsoft.PowerShell.Utility
 Import-Module Storage
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 
-"Killing PSO2 processes"
-try {
-Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard" | Stop-Process -Force -ErrorAction Continue -Verbose
-} catch {$_}
-
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
@@ -896,6 +891,12 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 ""
 ""
 ""
+
+"Killing PSO2 processes"
+try {
+Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard.des","GameMon.des","GameMon64.des" | Stop-Process -Force -ErrorAction Continue -Verbose
+} catch {$_}
+
 
 "Look for PSO2 log entries"
 Get-WinEvent -LogName Application -ErrorAction Continue | Where-Object Message -like "*pso2*" | Format-List
