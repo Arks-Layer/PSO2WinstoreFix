@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_12_0453" # Error codes: 38
+$VersionScript = "Version 2020_07_12_0553" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -784,7 +784,7 @@ Try
 	} While ($true)
 }
 Catch {
-	Write-Information "Testing if we can write t our own log file"
+	"Testing if we can write t our own log file"
 }
 #Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
 If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
