@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_12_0553" # Error codes: 38
+$VersionScript = "Version 2020_07_12_2120" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -810,9 +810,12 @@ $VersionScript
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
+Import-Mobule Microsoft.PowerShell.Diagnostics
 Import-Module Microsoft.PowerShell.Host
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
+Import-Module NetAdapter
+Import-Module NetTCPIP
 Import-Module Storage
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 
@@ -1507,6 +1510,9 @@ ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 }
 ElseIf ($PSO2NAFolder)
 {
+	$PSO2NAFolder_RP = Resolve-Path -LiteralPath $PSO2NAFolder
+	$PSO2Drive = ("{0}:" -f $PSO2NAFolder_RP.Drive.Name)
+	$PSO2Drive_Root = $PSO2NAFolder_RP.Drive.Root
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	"Deleting broken patch files..."
 	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
@@ -1630,7 +1636,12 @@ If ( $AddonVolumes.Count -gt 0)
 $BadFolders
 If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
-	"Sorry, look like PSO2NA was installed to a blackhole folder" | PauseAndFail -ErrorLevel 38
+	"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
+	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
+    $PSO2NAFolder = $NewPSO2Folder.FullName
+    $PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
+	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
 
 "Get Storage Service Ready"
@@ -2141,7 +2152,6 @@ Get-AppxVolume
 "Status of Appx volume that your custom PSO2 install is on:"
 $AppxVols = @()
 $PSO2Drive_Apps = @()
-$PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
 $PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue | Where-Object Name -NE "100B7A24.oxyna"
 } catch {$_}
