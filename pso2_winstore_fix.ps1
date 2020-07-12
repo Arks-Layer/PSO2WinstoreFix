@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_12_2120" # Error codes: 38
+$VersionScript = "Version 2020_07_12_2131" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -480,11 +480,11 @@ Function FindMutable_Appx
 	$MutableVolumes = @()
 	$PackageFolders = @()
 try {
-	$OnlineVolules += Get-AppxVolume -Online -Verbose
+	$OnlineVolumes += Get-AppxVolume -Online -Verbose
 } catch {$_}
-	If ($OnlineVolules.Count -gt 0)
+	If ($OnlineVolumes.Count -gt 0)
 	{
-		$MutableVolumes += $OnlineVolules | ForEach-Object -Process {
+		$MutableVolumes += $OnlineVolumes | ForEach-Object -Process {
 			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps"
 			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container)
 			{
@@ -1623,7 +1623,16 @@ Else
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Videos"
 }
 $BadFolders_38 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
+If ($null -ne $BadFolders_38 -and "" -ne $BadFolders_38)
+{
+	$BadFolders += $BadFolders_38
+}
 $BadFolders_42 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+If ($null -ne $BadFolders_42 -and "" -ne $BadFolders_42)
+{
+	$BadFolders += $BadFolders_42
+}
+
 If ($OneDrives.Count -gt 0)
 {
 	$BadFolders += $OneDrives
