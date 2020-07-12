@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_10_0209" # Error codes: 38
+$VersionScript = "Version 2020_07_11_2144" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -899,7 +899,9 @@ Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download",
 
 
 "Look for PSO2 log entries"
-Get-WinEvent -LogName Application -ErrorAction Continue | Where-Object Message -like "*pso2*" | Format-List
+$WinAppLogs = @()
+$WinAppLogs += Get-WinEvent -LogName Application -ErrorAction SilentlyContinue
+$WinAppLogs | Where-Object Message -like "*pso2*" | Format-List
 ""
 
 "Testing for broken IPv6 network setup"
@@ -2087,7 +2089,7 @@ $AppxVols = @()
 $PSO2Drive_Apps = @()
 $PSO2Drive = ("{0}:" -f (Resolve-Path -LiteralPath $PSO2NAFolder).Drive.Name)
 try {
-$PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue
+$PSO2Drive_Apps += Get-AppxPackage -AllUsers -Volume $PSO2Drive -ErrorAction SilentlyContinue | Where-Object Name -NE "100B7A24.oxyna"
 } catch {$_}
 try {
 Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
@@ -2100,10 +2102,11 @@ If ($AppxVols.Count -eq 0)
 ElseIf ($AppxVols.IsOffline -In $true)
 {
 	"	Custom PSO2 folder is on a drive with a broken Appx setup"
+	$PSO2Packages | Remove-AppxPackage -Verbose -AllUsers
 	If ($PSO2Drive_App.Count -eq 0)
 	{
 try {
-		Remove-AppxVolume -Volume $AppxVols.Name -ErrorAction Continue
+		$AppxVols | Remove-AppxVolume -ErrorAction Continue
 } catch {$_}
 try {
 		Add-AppxVolume -Path $PSO2Drive -ErrorAction Continue
