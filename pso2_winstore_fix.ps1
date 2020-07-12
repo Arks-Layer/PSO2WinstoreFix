@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_12_0442" # Error codes: 38
+$VersionScript = "Version 2020_07_12_0453" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -1557,7 +1557,7 @@ Else
 $BadFolders = @()
 $BadFolders_40 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
 $BadFolders_16 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
-If ($null -ne $BadFolders_16)
+If ($null -ne $BadFolders_16 -and "" -ne $BadFolders_16)
 {
 	$BadFolders += $BadFolders_16
 }
@@ -1567,7 +1567,7 @@ Else
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Desktop"
 }
 $BadFolders_06 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::Favorites)
-If ($null -ne $BadFolders_06)
+If ($null -ne $BadFolders_06 -and "" -ne $BadFolders_06)
 {
 	$BadFolders += $BadFolders_06
 }
@@ -1577,18 +1577,17 @@ Else
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Favorites"
 }
 $BadFolders_05 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
-If ($null -ne $BadFolders_05)
+If ($null -ne $BadFolders_05 -and "" -ne $BadFolders_05)
 {
 	$BadFolders += $BadFolders_05
 }
 Else
 {
-
 	Write-Information "No Documents folder found"
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Documents"
 }
 $BadFolders_13 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic)
-If ($null -ne $BadFolders_13)
+If ($null -ne $BadFolders_13 -and "" -ne $BadFolders_13)
 {
 	$BadFolders += $BadFolders_13
 }
@@ -1598,7 +1597,7 @@ Else
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Music"
 }
 $BadFolders_39 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
-If ($null -ne $BadFolders_39)
+If ($null -ne $BadFolders_39 -and "" -ne $BadFolders_39)
 {
 	$BadFolders += $BadFolders_39
 }
@@ -1608,7 +1607,7 @@ Else
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Pictures"
 }
 $BadFolders_14 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
-If ($null -ne $BadFolders_14)
+If ($null -ne $BadFolders_14 -and "" -ne $BadFolders_14)
 {
 	$BadFolders += $BadFolders_14
 }
