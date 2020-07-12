@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_11_2144" # Error codes: 38
+$VersionScript = "Version 2020_07_12_0442" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -749,7 +749,6 @@ Function CheckPath()
 		[String]
 		$Path,
 		[Parameter(Mandatory=$true)]
-		[AllowNull()]
 		[String[]]
 		$BadFolders
 	)
@@ -1556,14 +1555,70 @@ Else
 
 "Checking if PSO2 is installed in a blackhole folder"
 $BadFolders = @()
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::Favorites)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
-$BadFolders += [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+$BadFolders_40 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+$BadFolders_16 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
+If ($null -ne $BadFolders_16)
+{
+	$BadFolders += $BadFolders_16
+}
+Else
+{
+	Write-Information "No Desktop folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Desktop"
+}
+$BadFolders_06 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::Favorites)
+If ($null -ne $BadFolders_06)
+{
+	$BadFolders += $BadFolders_06
+}
+Else
+{
+	Write-Information "No Favorites folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Favorites"
+}
+$BadFolders_05 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
+If ($null -ne $BadFolders_05)
+{
+	$BadFolders += $BadFolders_05
+}
+Else
+{
+
+	Write-Information "No Documents folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Documents"
+}
+$BadFolders_13 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic)
+If ($null -ne $BadFolders_13)
+{
+	$BadFolders += $BadFolders_13
+}
+Else
+{
+	Write-Information "No Music folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Music"
+}
+$BadFolders_39 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
+If ($null -ne $BadFolders_39)
+{
+	$BadFolders += $BadFolders_39
+}
+Else
+{
+	Write-Information "No Pictures folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Pictures"
+}
+$BadFolders_14 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
+If ($null -ne $BadFolders_14)
+{
+	$BadFolders += $BadFolders_14
+}
+Else
+{
+	Write-Information "No Videos folder found"
+	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Videos"
+}
+$BadFolders_38 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
+$BadFolders_42 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
 If ($OneDrives.Count -gt 0)
 {
 	$BadFolders += $OneDrives
