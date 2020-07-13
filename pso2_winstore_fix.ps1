@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_13_0048" # Error codes: 38
+$VersionScript = "Version 2020_07_13_0200" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -735,9 +735,11 @@ Function RemakeClientHashs()
 		$i += $data_win32jp_hashs
 	}
 	$r = @{}
+	Write-Verbose "Convert $($i.Count) MD5SUM list to hashtable"
 	$i | Where-Object -FilterScript {$null -ne $_} | ForEach-Object -Process {
 		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
 	}
+	Write-Verbose "Saving $($i.Count) hashtable to file"
 	Return $r
 }
 
@@ -797,6 +799,7 @@ Else
 	$ScriptLog = Join-Path -Path "." -ChildPath "PSO2NA_PSLOG.log"
 }
 
+Add-Type -AssemblyName PresentationCore,PresentationFramework
 #Start logging
 try {
 Start-Transcript -LiteralPath $ScriptLog
@@ -810,14 +813,13 @@ $VersionScript
 Import-Module Appx
 Import-Module CimCmdlets
 Import-Module Microsoft.PowerShell.Archive
-Import-Mobule Microsoft.PowerShell.Diagnostics
+Import-Module Microsoft.PowerShell.Diagnostics
 Import-Module Microsoft.PowerShell.Host
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Utility
 Import-Module NetAdapter
 Import-Module NetTCPIP
 Import-Module Storage
-Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
@@ -1510,12 +1512,12 @@ ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 }
 ElseIf ($PSO2NAFolder)
 {
-	$PSO2NAFolder_RP = Resolve-Path -LiteralPath $PSO2NAFolder
 	$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder
 	If ($PSO2NABinFolder_PI.Target.Count -gt 0)
 	{
 		$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder_PI.Target
 	}
+	$PSO2NABinFolder_RP = Resolve-Path -LiteralPath $PSO2NABinFolder_PI.FullName
 	$PSO2Drive = ("{0}:" -f $PSO2NABinFolder_RP.Drive.Name)
 	$PSO2Drive_Root = $PSO2NABinFolder_RP.Drive.Root
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
@@ -1530,6 +1532,7 @@ ElseIf ($PSO2NAFolder)
 		New-Item -Path $PSO2NABinFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
 		$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+		Remove-Item -Path "client_na.json" -Force -Verbose
 	}
 	ElseIf ($LeafPath -eq "ModifiableWindowsApps")
 	{
