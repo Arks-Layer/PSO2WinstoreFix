@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_13_1845" # Error codes: 38
+$VersionScript = "Version 2020_07_13_2031" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -1531,6 +1531,7 @@ ElseIf ($PSO2NAFolder)
 		$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 		Remove-Item -Path "client_na.json" -Force -Verbose
+		$SkipRobomove = $false
 	}
 	ElseIf ($LeafPath -eq "ModifiableWindowsApps")
 	{
