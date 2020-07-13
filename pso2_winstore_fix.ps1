@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_13_0200" # Error codes: 38
+$VersionScript = "Version 2020_07_13_1720" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -735,7 +735,7 @@ Function RemakeClientHashs()
 		$i += $data_win32jp_hashs
 	}
 	$r = @{}
-	Write-Verbose "Convert $($i.Count) MD5SUM list to hashtable"
+	Write-Verbose "Converting $($i.Count) MD5SUM list to hashtable..."
 	$i | Where-Object -FilterScript {$null -ne $_} | ForEach-Object -Process {
 		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
 	}
@@ -1261,8 +1261,10 @@ $GamingNetSrv = @()
 $GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += $GamingNetSrv | Where-Object Status -NE "Running"
+$GamingSrv_START = @()
+$GamingSrv_START += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices" | Where-Object Status -EQ "Running"
 
-If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingServices_Any.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
+If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
 }
