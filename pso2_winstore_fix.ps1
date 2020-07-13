@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_12_2131" # Error codes: 38
+$VersionScript = "Version 2020_07_13_0048" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -576,7 +576,7 @@ Function HashOrDelete()
 		[Parameter(Mandatory=$true,ValueFromPipeline)]
 		[String]
 		$Filename,
-        [Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$true)]
 		[Int32]
 		$Hash_Count
 	)
@@ -1511,12 +1511,27 @@ ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 ElseIf ($PSO2NAFolder)
 {
 	$PSO2NAFolder_RP = Resolve-Path -LiteralPath $PSO2NAFolder
-	$PSO2Drive = ("{0}:" -f $PSO2NAFolder_RP.Drive.Name)
-	$PSO2Drive_Root = $PSO2NAFolder_RP.Drive.Root
+	$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder
+	If ($PSO2NABinFolder_PI.Target.Count -gt 0)
+	{
+		$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder_PI.Target
+	}
+	$PSO2Drive = ("{0}:" -f $PSO2NABinFolder_RP.Drive.Name)
+	$PSO2Drive_Root = $PSO2NABinFolder_RP.Drive.Root
 	$LeafPath = $PSO2NAFolder | Split-Path -Leaf
 	"Deleting broken patch files..."
 	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
+	{
+		"Sorry, look like PSO2NA was installed via MS Store, we going to move the PSO2NA folder for you" | PauseOnly
+		$PSO2NAFolder = Join-Path -Path $PSO2Drive_Root -ChildPath "PHANTASYSTARONLINE2_NA"
+		New-Item -Path $PSO2NAFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
+		$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
+		New-Item -Path $PSO2NABinFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
+		$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
+		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+	}
+	ElseIf ($LeafPath -eq "ModifiableWindowsApps")
 	{
 		$FolderItem = Get-Item -Path $PSO2NABinFolder
 		""
@@ -1546,11 +1561,11 @@ ElseIf ($PSO2NAFolder)
 	else
 	{
 		"Non MS Store copy installation detected"
-        $MAX_PATH = ("X:\".Length + 260) - ("\data\win32_na\0000000000000000000000000000000".Length)
-        If ($PSO2NAFolder.Length -ge $MAX_PATH)
-        {
-            "pso2_bin folder is too long and will break old ANSI Win32 programs" | PauseOnly
-        }
+ 		$MAX_PATH = ("X:\".Length + 260) - ("\data\win32_na\0000000000000000000000000000000".Length)
+		If ($PSO2NAFolder.Length -ge $MAX_PATH)
+		{
+			"pso2_bin folder is too long and will break old ANSI Win32 programs" | PauseOnly
+		}
 	}
 }
 Else
@@ -1647,8 +1662,8 @@ If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
 	"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
 	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
-    $PSO2NAFolder = $NewPSO2Folder.FullName
-    $PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
+	$PSO2NAFolder = $NewPSO2Folder.FullName
+	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
 	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
@@ -2188,9 +2203,9 @@ try {
 	Else
 	{
 try {
-    	Mount-AppxVolume -Volume $PSO2Drive -ErrorAction Continue
+		Mount-AppxVolume -Volume $PSO2Drive -ErrorAction Continue
 } catch {$_}
-    }
+	}
 	#PauseAndFail -ErrorLevel 29
 }
 else
