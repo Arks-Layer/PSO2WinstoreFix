@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_13_2031" # Error codes: 38
+$VersionScript = "Version 2020_07_14_1113" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -264,11 +264,11 @@ Function FindMutableBackup {
 		}
 		$Backups = @()
 		$Backups += $Mutable | ForEach-Object -Process {
-			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($Package)*" | Resolve-Path
-		}
+			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($Package)*"
+		} | Sort-Object -Descending LastWriteTime
 		If ($Backups.Count -gt 0)
 		{
-			$Backups.ProviderPath
+			$Backups.FullName
 		}
 	}
 }
@@ -329,10 +329,7 @@ function RobomoveByFolder {
 			$JSONObj.PSO2NARemoteVersion = 0
 			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
-			If (Test-Path -Path "client_na.json" -Verbose)
-			{
-				Remove-Item -Path "client_na.json" -Force -Verbose
-			}
+			Remove-Item -Path "client_na.json" -Force -Verbose
 		}
 	}
 	Write-Host -Object "Starting robocopy job..."
@@ -1532,33 +1529,7 @@ ElseIf ($PSO2NAFolder)
 		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 		Remove-Item -Path "client_na.json" -Force -Verbose
 		$SkipRobomove = $false
-	}
-	ElseIf ($LeafPath -eq "ModifiableWindowsApps")
-	{
-		$FolderItem = Get-Item -Path $PSO2NABinFolder
-		Write-Host -Object ""
-		Write-Host -Object "ERROR: You cannot use the Windows Store copy of PSO2 with this script. Go back to http://na.arks-layer.com/setup.html and do a fresh install."
-		$FolderItem | Format-List *
-		If ($FolderItem.LinkType -eq "Junction" -and $FolderItem.Target.Count -eq 0)
-		{
-			"Broken MS Store Copy and there no means to fix" | PauseAndFail -ErrorLevel 10
-		}
-		$EmptyFiles = @() + (Get-ChildItem -LiteralPath $PSO2NABinFolder -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
-		If ($EmptyFiles.Count -gt 0 -or $ForceReHash -eq $true)
-		{
-			$JSONObj.PSO2NARemoteVersion = 0
-			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
-			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
-			If (Test-Path -Path "client_na.json" -Verbose)
-			{
-				Remove-Item -Path "client_na.json" -Force -Verbose
-			}
-			RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
-		}
-		Write-Host -Object ""
-		Write-Host -Object "WARNING: If you just wanted to fix your XBOX login issue, you should be fine now."
-		#Takeownship -path $PSO2NABinFolder
-		"No more work for broken MS Store copy" | PauseAndFail -ErrorLevel 10
+		$ForceReHash = $true
 	}
 	else
 	{
@@ -1668,10 +1639,8 @@ If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
 	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+	$ForceReHash = $true
 }
-
-"Get Storage Service Ready"
-Get-Service -Name "StorSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Report of Drive status"
 $Volumes = @()
@@ -1959,22 +1928,21 @@ If ($OldPackages.Count -gt 0)
 		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		Write-Host -Object "Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder -SkipRemove $true
-		Write-Host -Object "Deleting old MS STORE's pso2_bin core's date folder..."
+		#Write-Host -Object "Deleting old MS STORE's pso2_bin core's date folder..."
 try {
-		Write-Host -Object "Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
+		#Write-Host -Object "Deleting files in $($OldBin) Folder..."
+		#Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
 } Catch {$_}
 try {
-		Write-Host -Object "Deleting subfolders in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+		#Write-Host -Object "Deleting subfolders in $($OldBin) Folder..."
+		#Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {$_}
 try {
-		Write-Host -Object "Deleting $($OldBin) Folder..."
-		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+		#Write-Host -Object "Deleting $($OldBin) Folder..."
+		#Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {$_}
 	}
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+	$ForceReHash = $true
 }
 
 If ($OldBackups.Count -gt 0)
@@ -2002,8 +1970,7 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {$_}
 	}
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+	$ForceReHash = $true
 }
 
 If ($MWA.Count -gt 0)
@@ -2030,8 +1997,7 @@ try {
 		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
 } Catch {$_}
 	}
-	$JSONObj.PSO2NARemoteVersion = 0
-	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
+	$ForceReHash = $true
 }
 
 If ($OldPackages.Count -gt 0)
@@ -2231,18 +2197,7 @@ If ($PSO2Packages_Good.Count -eq 0 -or $ForceReinstall -eq $true) #Try
 	$EmptyFiles = @() + (Get-ChildItem -LiteralPath $PSO2NABinFolder -Force -File -ErrorAction Continue | Where-Object Length -eq 0)
 	If ($EmptyFiles.Count -gt 0)
 	{
-		$JSONObj.PSO2NARemoteVersion = 0
-		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
-		$EmptyFiles | Remove-Item -Force -ErrorAction Continue
-	}
-	If ($JSONObj.PSO2NARemoteVersion -eq 0)
-	{
-		If (Test-Path -Path "client_na.json" -Verbose)
-		{
-			Remove-Item -Path "client_na.json" -Force -Verbose
-		}
-		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
-		$ForceReHash = $false
+		$ForceReHash = $true
 	}
 }
 Else
@@ -2258,6 +2213,16 @@ If ($False) #Catch
 If ($NewPackages.Count -gt 0)
 {
 	#$NewPackages | Remove-Item -Verbose
+}
+
+If ($JSONObj.PSO2NARemoteVersion -eq 0)
+{
+	$ForceReHash = $true
+}
+ElseIf ($ForceReHash -eq $true)
+{
+	$JSONObj.PSO2NARemoteVersion = 0
+	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 }
 
 Write-Host -Object "Now double checking the custom PSO2 install..."
@@ -2277,8 +2242,6 @@ ElseIf ($CustomPSO2.Count -eq 1)
 	Get-ChildItem -Filter "*.txt" | Remove-Item -Force -Confirm:$false -ErrorAction Continue
 	If ($ForceReHash -eq $true)
 	{
-		$JSONObj.PSO2NARemoteVersion = 0
-		$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 		If (Test-Path -Path "client_na.json" -Verbose)
 		{
 			Remove-Item -Path "client_na.json" -Force -Verbose
