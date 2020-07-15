@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_14_1113" # Error codes: 38
+$VersionScript = "Version 2020_07_14_1852" # Error codes: 38
 
 <#
 .SYNOPSIS
@@ -1097,7 +1097,8 @@ Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Restarting XBOX services..."
-Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Restart-Service -Force -Verbose
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object StartType -EQ "Disabled" | Set-Service -StartupType Manual -PassThru -Verbose | Start-Service -Force -Verbose
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object Status -NE "Running" | Start-Service -Force -Verbose
 "Killing any XBOX process"
 Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object ProcessName -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
@@ -1433,6 +1434,27 @@ $JSONData = $null
 $PSO2NABinFolder = $null
 $PSO2NAFolder = $null
 $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Tweaker\settings.json")
+
+Write-Host -Object "Checking for existing PSO2NA package..."
+$PSO2NABinFolder_FallBack = $null
+$MSPackages = @()
+$MSPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
+If ($MSPackages.Count -eq 1)
+{
+	$MSItem = Get-Item -LiteralPath $MSPackages.InstallLocation -ErrorAction Continue
+	If ($MSItem.Target.Count -eq 1)
+	{
+		$MSItem = Get-Item -LiteralPath ($MSItem.Target -join "")
+	}
+	$PSO2NABinFolder_FallBack = Join-Path $MSItem.FullName -ChildPath "..\ModifiableWindowsApps\pso2_bin"
+}
+$UTPackages = @()
+$UTPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
+If ($MSPackages.Count -eq 1)
+{
+	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
+}
+
 If ($JSONPath)
 {
 	Write-Host -Object "Loading Tweaker Config from $($JSONPath)"
@@ -1461,6 +1483,11 @@ If ($JSONObj)
 		$PSO2NABinFolder = $JSONObj | Select-Object -ExpandProperty PSO2NABinFolder
 	}
 	catch {$_}
+
+	If ($null -eq $PSO2NABinFolder -and $null -ne $PSO2NABinFolder_FallBack)
+	{
+		$PSO2NABinFolder = $PSO2NABinFolder_FallBack
+	}
 }
 Else
 {
@@ -1508,9 +1535,9 @@ ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 ElseIf ($PSO2NAFolder)
 {
 	$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder
-	If ($PSO2NABinFolder_PI.Target.Count -gt 0)
+	If ($PSO2NABinFolder_PI.Target.Count -eq 1)
 	{
-		$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder_PI.Target
+		$PSO2NABinFolder_PI = Get-Item -LiteralPath ($PSO2NABinFolder_PI.Target -join "")
 	}
 	$PSO2NABinFolder_RP = Resolve-Path -LiteralPath $PSO2NABinFolder_PI.FullName
 	$PSO2Drive = ("{0}:" -f $PSO2NABinFolder_RP.Drive.Name)
