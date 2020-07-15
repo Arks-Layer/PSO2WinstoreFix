@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_14_1852" # Error codes: 38
+$VersionScript = "Version 2020_07_15_1936" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -1253,14 +1253,25 @@ Catch
 
 $GamingNetSrv = @()
 $GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
+$GamingNetSrv_START = @()
+$GamingNetSrv_START += $GamingNetSrv | Where-Object Status -EQ "Running"
 $GamingNetSrv_STOP = @()
 $GamingNetSrv_STOP += $GamingNetSrv | Where-Object Status -NE "Running"
+$GamingSrv = @()
+$GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
 $GamingSrv_START = @()
-$GamingSrv_START += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices" | Where-Object Status -EQ "Running"
+$GamingSrv_STAR += $GamingSrv | Where-Object Status -EQ "Running"
+$GamingSrv_STOP = @()
+$GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
+
 
 If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
+}
+ElseIf ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_START.Count -eq 0)
+{
+	"Look like you have CheckPoint based software installed, Like ZoneAlarm, please uninstall it" | PauseAndFail -ErrorLevel 39
 }
 
 If ($GamingServices_Any_Error.Count -gt 0)
