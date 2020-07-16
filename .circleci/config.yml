@@ -1,11 +1,7 @@
-workflows:
-  version: 2.1
-  workflow:
-    jobs:
-    - build
+version: 2.1
 
 orbs:
-  win: circleci/windows@2.4.0
+    win: circleci/windows@2.4.0
 
 jobs:
   build:
