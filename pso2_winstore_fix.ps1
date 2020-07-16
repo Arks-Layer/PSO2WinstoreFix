@@ -1042,6 +1042,8 @@ $Drivers_AVOL = @()
 $Drivers_AVOL += $Drivers | Where-Object ProviderName -eq "A-Volute"
 If ($Drivers_AVOL.Count -gt 0)
 {
+	Write-Host -Object "Found bad A-Volute Drivers, uninstalling them"
+	$Drivers_AVOL | Format-List
 	$Drivers_AVOL | ForEach-Object -Process {
 		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 	}
@@ -1231,8 +1233,9 @@ $Drivers_XBOX = $Drivers | Where-Object ProviderName -eq "Xbox"
 If ($GamingSrv_STOP.Count -gt 0)
 {
 	Write-Host -Object "GamingServices is not running, going to remove the XBOX drivers"
-	If ($Drivers_XBOXL.Count -gt 0)
+	If ($Drivers_XBOX.Count -gt 0)
 	{
+		$Drivers_XBOX | Format-List
 		$Drivers_XBOX | ForEach-Object -Process {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
 		}
@@ -1262,7 +1265,7 @@ $GamingNetSrv_STOP += $GamingNetSrv | Where-Object Status -NE "Running"
 $GamingSrv = @()
 $GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
 $GamingSrv_START = @()
-$GamingSrv_STAR += $GamingSrv | Where-Object Status -EQ "Running"
+$GamingSrv_START += $GamingSrv | Where-Object Status -EQ "Running"
 $GamingSrv_STOP = @()
 $GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
 
@@ -1271,7 +1274,7 @@ If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $Gamin
 {
 	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
 }
-ElseIf ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_START.Count -eq 0)
+ElseIf ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
 {
 	"Look like you have CheckPoint based software installed, Like ZoneAlarm, please uninstall it" | PauseAndFail -ErrorLevel 39
 }
@@ -1319,7 +1322,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	$FileD = "Microsoft.GamingServices_2.42.5001.0_neutral_~_8wekyb3d8bbwe.appxbundle"
 	$SHA512 = "F6BE8E57F1B50FD42FA827A842FDFC036039A78A5B773E15D50E7BCDC9074D819485424544B8E2958AEAEA7D635AD47399A31D2F6F91C42CE28991A242294FE3"
 	$Download = DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 18 -SHA512 $SHA512
-	If ($Drivers_XBOXL.Count -gt 0)
+	If ($Drivers_XBOX.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object -Process {
 			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
@@ -1463,7 +1466,7 @@ If ($MSPackages.Count -eq 1)
 }
 $UTPackages = @()
 $UTPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
-If ($MSPackages.Count -eq 1)
+If ($UTPackages.Count -eq 1)
 {
 	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
 }
@@ -1964,8 +1967,8 @@ If ($OldPackages.Count -gt 0)
 		$OldBin = $_.InstallLocation
 		Write-Host -Object "Found the old MS STORE's pso2_bin core's data folder!"
 		Takeownship -path $OldBin
-		Write-Host -Object "Removing $($NAFiles.Count) unneeded files..."
-		$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
+		#Write-Host -Object "Removing $($NAFiles.Count) unneeded files..."
+		#$NAFiles | Join-Paths -Path $OldBin | Remove-Item -Force -ErrorAction SilentlyContinue
 		Write-Host -Object "Going to move the MS STORE core's data files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder -SkipRemove $true
 		#Write-Host -Object "Deleting old MS STORE's pso2_bin core's date folder..."
