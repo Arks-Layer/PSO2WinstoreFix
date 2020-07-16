@@ -21,7 +21,7 @@ jobs:
           name: "Run Test"
           shell: powershell.exe
           command: |
-              $Results = Invoke-ScriptAnalyzer -Path . -ExcludeRule "PSAVoidUsingWriteHost" -ErrorAction SilentlyContinue | Sort-Object Severity, RuleName, Line
+              $Results = Invoke-ScriptAnalyzer -Path . -ExcludeRule "PSAVoidUsingWriteHost","PSUseSingularNouns" -ErrorAction SilentlyContinue | Sort-Object Severity, RuleName, Line
               If ($Results) {
                 $ResultString = $Results | Out-String
                 Write-Warning $ResultString
