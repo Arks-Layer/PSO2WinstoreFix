@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_16_1226" # Error codes: 39
+$VersionScript = "Version 2020_07_16_1254" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -571,7 +571,7 @@ Function HashOrDelete()
 		[Parameter(Mandatory=$true)]
 		[String]
 		$Folder,
-		[Parameter(Mandatory=$true,ValueFromPipeline)]
+		[Parameter(Mandatory=$true,ValueFromPipeline=$true)]
 		[String]
 		$Filename,
 		[Parameter(Mandatory=$true)]
