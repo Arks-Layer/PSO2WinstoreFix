@@ -1,4 +1,9 @@
-@echo on
-cd /d %~dp0
-start "Kickstarting PowerShell Script" /D "%~dp0" /LOW /WAIT cmd /C powershell.exe -NoLogo -NoExit -NoProfile -ExecutionPolicy ByPass -File "%~dp0pso2_winstore_fix.ps1"
-pause
+@echo off
+set pathdir=%~dp0
+set ffp=%pathdir%%~n0.ps1
+IF EXIST "%ffp%" (
+ start "Kickstarting PowerShell Script" /D "%pathdir%" /LOW /WAIT cmd /C powershell.exe -NoLogo -NoExit -NoProfile -ExecutionPolicy ByPass -File "%ffp%"
+) ELSE (
+ echo Where is the PowerShell script file?, I could not find: %ffp%
+ pause
+)
