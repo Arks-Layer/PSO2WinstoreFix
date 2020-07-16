@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_15_1936" # Error codes: 39
+$VersionScript = "Version 2020_07_16_0119" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -1053,9 +1053,10 @@ If ($Drivers_NV3d.Count -gt 0)
 	Write-Host -Object "NVIDIA 3D Display Driver found"
 	$BadVersion = [Version]"26.21.14.4587"
 	$Drivers_NV3d_GOOD = @()
-	$Drivers_NV3d_GOOD += $Drivers_NV3d | Where-Object -FilterScript {$_.Version -gt $BadVersion}
+	$Drivers_NV3d_GOOD += $Drivers_NV3d | Where-Object -FilterScript {[Version]$_.Version -gt $BadVersion}
 	If ($Drivers_NV3d_GOOD.Count -eq 0)
 	{
+		$Drivers_NV3D
 		[Diagnostics.Process]::Start("https://www.nvidia.com/download/index.aspx")
 		"Please Update your NVIDIA Driver" | PauseOnly
 	}
@@ -1096,9 +1097,10 @@ Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
-"Restarting XBOX services..."
-Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object StartType -EQ "Disabled" | Set-Service -StartupType Manual -PassThru -Verbose | Start-Service -Force -Verbose
-Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object Status -NE "Running" | Start-Service -Force -Verbose
+"Turn back on XBOX services..."
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object StartType -EQ "Disabled" | Set-Service -StartupType Manual -PassThru -Verbose | Start-Service -Verbose
+"Starting XBOX services..."
+Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object Status -NE "Running" | Start-Service -Verbose
 "Killing any XBOX process"
 Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object ProcessName -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
