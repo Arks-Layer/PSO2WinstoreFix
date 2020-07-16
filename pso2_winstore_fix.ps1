@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_16_0119" # Error codes: 39
+$VersionScript = "Version 2020_07_16_1226" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -808,16 +808,6 @@ $_
 }
 #Version number
 $VersionScript
-Import-Module Appx
-Import-Module CimCmdlets
-Import-Module Microsoft.PowerShell.Archive
-Import-Module Microsoft.PowerShell.Diagnostics
-Import-Module Microsoft.PowerShell.Host
-Import-Module Microsoft.PowerShell.Management
-Import-Module Microsoft.PowerShell.Utility
-Import-Module NetAdapter
-Import-Module NetTCPIP
-Import-Module Storage
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
@@ -872,6 +862,17 @@ Write-Host -Object ""
 Write-Host -Object ""
 Write-Host -Object ""
 Write-Host -Object ""
+
+Import-Module -Name Appx -Force -Verbose
+Import-Module -Name CimCmdlets -Force -Verbose
+Import-Module -Name Microsoft.PowerShell.Archive -Force -Verbose
+Import-Module -Name Microsoft.PowerShell.Diagnostics -Force -Verbose
+Import-Module -Name Microsoft.PowerShell.Host -Force -Verbose
+Import-Module -Name Microsoft.PowerShell.Management -Force -Verbose
+Import-Module -Name Microsoft.PowerShell.Utility -Force -Verbose
+Import-Module -Name NetAdapter -Force -Verbose
+Import-Module -Name NetTCPIP -Force -Verbose
+Import-Module -Name Storage -Force -Verbose
 
 Write-Host -Object "Checking for Administrator Role..."
 # Get the ID and security principal of the current user account
