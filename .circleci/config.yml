@@ -1,0 +1,29 @@
+orbs:
+  win: circleci/windows@2.4.0
+
+jobs:
+  build:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    steps:
+      - checkout
+      - run: systeminfo
+      - run:
+          name: "Install PsScriptAnalyzer"
+          shell: powershell.exe
+          command: |
+              Install-PackageProvider -Name NuGet -Force
+              Install-Module PsScriptAnalyzer -Force
+      - run:
+          name: "Run Test"
+          shell: powershell.exe
+          command: |
+              $Results = Invoke-ScriptAnalyzer -Path $pwd -Recurse -Severity Error -ErrorAction SilentlyContinue
+              If ($Results) {
+                $ResultString = $Results | Out-String
+                Write-Warning $ResultString
+              
+                # Failing the build
+                Throw "Build failed"
+              }
