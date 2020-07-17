@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_17_1446" # Error codes: 39
+$VersionScript = "Version 2020_07_17_1941" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -790,7 +790,7 @@ Catch {
 	"Testing if we can write t our own log file"
 }
 #Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
-If ($PSScriptRoot -ne $null -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
+If ($PSScriptRoot -ne "" -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	$ScriptLog = Join-Path -Path $PSScriptRoot -ChildPath "PSO2NA_PSLOG.log"
 	Set-Location -LiteralPath $PSScriptRoot
@@ -992,7 +992,7 @@ If ($MSIList.Count -gt 0)
 Write-Host -Object "[OK]"
 $BadMSIs = @()
 $BadMSIs += "{FD585866-680F-4FE0-8082-731D715F90CE}","{FE05D491-4625-496D-A27A-FC318DE398B7}","{85D06868-AE2D-4B82-A4B1-913A757F0A32}"
-$BadMSIs += "{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}"."{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","{0D3E2309-662A-4F32-9A29-278663BEF2E5}"
+$BadMSIs += "{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}","{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","{0D3E2309-662A-4F32-9A29-278663BEF2E5}"
 $BadMSIs += "{D65C6419-CA01-46F1-B492-18F1BCB71E5D}"
 $MSIR = @()
 $MSIList_Nahimic += $MSIList | Where-Object Vendor -EQ "Nahimic"
@@ -1102,7 +1102,7 @@ Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 }
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
-Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Statis -NE "Running" | Start-Service -ErrorAction Continue -Verbose
+Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Status -NE "Running" | Start-Service -ErrorAction Continue -Verbose
 
 "Turn back on XBOX services..."
 Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object StartType -EQ "Disabled" | Set-Service -StartupType Manual -PassThru -Verbose | Start-Service -Verbose
@@ -1387,7 +1387,7 @@ If ($npggsvc.Count -gt 0)
 	Try
 	{
 		$BrokenGG = $true
-		$npggsvc | Where-Object Statis -EQ "Running" | Stop-Service -ErrorAction Continue -PassThru | Set-Service -StartupType Manual
+		$npggsvc | Where-Object Status -EQ "Running" | Stop-Service -ErrorAction Continue -PassThru | Set-Service -StartupType Manual
 		$BrokenGG = $false
 	}
 	Catch {$_}
