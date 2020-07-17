@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_17_1941" # Error codes: 39
+$VersionScript = "Version 2020_07_17_2328" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -1059,8 +1059,10 @@ If ($Drivers_NV3d.Count -gt 0)
 {
 	Write-Host -Object "NVIDIA 3D Display Driver found"
 	$BadVersion = [Version]"26.21.14.4587"
+	$26_Version = [Version]"26.0.0.0"
 	$Drivers_NV3d_GOOD = @()
 	$Drivers_NV3d_GOOD += $Drivers_NV3d | Where-Object -FilterScript {[Version]$_.Version -gt $BadVersion}
+	$Drivers_NV3d_GOOD += $Drivers_NV3d | Where-Object -FilterScript {[Version]$_.Version -lt $26_Version}
 	If ($Drivers_NV3d_GOOD.Count -eq 0)
 	{
 		$Drivers_NV3D
