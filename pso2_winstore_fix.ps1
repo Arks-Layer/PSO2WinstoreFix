@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_17_0538" # Error codes: 39
+$VersionScript = "Version 2020_07_17_0809" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -604,7 +604,7 @@ try {
 } catch {$_}
 		If ($null -eq $MD5Hash)
 		{
-			Remove-Item -LiteralPath $_.PSPath -Force -Verbose -ErrorAction Continue -WhatIf
+			Remove-Item -LiteralPath $FilePath -Force -Verbose -ErrorAction Continue
 			Return
 		}
 		$MD5HashS = ([string]$MD5Hash).ToUpper()
@@ -647,7 +647,7 @@ Function RemakeClientHashs()
 	$data_win32na_files = @()
 	$data_win32jp_files = @()
 	$data_win32jp_script_files = @()
-	$core_files = Get-ChildItem -LiteralPath $Path -File -Filter "*.dll" -Name
+	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.dll" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.exe" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.rtf" -Name
 	$core_files += Get-ChildItem -LiteralPath $Path -File -Filter "*.txt" -Name
@@ -864,16 +864,16 @@ Write-Host -Object ""
 Write-Host -Object ""
 Write-Host -Object ""
 
-Import-Module -Name Appx -Force -Verbose
-Import-Module -Name CimCmdlets -Force -Verbose
-Import-Module -Name Microsoft.PowerShell.Archive -Force -Verbose
-Import-Module -Name Microsoft.PowerShell.Diagnostics -Force -Verbose
-Import-Module -Name Microsoft.PowerShell.Host -Force -Verbose
-Import-Module -Name Microsoft.PowerShell.Management -Force -Verbose
-Import-Module -Name Microsoft.PowerShell.Utility -Force -Verbose
-Import-Module -Name NetAdapter -Force -Verbose
-Import-Module -Name NetTCPIP -Force -Verbose
-Import-Module -Name Storage -Force -Verbose
+Import-Module -Name Appx -Force
+Import-Module -Name CimCmdlets -Force
+Import-Module -Name Microsoft.PowerShell.Archive -Force
+Import-Module -Name Microsoft.PowerShell.Diagnostics -Force
+Import-Module -Name Microsoft.PowerShell.Host -Force
+Import-Module -Name Microsoft.PowerShell.Management -Force
+Import-Module -Name Microsoft.PowerShell.Utility -Force
+Import-Module -Name NetAdapter -Force
+Import-Module -Name NetTCPIP -Force
+Import-Module -Name Storage -Force
 
 Write-Host -Object "Checking for Administrator Role..."
 # Get the ID and security principal of the current user account
