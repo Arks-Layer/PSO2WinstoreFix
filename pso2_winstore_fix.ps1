@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_17_0809" # Error codes: 39
+$VersionScript = "Version 2020_07_17_1446" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -329,7 +329,10 @@ function RobomoveByFolder {
 			$JSONObj.PSO2NARemoteVersion = 0
 			$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
 			$EmptyFiles | Remove-Item -Force -ErrorAction Continue
-			Remove-Item -Path "client_na.json" -Force -Verbose
+			If (Test-Path -Path "client_na.json" -PathType Leaf)
+			{
+				Remove-Item -Path "client_na.json" -Force -Verbose
+			}
 		}
 	}
 	Write-Host -Object "Starting robocopy job..."
@@ -915,7 +918,7 @@ If ($IPv6DR.Count -gt 0)
 {
 	Write-Host -Object "Found IPv6 network setup"
 	Write-Host -Object "Network Adapter with IPv6:"
-	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetAdapter
+	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetAdapter -IncludeHidden -ErrorAction Continue
 	Write-Host -Object "IPv6 Address Settings:"
 	$IPv6DR | Sort-Object ifIndex -Unique | Get-NetIPAddress -AddressFamily IPv6 | Where-Object SuffixOrigin -NE "Random" | Where-Object SuffixOrigin -NE "Link" | Where-Object AddressState -NE "Deprecated" | Select-Object IPv6Address, PrefixLength, AddressState, InterfaceAlias, InterfaceIndex, PrefixOrigin, SkipAsSource, Store, SuffixOrigin, Type
 	Write-Host -Object "Ipv6 DNS Settings:"
