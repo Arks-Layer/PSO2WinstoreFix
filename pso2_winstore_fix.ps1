@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_16_1254" # Error codes: 39
+$VersionScript = "Version 2020_07_17_0538" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -816,8 +816,9 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 
 SetConsoleQuickEdit -Mode $false | Out-Null
 
-If ($MyInvocation.MyCommand.Name -eq "pso2_winstore_fix_freshinstall.ps1")
+If ($MyInvocation.MyCommand.Name -like "pso2_winstore_fix_freshinstall*.ps1")
 {
+	Write-Host -Object "freshinstall style detected"
 	$SkipRobomove = $true
 }
 
@@ -1455,7 +1456,7 @@ $JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Twe
 Write-Host -Object "Checking for existing PSO2NA package..."
 $PSO2NABinFolder_FallBack = $null
 $MSPackages = @()
-$MSPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
+$MSPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store" | Where-Object InstallLocation -ne $null
 If ($MSPackages.Count -eq 1)
 {
 	$MSItem = Get-Item -LiteralPath $MSPackages.InstallLocation -ErrorAction Continue
@@ -1466,7 +1467,7 @@ If ($MSPackages.Count -eq 1)
 	$PSO2NABinFolder_FallBack = Join-Path $MSItem.FullName -ChildPath "..\ModifiableWindowsApps\pso2_bin"
 }
 $UTPackages = @()
-$UTPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None"
+$UTPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "None" | Where-Object InstallLocation -ne $null
 If ($UTPackages.Count -eq 1)
 {
 	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
