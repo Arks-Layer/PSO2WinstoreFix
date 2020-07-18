@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_18_0644" # Error codes: 39
+$VersionScript = "Version 2020_07_18_1808" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -365,7 +365,7 @@ function RobomoveByFolder {
 				Write-Host -Object "	$($FilesCount.Count) Files"
 				Write-Host -Object "	$($DirsCount.Count) Directories"
 			}
-			If ($NewSub -like "win32*")
+			If ($NewSub -Like "win32*")
 			{
 				(0..0xf | ForEach-Object -Process { $_.ToString("X1") }) | ForEach-Object -Process {
 					Write-Host -Object ""
@@ -826,7 +826,7 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 
 SetConsoleQuickEdit -Mode $false | Out-Null
 
-If ($MyInvocation.MyCommand.Name -like "pso2_winstore_fix_freshinstall*.ps1")
+If ($MyInvocation.MyCommand.Name -Like "pso2_winstore_fix_freshinstall*.ps1")
 {
 	Write-Host -Object "freshinstall style detected"
 	$SkipRobomove = $true
@@ -915,7 +915,7 @@ Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download",
 Write-Host -Object "Look for PSO2 log entries"
 $WinAppLogs = @()
 $WinAppLogs += Get-WinEvent -LogName Application -ErrorAction SilentlyContinue
-$WinAppLogs | Where-Object Message -like "*pso2*" | Format-List
+$WinAppLogs | Where-Object Message -Like "*pso2*" | Format-List
 ""
 
 Write-Host -Object "Testing for broken IPv6 network setup"
@@ -1118,7 +1118,7 @@ Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object 
 "Starting XBOX services..."
 Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object Status -NE "Running" | Start-Service -Verbose
 "Killing any XBOX process"
-Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object ProcessName -like "*xbox*" | Stop-Process -Force -ErrorAction Continue
+Get-Process -IncludeUserName | Where-Object UserName -eq ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) | Where-Object ProcessName -Like "*xbox*" | Stop-Process -Force -ErrorAction Continue
 
 $SystemVolume = Get-AppxVolume | Where-Object -Property IsSystemVolume -eq $true
 $AddonVolumes = @()
@@ -1414,7 +1414,7 @@ If ($npggsvc.Count -gt 0)
 }
 
 $OneDrives = @()
-$OneDrives += (Get-ChildItem -Path Env: | Where-Object Name -like "OneDrive*").Value | Sort-Object -Unique
+$OneDrives += (Get-ChildItem -Path Env: | Where-Object Name -Like "OneDrive*" | Where-Object -Value -NE $null).Value | Sort-Object -Unique
 
 Write-Host -Object "Looking at My Document folder"
 If ($SkipOneDrive -ne $true)
@@ -1729,12 +1729,12 @@ $PSO2Vol_FAT32 = @()
 $PSO2Vol_NTFS  = @()
 $PSO2Vol_ReFS  = @()
 $PSO2Vol_Unk   = @()
-$PSO2Vol_exFAT += $PSO2Vol | Where-Object -Property FileSystemType -EQ exFAT
-$PSO2Vol_FAT   += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT
-$PSO2Vol_FAT32 += $PSO2Vol | Where-Object -Property FileSystemType -EQ FAT32
-$PSO2Vol_NTFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ NTFS
-$PSO2Vol_ReFS  += $PSO2Vol | Where-Object -Property FileSystemType -EQ ReFS
-$PSO2Vol_UnK   += $PSO2Vol | Where-Object -Property FileSystemType -EQ Unknown
+$PSO2Vol_exFAT += $PSO2Vol | Where-Object -Property FileSystem -EQ exFAT
+$PSO2Vol_FAT   += $PSO2Vol | Where-Object -Property FileSystem -EQ FAT
+$PSO2Vol_FAT32 += $PSO2Vol | Where-Object -Property FileSystem -EQ FAT32
+$PSO2Vol_NTFS  += $PSO2Vol | Where-Object -Property FileSystem -EQ NTFS
+$PSO2Vol_ReFS  += $PSO2Vol | Where-Object -Property FileSystem -EQ ReFS
+$PSO2Vol_UnK   += $PSO2Vol | Where-Object -Property FileSystem -EQ Unknown
 
 If ($BrokenVolume -eq $true)
 {
@@ -2078,9 +2078,9 @@ $DirectXRuntime_All += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -Package
 $DirectXRuntime_User += Get-AppxPackage -Name "Microsoft.DirectXRuntime" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $DirectXRuntime_version
 
 $DirectXRuntime_User_Error = @()
-$DirectXRuntime_User_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
+$DirectXRuntime_User_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -Like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
 $DirectXRuntime_All_Error = @()
-$DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
+$DirectXRuntime_All_Error += $DirectXRuntime_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -Like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
 
 if ($DirectXRuntime_All.Count -gt 0 -and ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_User_Error.Count -gt 0) -and $DirectXRuntime_All_Error.Count -eq 0)
 {
@@ -2105,9 +2105,9 @@ $VCLibs_All += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -Packa
 $VCLibs_User += Get-AppxPackage -Name "Microsoft.VCLibs.140.00.UWPDesktop" -PackageTypeFilter Framework -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" | PackageVersion -Version $VCLibs_Version
 
 $VCLibs_User_Error = @()
-$VCLibs_User_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
+$VCLibs_User_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -Like $myWindowsID.User.Value} | Where-Object InstallState -NotIn "Installed","Staged"
 $VCLibs_All_Error = @()
-$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
+$VCLibs_All_Error += $VCLibs_All.PackageUserInformation | Where-Object -FilterScript {$_.UserSecurityId.Sid -Like "S-1-5-18"} | Where-Object InstallState -NotIn "Installed","Staged"
 
 If ($VCLibs_All.Count -gt 0 -And ($VCLibs_User.Count -eq 0 -or $VCLibs_User_Error.Count -gt 0) -and $VCLibs_All_Error.Count -eq 0)
 {
