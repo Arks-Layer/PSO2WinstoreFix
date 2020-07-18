@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_18_1808" # Error codes: 39
+$VersionScript = "Version 2020_07_18_2053" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -1413,8 +1413,13 @@ If ($npggsvc.Count -gt 0)
 	}
 }
 
+$OneDrives_ENVs = @()
+$OneDrives_ENVs += Get-ChildItem -Path Env: | Where-Object Name -Like "OneDrive*" | Where-Object Value -NE $null
 $OneDrives = @()
-$OneDrives += (Get-ChildItem -Path Env: | Where-Object Name -Like "OneDrive*" | Where-Object -Value -NE $null).Value | Sort-Object -Unique
+If ($OneDrives_ENVs.Count -gt 0)
+{
+	$OneDrives += $OneDrives_ENVs.Value | Sort-Object -Unique
+}
 
 Write-Host -Object "Looking at My Document folder"
 If ($SkipOneDrive -ne $true)
