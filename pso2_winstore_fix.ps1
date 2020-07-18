@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_17_2328" # Error codes: 39
+$VersionScript = "Version 2020_07_18_0644" # Error codes: 39
 
 <#
 .SYNOPSIS
@@ -90,7 +90,7 @@ Function PauseAndFail {
 		$ErrorMessage
 		If ($PauseOnFail -eq $true)
 		{
-			[System.Windows.MessageBox]::Show($ErrorMessage)
+			[System.Windows.MessageBox]::Show($ErrorMessage) | Out-Nul
 		}
 	}
 	END
@@ -434,7 +434,7 @@ Function PauseOnly {
 	{
 		If ((Test-Path variable:global:psISE) -eq $true -or $true)
 		{
-			[System.Windows.MessageBox]::Show($PauseMessage)
+			[System.Windows.MessageBox]::Show($PauseMessage) | Out-Null
 		}
 		Else
 		{
@@ -604,13 +604,15 @@ Function HashOrDelete()
 		$MD5Hash = $null
 try {
 		$MD5Hash = (Get-FileHash -LiteralPath $FilePath -Algorithm MD5 -Verbose).Hash
-} catch {$_}
+} catch {Write-Verbose $_}
 		If ($null -eq $MD5Hash)
 		{
-			Remove-Item -LiteralPath $FilePath -Force -Verbose -ErrorAction Continue
-			Return
+			$MD5HashS = "D41D8CD98f00B204E9800998ECF8427E"
 		}
-		$MD5HashS = ([string]$MD5Hash).ToUpper()
+		else
+		{
+			$MD5HashS = ([string]$MD5Hash).ToUpper()
+		}
 		If ($Folder -eq ".")
 		{
 			$HashName_unix = $Filename
@@ -738,9 +740,14 @@ Function RemakeClientHashs()
 	$r = @{}
 	Write-Verbose -Message "Converting $($i.Count) MD5SUM list to hashtable..."
 	$i | Where-Object -FilterScript {$null -ne $_} | ForEach-Object -Process {
-		$r.Add($_.Keys[0] -join "", $_.Values[0] -join "")
+		$k = $_.Keys[0] -join ""
+		$v = $_.Values[0] -join ""
+		If ($null -ne $v -and "D41D8CD98f00B204E9800998ECF8427E" -ne $v)
+		{
+			$r.Add($k, $v)
+		}
 	}
-	Write-Verbose -Message "Saving $($i.Count) hashtable to file"
+	Write-Verbose -Message "Saving $($r.Count) hashtable to file"
 	Return $r
 }
 
