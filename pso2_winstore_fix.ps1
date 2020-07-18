@@ -1413,6 +1413,7 @@ If ($npggsvc.Count -gt 0)
 	}
 }
 
+Write-Host -Object "Looking for OneDrive folders..."
 $OneDrives_ENVs = @()
 $OneDrives_ENVs += Get-ChildItem -Path Env: | Where-Object Name -Like "OneDrive*" | Where-Object Value -NE $null
 $OneDrives = @()
