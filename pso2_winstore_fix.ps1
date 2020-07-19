@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_18_2053" # Error codes: 39
+$VersionScript = "Version 2020_07_19_0429" # Error codes: 40
 
 <#
 .SYNOPSIS
@@ -774,6 +774,28 @@ Function CheckPath()
 	Return CheckPath -Path $Parent -BadFolders $BadFolders
 }
 
+Function RegQUERY()
+{
+	Param
+	(
+		[Parameter(Mandatory=$true)]
+		[String]
+		$KeyName,
+		[Parameter(Mandatory=$true)]
+		[String]
+		$RegKey
+	)
+	if (Test-Path -LiteralPath $KeyName)
+	{
+		$RegPath = Get-ItemProperty -LiteralPath $KeyName
+		if ($null -ne $RegPath -and $null -ne ($RegPath | Get-Member -Name $RegKey) )
+		{
+			Return $RegPath | Select-Object -ExpandProperty $RegKey
+		}
+	}
+	Return $null
+}
+
 #----------------------------------------------------------------------------------------------------------------------------------
 
 #if there an unhandled error, just stop
@@ -905,6 +927,16 @@ Write-Host -Object ""
 Write-Host -Object ""
 Write-Host -Object ""
 Write-Host -Object ""
+
+Write-Host -Object "Checking for Core Isolation Memory Integrity.."
+$HECI = RegQUERY -KeyName "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -RegKey "Enabled"
+If ($null -ne $HECI)
+{
+    If ($HECI -eq 1)
+    {
+        "Please disable Core Isolation Memory Integrity, GameGuard can not work with it enabled" | PauseAndFail -ErrorLevel 40
+    }
+}
 
 Write-Host -Object "Killing PSO2 processes"
 try {
