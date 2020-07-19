@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_19_0429" # Error codes: 40
+$VersionScript = "Version 2020_07_19_1731" # Error codes: 40
 
 <#
 .SYNOPSIS
@@ -341,7 +341,7 @@ function RobomoveByFolder {
 	{
 		$Cmdlist += "/V"
 	}
-	Start-Process -Wait -FilePath $env:ComSpec -ArgumentList $Cmdlist -WindowStyle Minimized
+	Start-Process -FilePath $env:ComSpec -ArgumentList $Cmdlist -WorkingDirectory $env:SystemRoot -WindowStyle Minimized -Wait -Verbose
 	If ($SkipRemove -eq $false)
 	{
 		Write-Host -Object "Deleting source files..."
@@ -409,7 +409,7 @@ function Takeownship {
 	If (Test-Path -LiteralPath $takeownEXE)
 	{
 		Write-Host -Object "Reseting ACL of $($path)"
-		Start-Process -Wait -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -ErrorAction Continue -WindowStyle Normal
+		Start-Process -FilePath $takeownEXE -ArgumentList "/R","/A","/F",('"{0}"' -f $path) -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 		#we can not use"/D Y" only work on English, we need to ask the user in a non-Powershell window
 	}
 	Else
@@ -846,6 +846,13 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
 }
 
+$WorkingFolder = (Get-Location).Path
+
+If ($WorkingFolder -contains "[" -or $WorkingFolder -contains "]")
+{
+    "It seems that PSO2 Tweaker is in a folder path that may make this script go crazy" | PauseOnly
+}
+
 SetConsoleQuickEdit -Mode $false | Out-Null
 
 If ($MyInvocation.MyCommand.Name -Like "pso2_winstore_fix_freshinstall*.ps1")
@@ -918,7 +925,7 @@ if (-Not $myWindowsPrincipal.IsInRole($adminRole))
 	Write-Host -Object ""
 	Write-Host -Object "WARNING: You need to run this PowerShell script using an Administrator account (or with an admin powershell)."
 	Stop-Transcript
-	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs -WindowStyle Maximized
+	Start-Process -FilePath "powershell.exe" -ArgumentList "-NoLogo","-NoProfile","-ExecutionPolicy","ByPass","-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -WorkingDirectory $env:SystemRoot -Verb RunAs -WindowStyle Maximized
 	exit
 	#PauseAndFail -ErrorLevel 3
 }
@@ -1042,7 +1049,7 @@ If ($MSIList_Nahimic.Count -gt 0)
 	Write-Host -Object "Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
 	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR += $MSIList_Nahimic | ForEach-Object -Process {
-		Start-Process -Wait -Verbose -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb"
+		Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose -ErrorAction Continue
 	}
 }
 
@@ -1089,7 +1096,7 @@ If ($Drivers_AVOL.Count -gt 0)
 	Write-Host -Object "Found bad A-Volute Drivers, uninstalling them"
 	$Drivers_AVOL | Format-List
 	$Drivers_AVOL | ForEach-Object -Process {
-		Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+		Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	}
 }
 $Drivers_NV3D = @()
@@ -1283,7 +1290,7 @@ If ($GamingSrv_STOP.Count -gt 0)
 	{
 		$Drivers_XBOX | Format-List
 		$Drivers_XBOX | ForEach-Object -Process {
-			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+			Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot-WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 		}
 	}
 }
@@ -1345,7 +1352,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	If ($Drivers_XBOXL.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object -Process {
-			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+			Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 		}
 	}
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
@@ -1371,7 +1378,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	If ($Drivers_XBOX.Count -gt 0)
 	{
 		$Drivers_XBOX | ForEach-Object -Process {
-			Start-Process -Wait -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force"
+			Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 		}
 	}
 	Write-Host -Object "Removing Gaming Services app..."
@@ -1441,7 +1448,7 @@ If ($npggsvc.Count -gt 0)
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
-		Start-Process -Wait -FilePath $env:ComSpec -ArgumentList "/C","$($env:SystemRoot)\System32\sc.exe","delete","npggsvc" -WindowStyle Minimized
+		Start-Process -Wait -FilePath $env:ComSpec -ArgumentList "/C","$($env:SystemRoot)\System32\sc.exe","delete","npggsvc" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	}
 }
 
@@ -1488,11 +1495,11 @@ If ($SkipOneDrive -ne $true)
 		New-Item -Path $SegaFolder -ItemType Directory | Out-Null
 	}
 	Write-Host -Object "Removing READONLY attrib bit from SEGA folder..."
-	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
+	Start-Process -FilePath "attrib.exe" -ArgumentList "-R",('"{0}"' -f $SegaFolder),"/S","/D" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	If ($OneDriveFolder.Count -gt 0)
 	{
 		Write-Host -Object "Found OneDrive usage, pinning SEGA folder to always on local computer.."
-		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -Wait -Verbose -WindowStyle Minimized
+		Start-Process -FilePath "attrib.exe" -ArgumentList "-U","+P",('"{0}"' -f $SegaFolder),"/S","/D" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	}
 }
 
@@ -1570,7 +1577,7 @@ If ($PSO2NABinFolder -eq "")
 ElseIF ($PSO2NABinFolder -contains "[" -or $PSO2NABinFolder -contains "]")
 {
 	Write-Host -Object ""
-	"ERROR: The $($PSO2NABinFolder) folder have [ or ], PowerShell have issues with folder name." | PauseAndFail -ErrorLevel 28
+	"ERROR: The $($PSO2NABinFolder) folder have [ or ], PowerShell have issues with folder name." | PauseOnly #| PauseAndFail -ErrorLevel 28
 }
 ElseIf ($null -eq $PSO2NABinFolder)
 {
@@ -2344,7 +2351,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 	}
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
-	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -Verbose
+	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -WorkingDirectory $PWD -WindowStyle Normal -Verbose
 }
 Else
 {
