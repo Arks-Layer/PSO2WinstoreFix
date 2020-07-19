@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_19_1731" # Error codes: 40
+$VersionScript = "Version 2020_07_19_2103" # Error codes: 40
 
 <#
 .SYNOPSIS
@@ -90,7 +90,7 @@ Function PauseAndFail {
 		$ErrorMessage
 		If ($PauseOnFail -eq $true)
 		{
-			[System.Windows.MessageBox]::Show($ErrorMessage) | Out-Nul
+			[System.Windows.MessageBox]::Show($ErrorMessage) | Out-Null
 		}
 	}
 	END
