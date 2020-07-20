@@ -847,7 +847,7 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
 }
-ElseIf ((Test-Path -Path "pso2.exe" -PathType Leaf) -or (Test-Path -Path "pso2_bin/pso2.exe" -PathType Leaf))
+ElseIf ((Test-Path -Path "pso2.exe" -PathType Leaf) -or (Test-Path -Path "pso2_bin" -PathType Container))
 {
     "PSO2 Tweaker can not be in the same folder as PSO2" | PauseAndFail -ErrorLevel 41
 }
