@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_20_0016" # Error codes: 40
+$VersionScript = "Version 2020_07_20_1748" # Error codes: 40
 
 <#
 .SYNOPSIS
@@ -42,7 +42,7 @@ Pause the script if it get to a handled fail path
 Skip over moving the PSO2NA data files from MS Store folders
 
 .PARAMETER ForceLocalInstall
-FOrce to use APPX files from an outside source, not the MS Store
+Force to use APPX files from an outside source, not the MS Store
 
 .PARAMETER SkipStorageCheck
 Skip checking the volumes, in case of a broken disk management system
@@ -783,17 +783,19 @@ Function RegQUERY()
 		$KeyName,
 		[Parameter(Mandatory=$true)]
 		[String]
-		$RegKey
+		$RegKey,
+		[Object]
+		$Default = $null
 	)
 	if (Test-Path -LiteralPath $KeyName)
 	{
 		$RegPath = Get-ItemProperty -LiteralPath $KeyName
 		if ($null -ne $RegPath -and $null -ne ($RegPath | Get-Member -Name $RegKey) )
 		{
-			Return $RegPath | Select-Object -ExpandProperty $RegKey
+			Return Get-ItemPropertyValue -LiteralPath $KeyName -Name $RegKey
 		}
 	}
-	Return $null
+	Return $Default
 }
 
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -936,13 +938,10 @@ Write-Host -Object ""
 Write-Host -Object ""
 
 Write-Host -Object "Checking for Core Isolation Memory Integrity.."
-$HECI = RegQUERY -KeyName "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -RegKey "Enabled"
-If ($null -ne $HECI)
+$HECI = RegQUERY -KeyName "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -RegKey "Enabled" -Default 0
+If ($HECI -eq 1)
 {
-    If ($HECI -eq 1)
-    {
-        "Please disable Core Isolation Memory Integrity, GameGuard can not work with it enabled" | PauseAndFail -ErrorLevel 40
-    }
+	"Please disable Core Isolation Memory Integrity, GameGuard can not work with it enabled" | PauseAndFail -ErrorLevel 40
 }
 
 Write-Host -Object "Killing PSO2 processes"
@@ -1097,6 +1096,16 @@ If ($Drivers_AVOL.Count -gt 0)
 	Write-Host -Object "Found bad A-Volute Drivers, uninstalling them"
 	$Drivers_AVOL | Format-List
 	$Drivers_AVOL | ForEach-Object -Process {
+		Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
+	}
+}
+$Drivers_Nahimic = @()
+$Drivers_Nahimic += $Drivers | Where-Object ProviderName -eq "Nahimic"
+If ($Drivers_Nahimic.Count -gt 0)
+{
+	Write-Host -Object "Found bad Nahimic Drivers, uninstalling them"
+	$Drivers_Nahimic | Format-List
+	$Drivers_Nahimic | ForEach-Object -Process {
 		Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	}
 }
@@ -1732,6 +1741,11 @@ If ( $AddonVolumes.Count -gt 0)
 {
 	$BadFolders += Join-Path -Path ($AddonVolumes.PackageStorePath|Split-Path -Parent) -ChildPath "Program Files"
 }
+$BadFolders_DL = RegQUERY -KeyName "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -RegKey "{7D83EE9B-2244-4E70-B1F5-5393042AF1E4}" -Default $null
+If ($null -ne $BadFolders_DL)
+{
+	$BadFolders += $BadFolders_DL
+}
 "The following folders are noted as blackholes:"
 $BadFolders
 If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
@@ -1960,21 +1974,8 @@ If ($MissingFiles -eq $true)
 }
 
 Write-Host -Object "Checking for Developer Mode..."
-$DevMode = $false
-$RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-if (Test-Path -LiteralPath $RegistryKeyPath)
-{
-	$AppModelUnlock = Get-ItemProperty -LiteralPath $RegistryKeyPath
-	if ($null -ne $AppModelUnlock -and $null -ne ($AppModelUnlock | Get-Member -Name AllowDevelopmentWithoutDevLicense) )
-	{
-		$RegData = $AppModelUnlock | Select-Object -ExpandProperty AllowDevelopmentWithoutDevLicense
-		If ($RegData -eq 1)
-		{
-			$DevMode = $true
-		}
-	}
-}
-If ($DevMode -EQ $false)
+$DevMode = RegQUERY -KeyName "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -RegKey "AllowDevelopmentWithoutDevLicense" -Default 0
+If ($DevMode -EQ 0)
 {
 	Write-Host -Object ""
 	Write-Host -Object "You need to enable Developer mode. Please see https://www.howtogeek.com/292914/what-is-developer-mode-in-windows-10/" -ForegroundColor Red
@@ -1983,7 +1984,7 @@ If ($DevMode -EQ $false)
 "[OK]"
 
 $NAFiles = @("version.ver")
-If (Test-Path "client_na.json" -PathType Leaf)
+If (Test-Path -Path "client_na.json" -PathType Leaf)
 {
 	$NAState = @()
 	Write-Host -Object "Reading Tweaker's UpdateEngine for PSO2NA"
