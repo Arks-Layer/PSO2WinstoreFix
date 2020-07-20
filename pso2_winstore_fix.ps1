@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_20_1748" # Error codes: 40
+$VersionScript = "Version 2020_07_20_2257" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -846,6 +846,10 @@ $VersionScript
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
 	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
+}
+ElseIf ((Test-Path -Path "pso2.exe" -PathType Leaf) -or (Test-Path -Path "pso2_bin/pso2.exe" -PathType Leaf))
+{
+    "PSO2 Tweaker can not be in the same folder as PSO2" | PauseAndFail -ErrorLevel 41
 }
 
 $WorkingFolder = (Get-Location).Path
