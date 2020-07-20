@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_20_2312" # Error codes: 41
+$VersionScript = "Version 2020_07_20_2330" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1304,7 +1304,7 @@ If ($GamingSrv_STOP.Count -gt 0)
 	{
 		$Drivers_XBOX | Format-List
 		$Drivers_XBOX | ForEach-Object -Process {
-			Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot-WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
+			Start-Process -FilePath "pnputil.exe" -ArgumentList "/delete-driver",$_.Driver,"/uninstall","/force" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 		}
 	}
 }
