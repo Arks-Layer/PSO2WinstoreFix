@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_20_2257" # Error codes: 41
+$VersionScript = "Version 2020_07_20_2312" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1462,7 +1462,7 @@ If ($npggsvc.Count -gt 0)
 	If ($BrokenGG)
 	{
 		#Delete-Service do not exist in Power-Shell 5.1
-		Start-Process -Wait -FilePath $env:ComSpec -ArgumentList "/C","$($env:SystemRoot)\System32\sc.exe","delete","npggsvc" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
+		Start-Process -FilePath $env:ComSpec -ArgumentList "/C","$($env:SystemRoot)\System32\sc.exe","delete","npggsvc" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose
 	}
 }
 
