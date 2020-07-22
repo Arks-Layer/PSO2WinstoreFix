@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_22_1947" # Error codes: 41
+$VersionScript = "Version 2020_07_22_2315" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1283,15 +1283,16 @@ $GamingSrv = @()
 $GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
 $GamingSrv_STOP = @()
 $GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
-$GamingSrv_DISABLED = @()
-$GamingSrv_DISABLED += $GamingSrv | Where-Object StartType -EQ "Disabled"
+$GamingSrv_CanNotStop = @()
+$GamingSrv_CanNotStop += $GamingSrv | Where-Object CanStop -EQ $false
 
 $GamingNetSrv = @()
 $GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
-$GamingNetSrv_DISABLED += $GamingNetSrv | Where-Object StartType -EQ "Disabled"
+$GamingNetSrv_CanNotStop += $GamingNetSrv | Where-Object CanStop -EQ $false
 
-If ($GamingNetSrv_DISABLED.Count -gt 0 -or $GamingSrv_DISABLED.Count -gt 0)
+If ($GamingNetSrv_CanNotStop.Count -gt 0 -or $GamingSrv_CanNotStop.Count -gt 0)
 {
+	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
 	"There a pending uninstall of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
 }
 
@@ -1343,7 +1344,7 @@ If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $Gamin
 }
 ElseIf ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
 {
-	"Look like you have CheckPoint based software installed, Like ZoneAlarm, OR so many PNP devices in Device Manger, it crashes the GamingService App" | PauseAndFail -ErrorLevel 39
+	"Look like you have CheckPoint based software installed, Like ZoneAlarm, OR so many PNP devices in Device Manger, it crashes the GamingService App OR WORST, the DCOM subsystem is broken" | PauseAndFail -ErrorLevel 39
 }
 
 If ($GamingServices_Any_Error.Count -gt 0)
@@ -2361,7 +2362,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 		}
 		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 	}
-	$LockDown | Remove-Item -Recurse -Force -Confirm:$false
+	$LockDown | Remove-Item -Recurse -Force -Confirm:$false -Verbose
 	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -WorkingDirectory $PWD -WindowStyle Normal -Verbose
 }
