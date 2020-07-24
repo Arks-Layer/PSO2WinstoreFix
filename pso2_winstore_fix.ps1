@@ -8,7 +8,7 @@
 #
 
 Param(
-	[Bool]$ForceReinstall = $false,
+	[Bool]$ForceReinstall = $true,
 	[Bool]$TweakerMode = $false,
 	[Bool]$PauseOnFail = $true,
 	[Bool]$SkipRobomove = $false,
@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_22_2315" # Error codes: 41
+$VersionScript = "Version 2020_07_24_0225" # Error codes: 41
 
 <#
 .SYNOPSIS
