@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_24_0225" # Error codes: 41
+$VersionScript = "Version 2020_07_26_0746" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1165,6 +1165,7 @@ Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 #Set-Service -Name "BITS" -StartupType AutomaticDelayedStart -ErrorAction Continue
 Set-Service -Name "StorSvc" -StartupType Manual -ErrorAction Continue
 Get-Service -Name "wuauserv","BITS","StorSvc","AppxSvc","ClipSvc" | Where-Object Status -NE "Running" | Start-Service -ErrorAction Continue -Verbose
+Get-Service -Name "InstallService" | Where-Object Status -EQ "Running" | Stop-Service -ErrorAction Continue -Verbose
 
 "Turn back on XBOX services..."
 Get-Service -Name "XblGameSave","XblAuthManager","XboxNetApiSvc" | Where-Object StartType -EQ "Disabled" | Set-Service -StartupType Manual -PassThru -Verbose | Start-Service -Verbose
@@ -1290,10 +1291,23 @@ $GamingNetSrv = @()
 $GamingNetSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServicesNet"
 $GamingNetSrv_CanNotStop += $GamingNetSrv | Where-Object CanStop -EQ $false
 
-If ($GamingNetSrv_CanNotStop.Count -gt 0 -or $GamingSrv_CanNotStop.Count -gt 0)
+If ($GamingNetSrv_CanNotStop.Count -gt 0 -and $GamingSrv_CanNotStop.Count -gt 0)
 {
-	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
-	"There a pending uninstall of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
+	#$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
+	"There a pending uninstall/update of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
+}
+ElseIf ($GamingNetSrv_CanNotStop.Count -gt 0 -and $GamingSrv_CanNotStop.Count -gt 0)
+{
+	$DeletedAppx = Join-Path -Path $SystemVolume.PackageStorePath -ChildPath "Deleted"
+	$OldGS = @()
+	IF (Test-Path -LiteralPath $DeletedAppx -PathType Container)
+	{
+		$OldGS += Get-ChildItem -LiteralPath $DeletedAppx -Filter "Microsoft.GamingServices*"
+	}
+	If ($OldGS.Count -gt 0)
+	{
+		$OldGS | Remove-Item -Recurse -Force -Confirm:$false -Verbose
+	}
 }
 
 $Drivers_XBOX = $Drivers | Where-Object ProviderName -eq "Xbox"
@@ -1336,6 +1350,20 @@ $GamingSrv_START = @()
 $GamingSrv_START += $GamingSrv | Where-Object Status -EQ "Running"
 $GamingSrv_STOP = @()
 $GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
+
+If ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
+{
+	Set-Item -Path Env:devmgr_show_nonpresent_devices -Value "1"
+	$DEVMGR = Start-Process -FilePath (Join-Path -Path $env:SystemRoot -ChildPath "System32\devmgmt.msc") -WorkingDirectory $env:SystemRoot -PassThru -WindowStyle Maximized -Verbose
+	"I am will waiting for you to remove the hidden Storage controller: Xvdd SCSI Miniport" | PauseOnly
+	Wait-Process -Id $DEVMGR.Id -Verbose
+	$GamingSrv = @()
+	$GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
+	$GamingSrv_START = @()
+	$GamingSrv_START += $GamingSrv | Where-Object Status -EQ "Running"
+	$GamingSrv_STOP = @()
+	$GamingSrv_STOP += $GamingSrv | Where-Object Status -NE "Running"
+}
 
 
 If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
@@ -1625,7 +1653,7 @@ ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 ElseIf ($PSO2NAFolder)
 {
 	$PSO2NABinFolder_PI = Get-Item -LiteralPath $PSO2NABinFolder
-	If ($PSO2NABinFolder_PI.Target.Count -eq 1)
+	If ($PSO2NABinFolder_PI.Mode -eq  "d----l" -and $PSO2NABinFolder_PI.Target.Count -eq 1)
 	{
 		$PSO2NABinFolder_PI = Get-Item -LiteralPath ($PSO2NABinFolder_PI.Target -join "")
 	}
