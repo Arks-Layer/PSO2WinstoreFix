@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_26_0746" # Error codes: 41
+$VersionScript = "Version 2020_07_27_2149" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1029,6 +1029,7 @@ Write-Host -Object "Getting Software list... (TimeOut set to 5 minutes)"
 Write-Host -Object "Please note: if you have any broken MSI installations, you may get errors"
 $MSIList = @()
 $MSIList_Nahimic = @()
+$MSIList_Steelseries= @()
 $MSIList_Bad = @()
 try {
 $MSIList += Get-CimInstance -ClassName Win32_Product -OperationTimeoutSec 300 -Shallow -ErrorAction Continue
@@ -1044,30 +1045,45 @@ $BadMSIs += "{FD585866-680F-4FE0-8082-731D715F90CE}","{FE05D491-4625-496D-A27A-F
 $BadMSIs += "{D88C71FC-FB81-49E0-9661-41ADDC02E4FD}","{893DFE4F-0810-4CC6-A0EB-2A4E8EAE36B4}","{0D3E2309-662A-4F32-9A29-278663BEF2E5}"
 $BadMSIs += "{D65C6419-CA01-46F1-B492-18F1BCB71E5D}","{0043C692-2E6A-4D53-A985-137F054778CF}","{158241D2-79BC-48C0-86ED-EFF147EE8AD5}"
 $BadMSIs += "{099D918A-1E4C-4109-AB28-BB6CCFE4B8D3}","{F982757B-42FE-479B-8D28-BA3806CB26A6}","{152556ED-C264-484C-882D-E58B377275EA}"
+
 $MSIR = @()
 $MSIList_Nahimic += $MSIList | Where-Object Vendor -EQ "Nahimic"
-$MSIList_Nahimic += $MSIList | Where-Object IdentifyingNumber -In $BadMSIs
+$MSIList_Steelseries += $MSIList | Where-Object Vendor -EQ "Steelseries"
+$MSIList_Bad += $MSIList | Where-Object IdentifyingNumber -In $BadMSIs
+
 If ($MSIList_Nahimic.Count -gt 0)
 {
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "NahimicAll.log"
-	Write-Host -Object "Ok, Going to Remove All Nahimic software to stop PSO2 from crashing"
+	Write-Host -Object "Ok, Going to Remove All Nahimic/Audio OSD software known to make PSO2 crash"
 	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR += $MSIList_Nahimic | ForEach-Object -Process {
 		Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose -ErrorAction Continue
 	}
 }
 
-$MSIList_Bad += $MSIList | Where-Object Vendor -NE "Nahimic" | Where-Object Name -Like "Nahimic*"
+If ($MSIList_Steelseries.Count -gt 0)
+{
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "SteelseriesAll.log"
+	Write-Host -Object "Ok, Going to Remove All Steelseries software known to make PSO2 crash"
+	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
+	$MSIR += $MSIList_Steelseries | ForEach-Object -Process {
+		Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose -ErrorAction Continue
+	}
+}
+
 If ($MSIList_Bad.Count -gt 0)
 {
-	Write-Host -Object "Found Bad software:"
-	$MSIList_Bad | Select-Object -Property Vendor, Name, Caption, Version, Description, IdentifyingNumber, PackageName
-	#PauseOnly
+	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "SteelseriesAll.log"
+	Write-Host -Object "Ok, Going to Remove bad software known to make PSO2 crash"
+	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
+	$MSIR += $MSIList_Bad | ForEach-Object -Process {
+		Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose -ErrorAction Continue
+	}
 }
 
 If (3010 -In $MSIR.ExitCode)
 {
-	"We need to reboot to be done removing the Nahimic software, BUT not right now" | PauseOnly
+	"We need to reboot to be done removing the Bad software, BUT not right now" | PauseOnly
 }
 
 Write-Host -Object "Getting list of PNP devices..."
@@ -1548,10 +1564,38 @@ If ($SkipOneDrive -ne $true)
 
 Write-Host -Object "Checking PSO2 Tweaker settings..."
 $JSONPath = $null
-$JSONData = $null
+$JSONData = [PSCustomObject]@{
+	UpdateChecks       	= "Always"
+	OldX               	= 0
+	OldY               	= 0
+	OutputPath         	= ".\"
+	ModsPath       	   	= ".\"
+	ScreenLocation     	= ""
+	PatchLanguage      	= "EN"
+	ProxyJSONURL       	= $null
+	PSO2JPBinFolder    	= $null
+	PSO2NABinFolder    	= $null
+	PSO2JPRemoteVersion	= $null
+	PSO2NARemoteVersion	= $null
+	SelectedShip       	= 2
+	ServerRegion       	= "English"
+	UploadItemData     	= $true
+	SteamModeEnabled   	= $null
+}
 $PSO2NABinFolder = $null
 $PSO2NAFolder = $null
-$JSONPath = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Tweaker\settings.json")
+$JSONFolder = [System.Environment]::ExpandEnvironmentVariables("%APPDATA%\PSO2 Tweaker")
+$JSONPath = Join-Path -Path $JSONFolder -ChildPath "settings.json"
+
+If (-Not (Test-Path -LiteralPath $JSONFolder -PathType Container))
+{
+	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:False -Verbose | Out-Null
+}
+
+If (-Not (Test-Path -LiteralPath $JSONPath -PathType Leaf))
+{
+	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:False -Verbose | Out-Null
+}
 
 Write-Host -Object "Checking for existing PSO2NA package..."
 $PSO2NABinFolder_FallBack = $null
