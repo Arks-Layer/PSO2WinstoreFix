@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_07_27_2149" # Error codes: 41
+$VersionScript = "Version 2020_08_03_1254" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -485,9 +485,9 @@ try {
 } catch {$_}
 	If ($OnlineVolumes.Count -gt 0)
 	{
-		$MutableVolumes += $OnlineVolumes | ForEach-Object -Process {
-			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps"
-			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container)
+		$MutableVolumes += $OnlineVolumes | ForEach-Object -Verbose -Process {
+			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose
+			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
 			{
 				$_
 			}
@@ -495,17 +495,17 @@ try {
 	}
 	If ($MutableVolumes.Count -gt 0)
 	{
-		$PackageFolders += $MutableVolumes | ForEach-Object -Process {
-			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\WindowsModifiableApps\$($Folder)"
-			If (Test-Path -LiteralPath $MutableFolder -PathType Container)
+		$PackageFolders += $MutableVolumes | ForEach-Object -Verbose -Process {
+			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps\$($Folder)" -Verbose
+			If (Test-Path -LiteralPath $MutableFolder -PathType Container -Verbose)
 			{
-				Return Resolve-Path -LiteralPath $MutableFolder
+				Return Resolve-Path -LiteralPath $MutableFolder -Verbose
 			}
 		}
 	}
-	If (Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\WindowsModifiableApps\$($Folder)" -PathType Container)
+	If (Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)" -PathType Container -Verbose)
 	{
-		$PackageFolders += Resolve-Path -LiteralPath "$($Env:SystemDrive)\Program Files\WindowsModifiableApps\$($Folder)"
+		$PackageFolders += Resolve-Path -LiteralPath "$($Env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)" -Verbose
 	}
 	If ($PackageFolders.Count -gt 0)
 	{
@@ -1351,7 +1351,7 @@ Try
 }
 Catch
 {
-	Write-Host -Object "There was an issue checking the Gaming Services, we will try to reinstall the app..."
+	Write-Host -Object "There was an issue checking the Gaming Services"
 }
 
 $GamingNetSrv = @()
@@ -1604,9 +1604,14 @@ $MSPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -
 If ($MSPackages.Count -eq 1)
 {
 	$MSItem = Get-Item -LiteralPath $MSPackages.InstallLocation -ErrorAction Continue
+	$MSPath = $null
 	If ($MSItem.Target.Count -eq 1)
 	{
-		$MSItem = Get-Item -LiteralPath ($MSItem.Target -join "")
+		$MSPath = ($MSItem.Target -join "")
+	}
+	If ($null -ne $MSPath -and (Test-Path -LiteralPath $MSPath -PathType Container))
+	{
+		$MSItem = Get-Item -LiteralPath $MSPath
 	}
 	$PSO2NABinFolder_FallBack = Join-Path $MSItem.FullName -ChildPath "..\ModifiableWindowsApps\pso2_bin"
 }
