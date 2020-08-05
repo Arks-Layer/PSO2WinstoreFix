@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_03_1254" # Error codes: 41
+$VersionScript = "Version 2020_08_05_0508" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -47,7 +47,7 @@ Force to use APPX files from an outside source, not the MS Store
 .PARAMETER SkipStorageCheck
 Skip checking the volumes, in case of a broken disk management system
 
-.PAREMETER SkipOneDrive
+.PARAMETER SkipOneDrive
 Skip checking OneDrive folders
 
 .PARAMETER ForceReHash
