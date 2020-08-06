@@ -117,6 +117,7 @@ Function PauseAndFail {
 }
 
 #All the fun helper functinons
+#region helper_functinons
 #Crash hander
 Function Failure
 {
@@ -801,6 +802,8 @@ Function RegQUERY()
 	}
 	Return $Default
 }
+
+#endregion  helper_functinons
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
