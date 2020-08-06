@@ -218,6 +218,16 @@ Function DownloadMe
 	}
 }
 
+Function Get-OnlineAppxVolumes {
+	[CmdletBinding()]
+
+	$OnlineAppxVolumes = @()
+	try {
+		$OnlineAppxVolumes += Get-AppxVolume -Online -Verbose
+	} catch {$_}
+	Return $OnlineAppxVolumes
+}
+
 #Package version check
 Function PackageVersion
 {
@@ -242,21 +252,30 @@ Function PackageVersion
 	}
 }
 
-#Find MutableBackup
-Function FindMutableBackup {
+# Find MutableBackup
+# Function FindMutableBackup
+<#
+.SYNOPSIS
+
+Find MutableBackup of an app
+
+.PARAMETER AppxPackageName
+
+Name parameter of the Appx package manifest
+
+#>
+Function Find-AppxMutableBackups {
 	[CmdletBinding()]
 	Param
 	(
 		[String]
-		$Package = "100B7A24.oxyna"
+		$AppxPackageName = "100B7A24.oxyna"
 	)
 	PROCESS
 	{
-		Write-Verbose -Message $Package
-		$AppxVols = @()
-		$AppxVols += Get-AppxVolume -Online -Verbose
+		Write-Verbose -Message $AppxPackageName
 		$Mutable = @()
-		$Mutable += $AppxVols | ForEach-Object -Process {
+		$Mutable += Get-OnlineAppxVolumes | ForEach-Object -Process {
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
 			If (Test-Path -LiteralPath $Test -PathType Container)
 			{
@@ -265,7 +284,7 @@ Function FindMutableBackup {
 		}
 		$Backups = @()
 		$Backups += $Mutable | ForEach-Object -Process {
-			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($Package)*"
+			Return Get-ChildItem -LiteralPath $_.ProviderPath -Filter "$($AppxPackageName)*"
 		} | Sort-Object -Descending LastWriteTime
 		If ($Backups.Count -gt 0)
 		{
@@ -471,51 +490,59 @@ Function Window10Version
 	Return "Unknown"
 }
 
-Function FindMutable_Appx
+# Function FindMutable_Appx
+<#
+.SYNOPSIS
+
+Find MutablePackageDirectory or, better known by the implementation name, ModifiableWindowsApps folders of an app
+
+.PARAMETER MutablePackageDirectory
+
+desktop6:MutablePackageDirectory parameter of the Appx package manifest
+
+#>
+Function Find-AppxModifiableWindowsApps
 {
 	Param
 	(
 		[String]
-		$Folder = "pso2_bin"
+		$MutablePackageDirectory = "pso2_bin"
 	)
-	$OnlineVolumes = @()
-	$MutableVolumes = @()
-	try {
-		$OnlineVolumes += Get-AppxVolume -Online -Verbose
-	} catch {$_}
-	If ($OnlineVolumes.Count -gt 0)
+	$CandidateAppxVolumes = @()
+	Get-OnlineAppxVolumes | ForEach-Object -Verbose -Process {
+		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose
+		If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
+		{
+			$CandidateAppxVolumes += $_
+		}
+	}
+
+	$FiltratePaths = @{}
+	If ($CandidateAppxVolumes.Count -gt 0)
 	{
-		$MutableVolumes += $OnlineVolumes | ForEach-Object -Verbose -Process {
-			$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose
-			If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
+		$CandidateAppxVolumes | ForEach-Object -Verbose -Process {
+			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps\$($MutablePackageDirectory)" -Verbose
+			If (Test-Path -LiteralPath $MutableFolder -PathType Container -Verbose)
 			{
-				$_
+				$CurrentAppxVolume = Resolve-Path -LiteralPath $MutableFolder -Verbose
+				$FiltratePaths[$CurrentAppxVolume] = $true
 			}
 		}
 	}
 
-	$PackageFolders = @()
-	If ($MutableVolumes.Count -gt 0)
-	{
-		$PackageFolders += $MutableVolumes | ForEach-Object -Verbose -Process {
-			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps\$($Folder)" -Verbose
-			If (Test-Path -LiteralPath $MutableFolder -PathType Container -Verbose)
-			{
-				Return Resolve-Path -LiteralPath $MutableFolder -Verbose
-			}
-		}
-	}
-	$SystemDrivePath = "$($env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)"
+	$SystemDrivePath = "$($env:SystemDrive)\Program Files\ModifiableWindowsApps\$($MutablePackageDirectory)"
 	If (Test-Path -LiteralPath $SystemDrivePath -PathType Container -Verbose)
 	{
-		$PackageFolders += Resolve-Path -LiteralPath $SystemDrivePath -Verbose
+		$CurrentAppxVolume = Resolve-Path -LiteralPath $SystemDrivePath -Verbose
+		$FiltratePaths[$CurrentAppxVolume] = $true
 	}
-	$ProgramFilesPath = "$($env:ProgramFiles)\ModifiableWindowsApps\$($Folder)"
+	$ProgramFilesPath = "$($env:ProgramFiles)\ModifiableWindowsApps\$($MutablePackageDirectory)"
 	If (Test-Path -LiteralPath $ProgramFilesPath -PathType Container -Verbose)
 	{
-		$PackageFolders += Resolve-Path -LiteralPath $ProgramFilesPath -Verbose
+		$CurrentAppxVolume = Resolve-Path -LiteralPath $ProgramFilesPath -Verbose
+		$FiltratePaths[$CurrentAppxVolume] = $true
 	}
-	Return $PackageFolders | Select-Object -ExpandProperty ProviderPath
+	Return $FiltratePaths.Keys | Select-Object -ExpandProperty ProviderPath
 }
 
 Function SetConsoleQuickEdit
@@ -2092,9 +2119,9 @@ If (Test-Path -Path "client_na.json" -PathType Leaf)
 
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders..."
-$OldBackups += FindMutableBackup
+$OldBackups += Find-AppxMutableBackups
 $MWA = @()
-$MWA += FindMutable_Appx
+$MWA += Find-AppxModifiableWindowsApps
 $OldPackages = @()
 $OldPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object -Property SignatureKind -EQ "Store"
 
