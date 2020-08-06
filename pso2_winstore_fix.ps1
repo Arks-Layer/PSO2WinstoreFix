@@ -2162,6 +2162,10 @@ try {
 If ($MWA.Count -gt 0)
 {
 	$MWA | ForEach-Object -Process {
+		If ([string]::IsNullOrEmpty($_)) {
+			Write-Host -Object "Found Garbage ModifiableWindowsApps and ignoring it: $($_)"
+			Continue
+		}
 		$OldBin = $_
 		Write-Host -Object "Found the old MS STORE's pso2_bin patch folder!"
 		Takeownship -path $OldBin
@@ -2170,18 +2174,18 @@ If ($MWA.Count -gt 0)
 		Write-Host -Object "Going to move the MS STORE patch files to your Tweaker copy of PSO2..."
 		RobomoveByFolder -source $OldBin -destination $PSO2NABinFolder
 		Write-Host -Object "Deleting old MS STORE's pso2_bin patch folder..."
-try {
-		Write-Host -Object "Deleting files in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
-} Catch {$_}
-try {
-		Write-Host -Object "Deleting subfolders in $($OldBin) Folder..."
-		Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {$_}
-try {
-		Write-Host -Object "Deleting $($OldBin) Folder..."
-		Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
-} Catch {$_}
+		try {
+			Write-Host -Object "Deleting files in $($OldBin) Folder..."
+			Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -File -Recurse | Remove-Item -Force -Confirm:$false -ErrorAction SilentlyContinue
+		} Catch {$_}
+		try {
+			Write-Host -Object "Deleting subfolders in $($OldBin) Folder..."
+			Get-ChildItem -LiteralPath $OldBin -ErrorAction Continue -Directory | Remove-Item -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+		} Catch {$_}
+		try {
+			Write-Host -Object "Deleting $($OldBin) Folder..."
+			Remove-Item -LiteralPath $OldBin -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+		} Catch {$_}
 	}
 	$ForceReHash = $true
 }
