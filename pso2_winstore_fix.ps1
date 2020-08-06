@@ -479,10 +479,9 @@ Function FindMutable_Appx
 	)
 	$OnlineVolumes = @()
 	$MutableVolumes = @()
-	$PackageFolders = @()
-try {
-	$OnlineVolumes += Get-AppxVolume -Online -Verbose
-} catch {$_}
+	try {
+		$OnlineVolumes += Get-AppxVolume -Online -Verbose
+	} catch {$_}
 	If ($OnlineVolumes.Count -gt 0)
 	{
 		$MutableVolumes += $OnlineVolumes | ForEach-Object -Verbose -Process {
@@ -493,6 +492,8 @@ try {
 			}
 		}
 	}
+
+	$PackageFolders = @()
 	If ($MutableVolumes.Count -gt 0)
 	{
 		$PackageFolders += $MutableVolumes | ForEach-Object -Verbose -Process {
@@ -503,14 +504,17 @@ try {
 			}
 		}
 	}
-	If (Test-Path -LiteralPath "$($Env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)" -PathType Container -Verbose)
+	$SystemDrivePath = "$($env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)"
+	If (Test-Path -LiteralPath $SystemDrivePath -PathType Container -Verbose)
 	{
-		$PackageFolders += Resolve-Path -LiteralPath "$($Env:SystemDrive)\Program Files\ModifiableWindowsApps\$($Folder)" -Verbose
+		$PackageFolders += Resolve-Path -LiteralPath $SystemDrivePath -Verbose
 	}
-	If ($PackageFolders.Count -gt 0)
+	$ProgramFilesPath = "$($env:ProgramFiles)\ModifiableWindowsApps\$($Folder)"
+	If (Test-Path -LiteralPath $ProgramFilesPath -PathType Container -Verbose)
 	{
-		Return $PackageFolders.ProvidePath
+		$PackageFolders += Resolve-Path -LiteralPath $ProgramFilesPath -Verbose
 	}
+	Return $PackageFolders | Select-Object -ExpandProperty ProviderPath
 }
 
 Function SetConsoleQuickEdit
