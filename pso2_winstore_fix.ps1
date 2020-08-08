@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_06_1739" # Error codes: 41
+$VersionScript = "Version 2020_08_08_1416" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1868,6 +1868,7 @@ If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
 	"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
 	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
+    New-Item -Path $PSO2NAFolder -ItemType Junction -Value $NewPSO2Folder.FullName -Verbose | Out-Null
 	$PSO2NAFolder = $NewPSO2Folder.FullName
 	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
 	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
