@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_08_1416" # Error codes: 41
+$VersionScript = "Version 2020_08_10_1720" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -509,8 +509,16 @@ Function Find-AppxModifiableWindowsApps
 		$MutablePackageDirectory = "pso2_bin"
 	)
 	$CandidateAppxVolumes = @()
-	Get-OnlineAppxVolumes | ForEach-Object -Verbose -Process {
+	$OAV = Get-OnlineAppxVolumes
+	$OAV | Where-Object -Property IsSystemVolume -eq $true | ForEach-Object -Verbose -Process {
 		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose
+		If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
+		{
+			$CandidateAppxVolumes += $_
+		}
+	}
+	$OAV | Where-Object -Property IsSystemVolume -eq $false | ForEach-Object -Verbose -Process {
+		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\Program Files\ModifiableWindowsApps" -Verbose
 		If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
 		{
 			$CandidateAppxVolumes += $_
@@ -520,8 +528,16 @@ Function Find-AppxModifiableWindowsApps
 	$FiltratePaths = @{}
 	If ($CandidateAppxVolumes.Count -gt 0)
 	{
-		$CandidateAppxVolumes | ForEach-Object -Verbose -Process {
+		$CandidateAppxVolumes | Where-Object -Property IsSystemVolume -eq $true | ForEach-Object -Verbose -Process {
 			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps\$($MutablePackageDirectory)" -Verbose
+			If (Test-Path -LiteralPath $MutableFolder -PathType Container -Verbose)
+			{
+				$CurrentAppxVolume = Resolve-Path -LiteralPath $MutableFolder -Verbose
+				$FiltratePaths[$CurrentAppxVolume] = $true
+			}
+		}
+		$CandidateAppxVolumes | Where-Object -Property IsSystemVolume -eq $false | ForEach-Object -Verbose -Process {
+			$MutableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\Program Files\ModifiableWindowsApps\$($MutablePackageDirectory)" -Verbose
 			If (Test-Path -LiteralPath $MutableFolder -PathType Container -Verbose)
 			{
 				$CurrentAppxVolume = Resolve-Path -LiteralPath $MutableFolder -Verbose
@@ -1866,14 +1882,14 @@ If ($null -ne $BadFolders_DL)
 $BadFolders
 If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
-	"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
+	#"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
 	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
     New-Item -Path $PSO2NAFolder -ItemType Junction -Value $NewPSO2Folder.FullName -Verbose | Out-Null
 	$PSO2NAFolder = $NewPSO2Folder.FullName
 	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
 	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
 	$JSONObj | ConvertTo-Json | Out-File -FilePath $JSONPath -Encoding UTF8
-	$ForceReHash = $true
+	#$ForceReHash = $true
 }
 
 "Report of Drive status"
