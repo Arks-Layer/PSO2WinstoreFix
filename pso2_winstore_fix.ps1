@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_10_1720" # Error codes: 41
+$VersionScript = "Version 2020_08_14_1613" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -899,14 +899,14 @@ If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 }
 ElseIf ((Test-Path -Path "pso2.exe" -PathType Leaf) -or (Test-Path -Path "pso2_bin" -PathType Container))
 {
-    "PSO2 Tweaker can not be in the same folder as PSO2" | PauseAndFail -ErrorLevel 41
+	"PSO2 Tweaker can not be in the same folder as PSO2" | PauseAndFail -ErrorLevel 41
 }
 
 $WorkingFolder = (Get-Location).Path
 
 If ($WorkingFolder -contains "[" -or $WorkingFolder -contains "]")
 {
-    "It seems that PSO2 Tweaker is in a folder path that may make this script go crazy" | PauseOnly
+	"It seems that PSO2 Tweaker is in a folder path that may make this script go crazy" | PauseOnly
 }
 
 SetConsoleQuickEdit -Mode $false | Out-Null
@@ -1619,12 +1619,12 @@ $JSONData = [PSCustomObject]@{
 	OldX               	= 0
 	OldY               	= 0
 	OutputPath         	= ".\"
-	ModsPath       	   	= ".\"
+	ModsPath           	= ".\"
 	ScreenLocation     	= ""
 	PatchLanguage      	= "EN"
 	ProxyJSONURL       	= $null
-	PSO2JPBinFolder    	= $null
-	PSO2NABinFolder    	= $null
+	PSO2JPBinFolder    	= "C:\PHANTASYSTARONLINE2_JP\pso2_bin"
+	PSO2NABinFolder    	= "C:\PHANTASYSTARONLINE2_NA\pso2_bin"
 	PSO2JPRemoteVersion	= $null
 	PSO2NARemoteVersion	= $null
 	SelectedShip       	= 2
@@ -1672,6 +1672,11 @@ If ($UTPackages.Count -eq 1)
 	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
 }
 
+If (-Not (Test-Path -LiteralPath $PSO2NABinFolder_FallBack))
+{
+	$PSO2NABinFolder_FallBack = "C:\PHANTASYSTARONLINE2_NA\pso2_bin"
+}
+
 If ($JSONPath)
 {
 	Write-Host -Object "Loading Tweaker Config from $($JSONPath)"
@@ -1704,6 +1709,7 @@ If ($JSONObj)
 	If ($null -eq $PSO2NABinFolder -and $null -ne $PSO2NABinFolder_FallBack)
 	{
 		$PSO2NABinFolder = $PSO2NABinFolder_FallBack
+		New-Item -Path $PSO2NABinFolder -ItemType Directory -Force -Confirm:$false -Verbose
 	}
 }
 Else
@@ -1884,7 +1890,7 @@ If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
 {
 	#"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
 	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
-    New-Item -Path $PSO2NAFolder -ItemType Junction -Value $NewPSO2Folder.FullName -Verbose | Out-Null
+	New-Item -Path $PSO2NAFolder -ItemType Junction -Value $NewPSO2Folder.FullName -Verbose | Out-Null
 	$PSO2NAFolder = $NewPSO2Folder.FullName
 	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
 	$JSONObj.PSO2NABinFolder = $PSO2NABinFolder
