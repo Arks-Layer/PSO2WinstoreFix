@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_18_0341" # Error codes: 41
+$VersionScript = "Version 2020_08_18_1513" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1672,7 +1672,7 @@ If ($UTPackages.Count -eq 1)
 	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
 }
 
-If (-Not (Test-Path -LiteralPath $PSO2NABinFolder_FallBack))
+If ($PSO2NABinFolder_FallBack -ne $null -and (-Not (Test-Path -LiteralPath $PSO2NABinFolder_FallBack)))
 {
 	$PSO2NABinFolder_FallBack = "C:\PHANTASYSTARONLINE2_NA\pso2_bin"
 }
