@@ -1672,7 +1672,7 @@ If ($UTPackages.Count -eq 1)
 	$PSO2NABinFolder_FallBack = Join-Path $UTPackages.InstallLocation -ChildPath "pso2_bin"
 }
 
-If ($PSO2NABinFolder_FallBack -ne $null -and (-Not (Test-Path -LiteralPath $PSO2NABinFolder_FallBack)))
+If ($null -ne $PSO2NABinFolder_FallBack -and (-Not (Test-Path -LiteralPath $PSO2NABinFolder_FallBack)))
 {
 	$PSO2NABinFolder_FallBack = "C:\PHANTASYSTARONLINE2_NA\pso2_bin"
 }
