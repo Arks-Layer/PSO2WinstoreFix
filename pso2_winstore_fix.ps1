@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_14_1613" # Error codes: 41
+$VersionScript = "Version 2020_08_18_0341" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1886,7 +1886,7 @@ If ($null -ne $BadFolders_DL)
 }
 "The following folders are noted as blackholes:"
 $BadFolders
-If (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders)
+If (($PSO2NAFolder.LastIndexOf("steamapps\common\PHANTASYSTARONLINE2_NA_STEAM") -ne -1) -and (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders))
 {
 	#"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
 	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
