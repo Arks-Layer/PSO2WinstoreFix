@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_08_18_1513" # Error codes: 41
+$VersionScript = "Version 2020_08_29_1331" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -2487,6 +2487,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 {
 	Write-Host -Object "Good, only found one custom PSO2 install."
 	Get-Process | Where-Object ProcessName -in "PSO2 Tweaker" | Stop-Process -Force -Verbose
+	Remove-Item -Path "missing.json" -Force -Confirm:$false -ErrorAction SilentlyContinue
 	Get-ChildItem -Filter "*.txt" | Remove-Item -Force -Confirm:$false
 	$LockDown = "checklog.txt", "skip.txt", "management_beta.txt", "na_data_files.txt", "license_files.txt", "data_files.txt", "patchlog.txt", "logfile.txt"
 	$LockDown | ForEach-Object -Process {
