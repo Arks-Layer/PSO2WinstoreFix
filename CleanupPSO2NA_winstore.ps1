@@ -7,16 +7,16 @@
 #	Set-ExecutionPolicy -Scope Process -ExecutionPolicy ByPass -Confirm:$false
 #
 
-Param(
-	[Bool]$ForceReinstall = $true,
-	[Bool]$TweakerMode = $false,
-	[Bool]$PauseOnFail = $true,
-	[Bool]$SkipRobomove = $false,
-	[Bool]$ForceLocalInstall = $false,
-	[Bool]$SkipStorageCheck = $false,
-	[Bool]$SkipOneDrive = $false,
-	[Bool]$ForceReHash = $false
-)
+#Param(
+	#[Bool]$ForceReinstall = $true,
+	#[Bool]$TweakerMode = $false,
+	#[Bool]$PauseOnFail = $true,
+	#[Bool]$SkipRobomove = $false,
+	#[Bool]$ForceLocalInstall = $false,
+	#[Bool]$SkipStorageCheck = $false,
+	#[Bool]$SkipOneDrive = $false,
+	#[Bool]$ForceReHash = $false
+#)
 
 $VersionScript = "Version 2020_08_29_1331" # Error codes: 41
 
@@ -66,7 +66,7 @@ Function PauseAndFail {
 	)
 	PROCESS
 	{
-		$ErrorMessage
+		$ErrorMessage | Write-Host
 		If ($PauseOnFail -eq $true)
 		{
 			[System.Windows.MessageBox]::Show($ErrorMessage) | Out-Null
@@ -821,6 +821,7 @@ Function RegQUERY()
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
+$VersionScript
 $OldBackups = @()
 "Looking for old PSO2NA MutableBackup folders..."
 $OldBackups += Find-AppxMutableBackups
@@ -930,4 +931,4 @@ Else
 	Write-Host -Object "No Windows Store PSO2NA installations found. Awesome!"
 }
 $Shell = New-Object -ComObject "WScript.Shell"
-$Button = $Shell.Popup("Script complete! All detected PSO2NA Windows Store installations have been removed.", 0, "Done!", 0)
+$Shell.Popup("Script complete! All detected PSO2NA Windows Store installations have been removed.", 0, "Done!", 0) | Out-Null
