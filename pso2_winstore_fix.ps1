@@ -1886,10 +1886,11 @@ If ($null -ne $BadFolders_DL)
 }
 "The following folders are noted as blackholes:"
 $BadFolders
-If (($PSO2NAFolder.LastIndexOf("steamapps\common\PHANTASYSTARONLINE2_NA_STEAM") -ne -1) -and (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders))
+$SteamApps = Join-Path -Path (Join-Path -Path "steamapps" -ChildPath "common") -ChildPath "PHANTASYSTARONLINE2_NA_STEAM"
+If (($PSO2NAFolder.LastIndexOf($SteamApps) -ne -1) -and (CheckPath -Path $PSO2NAFolder -BadFolders $BadFolders) -and $false)
 {
 	#"Sorry, look like PSO2NA was installed to a blackhole folder, we going to move the PSO2NA folder for you" | PauseOnly
-	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose
+	$NewPSO2Folder = Move-Item -LiteralPath $PSO2NAFolder -Destination $PSO2Drive_Root -Force -PassThru -Confirm:$false -Verbose -ErrorAction Stop
 	New-Item -Path $PSO2NAFolder -ItemType Junction -Value $NewPSO2Folder.FullName -Verbose | Out-Null
 	$PSO2NAFolder = $NewPSO2Folder.FullName
 	$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
