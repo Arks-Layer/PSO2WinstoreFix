@@ -1644,7 +1644,7 @@ If (-Not (Test-Path -LiteralPath $JSONFolder -PathType Container))
 
 If (-Not (Test-Path -LiteralPath $JSONPath -PathType Leaf))
 {
-	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:False -Verbose | Out-Null
+	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:$False -Verbose | Out-Null
 }
 
 Write-Host -Object "Checking for existing PSO2NA package..."
