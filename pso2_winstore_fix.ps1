@@ -1000,7 +1000,7 @@ If ($HECI -eq 1)
 
 Write-Host -Object "Killing PSO2 processes"
 try {
-Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2laucher","pso2predownload","pso2startup","pso2updater","GameGuard.des","GameMon.des","GameMon64.des" | Stop-Process -Force -ErrorAction Continue -Verbose
+Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download","pso2launcher","pso2predownload","pso2startup","pso2updater","GameGuard.des","GameMon.des","GameMon64.des" | Stop-Process -Force -ErrorAction Continue -Verbose
 } catch {$_}
 
 
