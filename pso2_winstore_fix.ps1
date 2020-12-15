@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_12_07_1519" # Error codes: 41
+$VersionScript = "Version 2020_12_15_1957" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -1877,7 +1877,7 @@ If ($OneDrives.Count -gt 0)
 }
 If ( $AddonVolumes.Count -gt 0)
 {
-	$BadFolders += Join-Path -Path ($AddonVolumes.PackageStorePath|Split-Path -Parent) -ChildPath "Program Files"
+	$BadFolders += Join-Path -Path ($AddonVolumes.PackageStorePath|Split-Path -Parent) -ChildPath "Program Files" -ErrorAction Continue
 }
 $BadFolders_DL = RegQUERY -KeyName "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -RegKey "{7D83EE9B-2244-4E70-B1F5-5393042AF1E4}" -Default $null
 If ($null -ne $BadFolders_DL)
