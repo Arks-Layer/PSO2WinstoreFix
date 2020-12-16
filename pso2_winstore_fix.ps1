@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_12_15_2017" # Error codes: 41
+$VersionScript = "Version 2020_12_16_0023" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -276,7 +276,12 @@ Function Find-AppxMutableBackups {
 		Write-Verbose -Message $AppxPackageName
 		$Mutable = @()
 		$Mutable += Get-OnlineAppxVolumes | ForEach-Object -Process {
-			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup"
+			$Test = $null
+			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup" -ErrorAction Continue
+			If ($Test -eq $null)
+			{
+				Return
+			}
 			If (Test-Path -LiteralPath $Test -PathType Container)
 			{
 				Return Resolve-Path -LiteralPath $Test -Verbose
