@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_12_16_0023" # Error codes: 41
+$VersionScript = "Version 2020_12_16_0050" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -516,15 +516,23 @@ Function Find-AppxModifiableWindowsApps
 	$CandidateAppxVolumes = @()
 	$OAV = Get-OnlineAppxVolumes
 	$OAV | Where-Object -Property IsSystemVolume -eq $true | ForEach-Object -Verbose -Process {
-		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose
-		If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
+		$ModifiableFolder = $null
+		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose -ErrorAction Continue
+		If ($ModifiableFolder -eq $null)
+		{
+		}
+		ElseIf (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
 		{
 			$CandidateAppxVolumes += $_
 		}
 	}
 	$OAV | Where-Object -Property IsSystemVolume -eq $false | ForEach-Object -Verbose -Process {
-		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\Program Files\ModifiableWindowsApps" -Verbose
-		If (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
+		$ModifiableFolder = $null
+		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\Program Files\ModifiableWindowsApps" -Verbose -ErrorAction Continue
+		If ($ModifiableFolder -eq $null)
+		{
+		}
+		ElseIf (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
 		{
 			$CandidateAppxVolumes += $_
 		}
