@@ -278,7 +278,7 @@ Function Find-AppxMutableBackups {
 		$Mutable += Get-OnlineAppxVolumes | ForEach-Object -Process {
 			$Test = $null
 			$Test = Join-Path $_.PackageStorePath -ChildPath "MutableBackup" -ErrorAction Continue
-			If ($Test -eq $null)
+			If ($null -eq $Test)
 			{
 				Return
 			}
@@ -518,7 +518,7 @@ Function Find-AppxModifiableWindowsApps
 	$OAV | Where-Object -Property IsSystemVolume -eq $true | ForEach-Object -Verbose -Process {
 		$ModifiableFolder = $null
 		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\ModifiableWindowsApps" -Verbose -ErrorAction Continue
-		If ($ModifiableFolder -eq $null)
+		If ($null -eq $ModifiableFolder)
 		{
 		}
 		ElseIf (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
@@ -529,7 +529,7 @@ Function Find-AppxModifiableWindowsApps
 	$OAV | Where-Object -Property IsSystemVolume -eq $false | ForEach-Object -Verbose -Process {
 		$ModifiableFolder = $null
 		$ModifiableFolder = Join-Path -Path $_.PackageStorePath -ChildPath "..\Program Files\ModifiableWindowsApps" -Verbose -ErrorAction Continue
-		If ($ModifiableFolder -eq $null)
+		If ($null -eq $ModifiableFolder)
 		{
 		}
 		ElseIf (Test-Path -LiteralPath $ModifiableFolder -PathType Container -Verbose)
