@@ -491,6 +491,7 @@ Function Window10Version
 		18362 {Return "1903"}
 		18363 {Return "1909"}
 		19041 {Return "2004"}
+		19042 {Return "20H2"}
 	}
 	Return "Unknown"
 }
