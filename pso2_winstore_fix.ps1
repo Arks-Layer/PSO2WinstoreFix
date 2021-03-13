@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2020_12_16_0050" # Error codes: 41
+$VersionScript = "Version 2021_03_13_2320" # Error codes: 41
 
 <#
 .SYNOPSIS
