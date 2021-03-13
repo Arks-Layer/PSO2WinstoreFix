@@ -1653,12 +1653,12 @@ $JSONPath = Join-Path -Path $JSONFolder -ChildPath "settings.json"
 
 If (-Not (Test-Path -LiteralPath $JSONFolder -PathType Container))
 {
-	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:False -Verbose | Out-Null
+	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
 }
 
 If (-Not (Test-Path -LiteralPath $JSONPath -PathType Leaf))
 {
-	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:$False -Verbose | Out-Null
+	New-Item -Path $JSONFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
 }
 
 Write-Host -Object "Checking for existing PSO2NA package..."
