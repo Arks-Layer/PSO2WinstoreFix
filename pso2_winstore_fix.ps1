@@ -2510,7 +2510,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 	$LockDown | ForEach-Object -Process {
 		New-Item -Path $_ -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
 	}
-	If ($ForceReHash -eq $true)
+	If ($ForceReHash -eq $true -and $false)
 	{
 		If (Test-Path -Path "client_na.json" -Verbose)
 		{
