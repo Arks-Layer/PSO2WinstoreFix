@@ -18,7 +18,7 @@ Param(
 	[Bool]$ForceReHash = $false
 )
 
-$VersionScript = "Version 2021_03_13_2320" # Error codes: 41
+$VersionScript = "Version 2021_04_15_2320" # Error codes: 41
 
 <#
 .SYNOPSIS
@@ -902,7 +902,7 @@ Start-Transcript -LiteralPath $ScriptLog
 } catch {
 $_
 "I am betting that the folder is read-only OR....",
-".....PLEASE FUCKING REMOVING THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
+".....PLEASE REMOVE THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
 }
 #Version number
 $VersionScript
