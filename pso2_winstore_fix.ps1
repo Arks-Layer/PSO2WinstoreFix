@@ -2301,7 +2301,7 @@ If ($DirectXRuntime_User.Count -eq 0 -or $DirectXRuntime_All_Error.Count -gt 0)
 	Write-Host -Object "Downloading DirectX Runtime requirement... (56MB)"
 	$URI = "https://download.microsoft.com/download/c/c/2/cc291a37-2ebd-4ac2-ba5f-4c9124733bf1/UAPSignedBinary_Microsoft.DirectX.x64.appx"
 	$FileD = "UAPSignedBinary_Microsoft.DirectX.x64.appx"
-	$NewPackages += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 12 -SHA512 "7D6980446CCAB7F08C498CE28DFA3707876768CB0D54E6912D8689F8D92E639A54FDCD0F0730D3FCF9ED9E970F34DFA97816C85C779B63D003AB54324BCCB5FB"
+	$NewPackages += DownloadMe -URI $URI -OutFile $FileD -ErrorLevel 12 -SHA512 "3555A5FB260586B51CDDE937625858878AF13D0075000B35CDEB8F923BDA209BF3E5AE296564C5500910E09919E7D9250D4EDCE90CB60B672C2CB45BA00F09E4"
 }
 
 
