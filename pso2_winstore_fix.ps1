@@ -1373,6 +1373,12 @@ $GamingNetSrv_CanNotStop += $GamingNetSrv | Where-Object CanStop -EQ $false
 
 If ($GamingNetSrv_CanNotStop.Count -gt 0 -and $GamingSrv_CanNotStop.Count -gt 0)
 {
+	@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
+		If (Test-Path $_)
+		{
+			Remove-Item -Path $_ -Recurse
+		}
+	}
 	#$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
 	"There a pending uninstall/update of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
 }
@@ -1481,6 +1487,14 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	Write-Host -Object ""
+	
+	@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
+		If (Test-Path $_)
+		{
+			Remove-Item -Path $_ -Recurse
+		}
+	}
+	
 	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
 	Start-Sleep -Seconds 30
 	Restart-Computer -Verbose
@@ -1520,6 +1534,14 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
+	
+		@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
+		If (Test-Path $_)
+			{
+				Remove-Item -Path $_ -Recurse
+			}
+		}
+
 		Write-Host -Object ""
 		"We going to restart the computer to get Gaming Services App install, please run the script again after reboot" | PauseOnly
 		Start-Sleep -Seconds 30
