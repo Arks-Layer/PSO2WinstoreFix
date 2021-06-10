@@ -1378,6 +1378,10 @@ If ($GamingNetSrv_CanNotStop.Count -gt 0 -and $GamingSrv_CanNotStop.Count -gt 0)
 		{
 			Remove-Item -Path $_ -Recurse
 		}
+		Else
+		{
+			"Tried removing damaged registry key $_ but failed!"
+		}
 	}
 	#$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose -ErrorAction Continue
 	"There a pending uninstall/update of the GamingServices App, please reboot your system" | PauseAndFail -ErrorLevel 36
@@ -1493,6 +1497,10 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 		{
 			Remove-Item -Path $_ -Recurse
 		}
+		Else
+		{
+			"Tried removing damaged registry key $_ but failed!"
+		}
 	}
 	
 	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
@@ -1536,9 +1544,13 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	{
 	
 		@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
-		If (Test-Path $_)
+			If (Test-Path $_)
 			{
 				Remove-Item -Path $_ -Recurse
+			}
+			Else
+			{
+				"Tried removing damaged registry key $_ but failed!"
 			}
 		}
 
