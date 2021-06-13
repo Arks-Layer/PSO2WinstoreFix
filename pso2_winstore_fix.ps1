@@ -193,17 +193,17 @@ Function DownloadMe
 			If ($null -ne $SHA512 -and $FileHash.Hash -ne $SHA512)
 			{
 				Write-Host -Object ""
-				Write-Host -Object "Error: Failed to download file! The File had been does not match the checksum"
+				Write-Host -Object "Error: Failed to download file! The file does not match the checksum."
 				Write-Host -Object ""
 				Write-Host -Object $URI
 				Write-Host -Object ""
-				"Download Failed" | PauseAndFail -ErrorLevel $ErrorLevel
+				"Download Failed." | PauseAndFail -ErrorLevel $ErrorLevel
 			}
 		}
 		Else
 		{
 			Write-Host -Object ""
-			Write-Host -Object "Error: Failed to download file! You can manually download it by using the link below and saving it to the same place this script is:"
+			Write-Host -Object "Error: Failed to download the file! You can manually download it by using the link below and saving it to the same place this script is:"
 			Write-Host -Object ""
 			Write-Host -Object $URI
 			Write-Host -Object ""
@@ -322,7 +322,7 @@ function RobomoveByFolder {
 	}
 	If (-Not (Test-Path -LiteralPath $source -PathType Container))
 	{
-		Write-Host -Object "ERROR: $($source) is not a folder"
+		Write-Host -Object "ERROR: $($source) is not a folder."
 		return
 	}
 	If (-Not (Test-Path -LiteralPath $destination -PathType Container))
@@ -747,7 +747,7 @@ Function RemakeClientHashs()
 		}
 	}
 	$all_file_count = $core_files.Count + $data_license_files.Count + $data_win32na_files.Count + $data_win32jp_files.Count
-	Write-Host -Object "Going to hash $($all_file_count) files, this may take a while"
+	Write-Host -Object "Going to hash $($all_file_count) files, this may take a while."
 	$core_hashs = @()
 	$data_win32jp_script_hashs = @()
 	$data_license_hashs = @()
@@ -882,7 +882,7 @@ Try
 	} While ($true)
 }
 Catch {
-	"Testing if we can write t our own log file"
+	"Testing if we can write our own log file"
 }
 #Find the script's folder and add "PSO2NA_PSLOG.log" to end of it
 If ($PSScriptRoot -ne "" -and -not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
@@ -902,14 +902,14 @@ Start-Transcript -LiteralPath $ScriptLog
 } catch {
 $_
 "I am betting that the folder is read-only OR....",
-".....PLEASE REMOVE THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Randsomware protection -> Protected folders" | PauseAndFail -ErrorLevel 255
+".....PLEASE REMOVE THE TWEAKER AND PSO2 FOLDERS OUT OF of Settings App -> Virus & threat protection -? Ransomware protection -> Controlled folder access" | PauseAndFail -ErrorLevel 255
 }
 #Version number
 $VersionScript
 
 If (-Not (Test-Path -Path "PSO2 Tweaker.exe" -PathType Leaf))
 {
-	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me" | PauseAndFail -ErrorLevel 31
+	"The Powershell Script NOW need to be placed in the same folder as PSO2 Tweaker, please move me there." | PauseAndFail -ErrorLevel 31
 }
 ElseIf ((Test-Path -Path "pso2.exe" -PathType Leaf) -or (Test-Path -Path "pso2_bin" -PathType Container))
 {
@@ -957,7 +957,7 @@ Elseif ($WinVer.Minor -gt 0) {}
 ElseIf ($WinVer.Build -lt 18362)
 {
 	Write-Host -Object ""
-	Write-Host -Object "Reported Windows Build $($WinVer.Build), Verion $(Window10Version -Build $WinVer.Build)"
+	Write-Host -Object "Reported Windows Build $($WinVer.Build), Version $(Window10Version -Build $WinVer.Build)"
 	Write-Host -Object "ERROR: PSO2NA is only supported on Windows 10 Version 1903 or higher. You need to upgrade Windows to a newer build/version." |	PauseAndFail -ErrorLevel 2
 }
 Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
@@ -966,7 +966,7 @@ Elseif ([System.Environment]::Is64BitOperatingSystem -eq $false)
 	"PSO2NA is only supported on 64-bit OS. You need to reinstall your Windows OS if your CPU is 64-bit." | PauseAndFail -ErrorLevel 21
 }
 Write-Host -Object "[OK]"
-Write-Host -Object "Report Windows Verion"
+Write-Host -Object "Report Windows Version"
 $WinVer | Format-List
 Write-Host -Object ""
 Write-Host -Object ""
@@ -1018,7 +1018,7 @@ Get-Process | Where-Object ProcessName -in "PSO2 Tweaker","pso2","pso2download",
 } catch {$_}
 
 
-Write-Host -Object "Look for PSO2 log entries"
+Write-Host -Object "Looking for PSO2 log entries"
 $WinAppLogs = @()
 $WinAppLogs += Get-WinEvent -LogName Application -ErrorAction SilentlyContinue
 $WinAppLogs | Where-Object Message -Like "*pso2*" | Format-List
@@ -1138,7 +1138,7 @@ If ($MSIList_Steelseries.Count -gt 0)
 If ($MSIList_Bad.Count -gt 0)
 {
 	$MSILog = Join-Path -Path $PSScriptRoot -ChildPath "SteelseriesAll.log"
-	Write-Host -Object "Ok, Going to Remove bad software known to make PSO2 crash"
+	Write-Host -Object "Ok, Going to remove bad software known to make PSO2 crash"
 	$MSIList_Nahimic | Select-Object -Property Name, Caption, Description, IdentifyingNumber, PackageName
 	$MSIR += $MSIList_Bad | ForEach-Object -Process {
 		Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x",$_.IdentifyingNumber,"/l*vx+",('"{0}"' -f $MSILog),"/qb" -WorkingDirectory $env:SystemRoot -WindowStyle Normal -Wait -Verbose -ErrorAction Continue
@@ -1147,7 +1147,7 @@ If ($MSIList_Bad.Count -gt 0)
 
 If (3010 -In $MSIR.ExitCode)
 {
-	"We need to reboot to be done removing the Bad software, BUT not right now" | PauseOnly
+	"We need to reboot to be done removing the bad software, BUT not right now" | PauseOnly
 }
 
 Write-Host -Object "Getting list of PNP devices..."
@@ -1155,7 +1155,7 @@ $PNPDevices = @()
 $PNPDevices += Get-CimInstance -ClassName Win32_PNPEntity -ErrorAction Continue
 If ($PNPDevices.Count -gt 0)
 {
-	Write-Host -Object "Export PNP Devices incause of troubleshooting.."
+	Write-Host -Object "Export PNP Devices incase of troubleshooting.."
 	$PNPDevices | Export-Clixml -Path "PNPDevices.xml"
 }
 Write-Host -Object "Getting list of Windows Drivers.."
@@ -1163,14 +1163,14 @@ $Drivers = @()
 $Drivers += Get-WindowsDriver -Online -ErrorAction Continue
 IF ($Drivers.Count -gt 0)
 {
-	Write-Host -Object "Export Windows Drivers incause of troubleshooting..."
+	Write-Host -Object "Export Windows Drivers incase of troubleshooting..."
 	$Drivers | Export-Clixml -Path "DriversOFB.xml"
 }
 $PNPDevices_AVOL = @()
 $PNPDevices_AVOL += $PNPDevices | Where-Object Manufacturer -eq "A-Volute"
 If ($PNPDevices_AVOL.Count -gt 0)
 {
-	Write-Host -Object "WARNING: Found bad A-Volute software components drivers , We are going to remove them to stop PSO2 from crashing"
+	Write-Host -Object "WARNING: Found bad A-Volute software components drivers, we are going to remove them to stop PSO2 from crashing"
 	Get-Service -ErrorAction SilentlyContinue -Name "NahimicService" | Stop-Service -ErrorAction Continue
 }
 $Drivers_AVOL = @()
@@ -1236,7 +1236,7 @@ If ($Drivers_SCP.Count -gt 0)
 	$Drivers_SCP
 }
 
-Write-Host -Object "Checking MS Store Setup"
+Write-Host -Object "Checking Windows Store Setup"
 try {
 Set-Service -Name "wuauserv" -StartupType Manual -ErrorAction Continue
 } catch {
@@ -1435,7 +1435,7 @@ If ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
 {
 	Set-Item -Path Env:devmgr_show_nonpresent_devices -Value "1"
 	$DEVMGR = Start-Process -FilePath (Join-Path -Path $env:SystemRoot -ChildPath "System32\devmgmt.msc") -WorkingDirectory $env:SystemRoot -PassThru -WindowStyle Maximized -Verbose
-	"I am will waiting for you to remove the hidden Storage controller: Xvdd SCSI Miniport" | PauseOnly
+	"I will be waiting for you to remove the hidden Storage controller: Xvdd SCSI Miniport" | PauseOnly
 	Wait-Process -Id $DEVMGR.Id -Verbose
 	$GamingSrv = @()
 	$GamingSrv += Get-Service -ErrorAction SilentlyContinue -Name "GamingServices"
@@ -1448,11 +1448,11 @@ If ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
 
 If ($GamingNetSrv_STOP.Count -gt 0 -and $GamingSrv_START.Count -gt 0 -and $GamingServices_Any_Error.Count -eq 0)
 {
-	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstall Windows" | PauseAndFail -ErrorLevel 34
+	"Look like you broke the WindowsApp folder, ask for ONE on ONE support to fix this without reinstalling Windows." | PauseAndFail -ErrorLevel 34
 }
 ElseIf ($GamingNetSrv_START.Count -gt 0 -and $GamingSrv_STOP.Count -gt 0)
 {
-	"Look like you have CheckPoint based software installed, Like ZoneAlarm, OR so many PNP devices in Device Manger, it crashes the GamingService App OR WORST, the DCOM subsystem is broken" | PauseAndFail -ErrorLevel 39
+	"Looks like you have CheckPoint based software installed, Like ZoneAlarm, OR you have so many PNP devices in Device Manager, it crashes the GamingService App OR WORST, the DCOM subsystem is broken." | PauseAndFail -ErrorLevel 39
 }
 
 If ($GamingServices_Any_Error.Count -gt 0)
@@ -1466,7 +1466,7 @@ If ($GamingServices_All.Count -eq 0 -and $GamingServices_Any.Count -gt 0)
 	Write-Host -Object "WARING: Old version of Gaming Services found!"
 	Write-Host -Object ""
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-	"	Please udpate Gaming Services from the MS Store." | PauseOnly
+	"	Please update Gaming Services from the Windows Store." | PauseOnly
 }
 ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 {
@@ -1481,10 +1481,10 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	Write-Host -Object ""
-	"We going to restart the computer to get Gaming Services App uninstall, please run the script again after reboot" | PauseOnly
+	"We going to restart this computer to get Gaming Services App to uninstall, please run the script again after reboot." | PauseOnly
 	Start-Sleep -Seconds 30
 	Restart-Computer -Verbose
-	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it" | PauseAndFail -ErrorLevel 24
+	"ERROR: Gaming Services has been removed, a reboot will be needed to reinstall it." | PauseAndFail -ErrorLevel 24
 }
 ElseIf ($GamingServices_Any.Count -gt 0 -and $GamingServices_User.Count -eq 0)
 {
@@ -1521,7 +1521,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
 		Write-Host -Object ""
-		"We going to restart the computer to get Gaming Services App install, please run the script again after reboot" | PauseOnly
+		"We going to restart this computer to get Gaming Services App to install, please run the script again after reboot." | PauseOnly
 		Start-Sleep -Seconds 30
 		Restart-Computer -Verbose
 		"ERROR: Gaming Services installed, please reboot." | PauseAndFail -ErrorLevel 25
@@ -1532,14 +1532,14 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 If ($false) #($GamingServices_Any.Count -eq 0 -or $ForceReinstallGS -eq $true)
 {
 	Write-Host -Object ""
-	Write-Host -Object "Starting MS Store App with the Gaming Service Listing..."
+	Write-Host -Object "Starting Windows Store App with the Gaming Service Listing..."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mwpm2cqnlhn")
-	"ERROR: Please make sure to install the Gaming Services from the MS Store." | PauseAndFail -ErrorLevel 26
+	"ERROR: Please make sure to install the Gaming Services App from the Windows Store." | PauseAndFail -ErrorLevel 26
 }
 ElseIf ($GamingServices_Any.Count -eq 0 -and $ForceReinstallGS -eq $true)
 {
 	Write-Host -Object ""
-	Write-Host -Object "Starting MS Store App with the XBox (Beta) Listing..."
+	Write-Host -Object "Starting Windows Store App with the XBOX (Beta) Listing..."
 	[Diagnostics.Process]::Start("ms-windows-store://pdp?productid=9mv0b5hzvk9z")
 }
 
@@ -1591,7 +1591,7 @@ If ($SkipOneDrive -ne $true)
 	Write-Host -Object "User Document folder is: $($PersonalFolder)"
 	If ($PersonalFolder -eq "")
 	{
-		"Ahhh, Can not find your Document Folder" | PauseOnly
+		"Ahhh, Can't find your Document Folder" | PauseOnly
 	}
 	If (-Not (Test-Path -LiteralPath $PersonalFolder -PathType Container))
 	{
@@ -1729,7 +1729,7 @@ If ($JSONObj)
 Else
 {
 	Write-Host -Object ""
-	"ERROR: Can not convert JSON into PowerShell Object. This shouldn't happen!" | PauseAndFail -ErrorLevel 7
+	"ERROR: Can't convert JSON into PowerShell Object. This shouldn't happen!" | PauseAndFail -ErrorLevel 7
 }
 If ($PSO2NABinFolder -eq "")
 {
@@ -1767,7 +1767,7 @@ If (-Not (Test-Path -LiteralPath $PSO2NAFolder -PathType Container))
 }
 ElseIf ($PSO2NAFolder -eq ($PSO2NAFolder | Split-Path -Leaf))
 {
-	"Sorry, but it seems you installed PSO2NA at the top of a drive, please move the pso2_bin folder into an another folder" | PauseANdFail -ErrorLevel 37
+	"Sorry, but it seems you installed PSO2NA at the top of a drive, please move the pso2_bin folder into another folder" | PauseANdFail -ErrorLevel 37
 }
 ElseIf ($PSO2NAFolder)
 {
@@ -1784,7 +1784,7 @@ ElseIf ($PSO2NAFolder)
 	Get-ChildItem -LiteralPath $PSO2NABinFolder -Recurse -Force -File -ErrorAction Continue | Where-Object Extension -eq ".pat" | Remove-Item -Force -ErrorAction Continue
 	If ($LeafPath -eq "ModifiableWindowsApps")
 	{
-		"Sorry, look like PSO2NA was installed via MS Store, we going to move the PSO2NA folder for you" | PauseOnly
+		"Sorry, look like PSO2NA was installed via Windows Store, we going to move the PSO2NA folder for you" | PauseOnly
 		$PSO2NAFolder = Join-Path -Path $PSO2Drive_Root -ChildPath "PHANTASYSTARONLINE2_NA"
 		New-Item -Path $PSO2NAFolder -ItemType Directory -Force -Confirm:$false -Verbose | Out-Null
 		$PSO2NABinFolder = Join-Path -Path $PSO2NAFolder -ChildPath "pso2_bin"
@@ -1797,7 +1797,7 @@ ElseIf ($PSO2NAFolder)
 	}
 	else
 	{
-		Write-Host -Object "Non MS Store copy installation detected"
+		Write-Host -Object "Non Windows Store copy installation detected."
  		$MAX_PATH = ("X:\".Length + 260) - ("\data\win32_na\0000000000000000000000000000000".Length)
 		If ($PSO2NAFolder.Length -ge $MAX_PATH)
 		{
@@ -1811,7 +1811,7 @@ Else
 	"ERROR: Cannot get PSO2NA Folder - Did you follow the instructions?" | PauseAndFail -ErrorLevel 9
 }
 
-"Checking if PSO2 is installed in a blackhole folder"
+"Checking if PSO2 is installed in a blackhole folder."
 $BadFolders = @()
 $BadFolders_40 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
 $BadFolders_16 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
@@ -1821,7 +1821,7 @@ If ($null -ne $BadFolders_16 -and "" -ne $BadFolders_16)
 }
 Else
 {
-	Write-Host -Object "No Desktop folder found"
+	Write-Host -Object "No Desktop folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Desktop"
 }
 $BadFolders_06 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::Favorites)
@@ -1831,7 +1831,7 @@ If ($null -ne $BadFolders_06 -and "" -ne $BadFolders_06)
 }
 Else
 {
-	Write-Host -Object "No Favorites folder found"
+	Write-Host -Object "No Favorites folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Favorites"
 }
 $BadFolders_05 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
@@ -1841,7 +1841,7 @@ If ($null -ne $BadFolders_05 -and "" -ne $BadFolders_05)
 }
 Else
 {
-	Write-Host -Object "No Documents folder found"
+	Write-Host -Object "No Documents folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Documents"
 }
 $BadFolders_13 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic)
@@ -1851,7 +1851,7 @@ If ($null -ne $BadFolders_13 -and "" -ne $BadFolders_13)
 }
 Else
 {
-	Write-Host -Object "No Music folder found"
+	Write-Host -Object "No Music folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Music"
 }
 $BadFolders_39 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
@@ -1861,7 +1861,7 @@ If ($null -ne $BadFolders_39 -and "" -ne $BadFolders_39)
 }
 Else
 {
-	Write-Host -Object "No Pictures folder found"
+	Write-Host -Object "No Pictures folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Pictures"
 }
 $BadFolders_14 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
@@ -1871,7 +1871,7 @@ If ($null -ne $BadFolders_14 -and "" -ne $BadFolders_14)
 }
 Else
 {
-	Write-Host -Object "No Videos folder found"
+	Write-Host -Object "No Videos folder found."
 	$BadFolders += Join-Path -Path $BadFolders_40 -ChildPath "Videos"
 }
 $BadFolders_38 = [System.Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
@@ -1958,15 +1958,15 @@ If ($BrokenVolume -eq $true)
 }
 ElseIf ($PSO2Vol_exFAT.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installation on an exFAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation is on a exFAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIf ($PSO2Vol_FAT.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installation on an FAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation is on a FAT formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIf ($PSO2Vol_FAT32.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installation on an FAT32 formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation is on a FAT32 formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIf ($PSO2Vol_NTFS.Count -gt 0)
 {
@@ -1974,11 +1974,11 @@ ElseIf ($PSO2Vol_NTFS.Count -gt 0)
 }
 ElseIf ($PSO2Vol_ReFS.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installation on an ReFS formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation is on a ReFS formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIf ($PSO2Vol_UnK.Count -gt 0)
 {
-	"WARNING: Your PSO2NA installation on an UNKNOWN formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
+	"WARNING: Your PSO2NA installation is on a UNKNOWN formatted drive, please move the PSO2NA installation elsewhere." | PauseAndFail -ErrorLevel 15
 }
 ElseIF ($PSO2Vol.Count -gt 0)
 {
@@ -1986,7 +1986,7 @@ ElseIF ($PSO2Vol.Count -gt 0)
 }
 Else
 {
-	Write-Host -Object "Unknown issue geting Storage data"
+	Write-Host -Object "Unknown issue getting Storage data."
 }
 
 "Checking for broken link files"
@@ -2012,7 +2012,7 @@ Else
 	[xml]$XMLContent = Get-Content -LiteralPath $Testing -Encoding UTF8 -Verbose
 	If ($null -ne $XMLContent.Package.Extension -or $XMLContent.Package.Applications.Application.Executable -ne "pso2_bin/pso2.exe")
 	{
-		Write-Host -Object "	BUT it is the MS Store copy, not Custom one"
+		Write-Host -Object "	BUT it is the Windows Store copy, not a custom one"
 		Remove-Item -LiteralPath $Testing -Force -Verbose
 		$MissingFiles = $true
 	}
@@ -2167,15 +2167,15 @@ $OldPackages += Get-AppxPackage -Name "100B7A24.oxyna" -AllUsers | Where-Object 
 
 If ($OldBackups.Count -gt 0)
 {
-	"Found $($OldBackups.Count) MS Store backup copies of PSO2NA, this may take a while" | PauseOnly
+	"Found $($OldBackups.Count) Windows Store backup copies of PSO2NA, this may take a while." | PauseOnly
 }
 If ($MWA.Count -gt 0)
 {
-	"Found MS Store patch folder of PSO2NA, this may take a while" | PauseOnly
+	"Found Windows Store patch folder of PSO2NA, this may take a while" | PauseOnly
 }
 ElseIf ($OldPackages.Count -gt 0)
 {
-	"Found MS Store copy of PSO2NA, this may take a while" | PauseOnly
+	"Found Windows Store copy of PSO2NA, this may take a while" | PauseOnly
 }
 
 If ($OldPackages.Count -gt 0)
@@ -2374,7 +2374,7 @@ Else
 	Write-Host -Object "	GOOD"
 }
 
-"Checking if an PSO2NA package is already installed on the system"
+"Checking if a PSO2NA package is already installed on the system."
 If ($PSO2Packages_User.Count -eq 0)
 {
 	Write-Host -Object "	YES"
@@ -2519,7 +2519,7 @@ ElseIf ($CustomPSO2.Count -eq 1)
 		RemakeClientHashs -Path $PSO2NABinFolder -Verbose | ConvertTo-Json | Out-File -FilePath "client_na.json" -Encoding UTF8
 	}
 	$LockDown | Remove-Item -Recurse -Force -Confirm:$false -Verbose
-	"We are going to start PSO2 Tweaker, please let it do an update check" | PauseOnly
+	"We are going to start PSO2 Tweaker, please let it do an update check." | PauseOnly
 	Start-Process -FilePath "PSO2 Tweaker.exe" -ArgumentList "-pso2na" -WorkingDirectory $PWD -WindowStyle Normal -Verbose
 }
 Else
