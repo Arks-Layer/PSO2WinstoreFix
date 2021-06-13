@@ -1491,7 +1491,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 	$GamingServices_Any | Remove-AppxPackage -Verbose -PreserveApplicationData:$false
 	$GamingServices_Any | Remove-AppxPackage -AllUsers -Verbose
 	Write-Host -Object ""
-	
+
 	@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
 		If (Test-Path $_)
 		{
@@ -1502,7 +1502,7 @@ ElseIf ($ForceReinstallGS -eq $true -and $GamingServices_All.Count -gt 0)
 			"Tried removing damaged registry key $_ but failed!"
 		}
 	}
-	
+
 	"We going to restart this computer to get Gaming Services App to uninstall, please run the script again after reboot." | PauseOnly
 
 	Start-Sleep -Seconds 30
@@ -1543,7 +1543,7 @@ ElseIf ($GamingServices_All.Count -eq 0 -or $ForceLocalInstall -eq $true)
 	$GamingServices_Any += Get-AppxPackage -Name "Microsoft.GamingServices" -PackageTypeFilter Main -Publisher "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" -AllUsers | PackageVersion -Version $GamingServices_version
 	If ($BadInstall -eq $false -and $GamingServices_Any.Count -gt 0)
 	{
-	
+
 		@("HKLM:SYSTEM\CurrentControlSet\Services\GamingServices", "HKLM:SYSTEM\CurrentControlSet\Services\GamingServicesNet") | ForEach-Object -Process {
 			If (Test-Path $_)
 			{
